@@ -1,0 +1,9 @@
+^.+\.Rproj$
+^\.Rproj\.user$
+^libWin$
+^libLinux$
+^RScripts$
+^\.dockerignore$
+^Dockerfile$
+^Jenkinsfile$
+^JenkinsfileMPI$

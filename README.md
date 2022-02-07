@@ -1,4 +1,4 @@
-# temporal-iso (MPI temporal estimation of isotopic values)
+# temporal-iso (OsteoBioR)
 
 R Package to estimate isotopic values in the past and their change over time.
 

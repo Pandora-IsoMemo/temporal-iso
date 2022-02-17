@@ -1,4 +1,4 @@
-# temporal-iso (OsteoBioR)
+# OsteoBioR (temporal-iso)
 
 R Package to estimate isotopic values in the past and their change over time.
 

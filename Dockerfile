@@ -1,10 +1,6 @@
-FROM inwt/r-shiny:4.0.1
+FROM ghcr.io/pandora-isomemo/base-image:latest
 
-RUN Rscript -e "devtools::install_github('INWTlab/shiny-matrix')"
-
-ENV PKG OsteoBioR
-
-COPY . .
+ADD . .
 
 RUN installPackage
 

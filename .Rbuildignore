@@ -6,5 +6,7 @@
 ^\.dockerignore$
 ^Dockerfile$
 ^Jenkinsfile$
-^JenkinsfileMPI$
 ^LICENSE\.md$
+^deploy\.sh$
+^\..*$
+^bin$

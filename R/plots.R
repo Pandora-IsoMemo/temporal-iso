@@ -240,6 +240,8 @@ joinTimeForDerivation <- function(time){
 #' 
 #' @param savedModels list of models of class \code{\link{TemporalIso}}
 #' @inheritParams plotTime
+#' 
+#' @export
 getDefaultPlotRange <- function(savedModels, deriv = "1"){
 
   dat <- lapply(savedModels, function(fit){

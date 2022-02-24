@@ -6,6 +6,8 @@
 #' @param label label of module
 #'
 #' @rdname downloadModel
+#'
+#' @export
 downloadModelUI <- function(id, label) {
   ns <- NS(id)
   
@@ -33,6 +35,8 @@ downloadModelUI <- function(id, label) {
 #' @param session shiny session
 #' @param savedModels (reactive) list of models of class \code{\link{TemporalIso}}
 #' @param uploadedNotes (reactive) variable that stores content for README.txt
+#'
+#' @export
 downloadModel <- function(input, output, session, savedModels, uploadedNotes){
   
   observe({
@@ -72,6 +76,8 @@ downloadModel <- function(input, output, session, savedModels, uploadedNotes){
 #' @param label label of module
 #'
 #' @rdname uploadModel
+#'
+#' @export
 uploadModelUI <- function(id, label) {
   ns <- NS(id)
   
@@ -92,6 +98,8 @@ uploadModelUI <- function(id, label) {
 #' @param session shiny session
 #' @param savedModels (reactive) list of models of class \code{\link{TemporalIso}}
 #' @param uploadedNotes (reactive) variable that stores content of README.txt
+#'
+#' @export
 uploadModel <- function(input, output, session, savedModels, uploadedNotes){
 
   observeEvent(input$uploadModel, {

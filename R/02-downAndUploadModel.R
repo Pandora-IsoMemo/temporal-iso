@@ -187,20 +187,6 @@ loadRemoteModel <- function(input, output, session, savedModels, uploadedNotes){
     path
   })
   
-  # remoteModels <- reactive({
-  #   if (!dir.exists(file.path(modelLocation(), "models"))) {
-  #     success <- system(paste("git clone github-bpred:isomemo/mpi-bpred.git", modelLocation()))
-  #     if (success != 0) return(NULL)
-  #   }
-  #   dir(file.path(modelLocation(), "models"))
-  # })
-  # predefinedModels <- reactive({
-  #   dir(file.path("./predefinedModels"))
-  # })
-  # 
-  # observeEvent(predefinedModels(), {
-  #   updateSelectInput(session, "remoteModel", choices = predefinedModels())
-  # })
   
   observeEvent(input$loadRemoteModel, {
     res <- try({

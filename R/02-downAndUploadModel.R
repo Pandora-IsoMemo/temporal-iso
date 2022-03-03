@@ -84,7 +84,15 @@ uploadModelUI <- function(id, label) {
   tagList(
     HTML("<br>"),
     tags$h5(label),
-    fileInput(ns("uploadModel"), label = NULL)
+    fileInput(ns("uploadModel"), label = NULL),
+    selectInput(
+      ns("remoteModel"),
+      label = "Select remote model",
+      choices = dir(file.path("./predefinedModels")),
+      selected = NULL
+    ),
+    actionButton(ns("loadRemoteModel"), "Load Remote Model")#,
+    #helpText("Remote models are only available on on https://isomemoapp.com")
   )
 }
 
@@ -101,12 +109,22 @@ uploadModelUI <- function(id, label) {
 #'
 #' @export
 uploadModel <- function(input, output, session, savedModels, uploadedNotes){
-
+  pathToModel <- reactiveVal(NULL)
+  
   observeEvent(input$uploadModel, {
+    pathToModel(input$uploadModel$datapath)
+  })
+  
+  observeEvent(input$loadRemoteModel, {
+    pathToModel(file.path("./predefinedModels", input$remoteModel))
+  })
+  
+  observeEvent(pathToModel(), {
+    req(pathToModel)
     model <- NULL
     
     res <- try({
-      zip::unzip(input$uploadModel$datapath)
+      zip::unzip(pathToModel())
       load("model.Rdata")
       uploadedNotes(readLines("README.txt") %>% .[1])
     })
@@ -138,76 +156,4 @@ addPackageVersionNo <- function(txt){
     paste(collapse = ".")
   
   paste0(txt, "\n\n", "OsteoBioR version ", versionNo, " .")
-}
-
-
-#' Load remote model module
-#'
-#' UI function to upload a zip file with notes and a list of models
-#'
-#' @param id id of module
-#' @param label label of module
-#'
-#' @rdname loadRemoteModel
-#'
-#' @export
-loadRemoteModelUI <- function(id, label) {
-  ns <- NS(id)
-  
-  tagList(
-    tags$h5(label),
-    selectInput(
-      ns("remoteModel"),
-      "Select Predefined Model",
-      choices = dir(file.path("./predefinedModels")),
-      selected = NULL
-    ),
-    actionButton(ns("loadRemoteModel"), "Load")#,
-    #helpText("Remote models are only available on on https://isomemoapp.com")
-  )
-}
-
-
-#' Server function load remote model
-#'
-#' Backend for upload model module
-#'
-#' @param input shiny input
-#' @param output shiny output
-#' @param session shiny session
-#' @param savedModels (reactive) list of models of class \code{\link{TemporalIso}}
-#' @param uploadedNotes (reactive) variable that stores content of README.txt
-#'
-#' @export
-loadRemoteModel <- function(input, output, session, savedModels, uploadedNotes){
-  
-  modelLocation <- reactive({
-    path <- file.path(tempdir(), "github")
-    dir.create(path)
-    path
-  })
-  
-  
-  observeEvent(input$loadRemoteModel, {
-    model <- NULL
-    
-    res <- try({
-      zip::unzip(file.path("./predefinedModels", input$remoteModel))
-      load("model.Rdata")
-      uploadedNotes(readLines("README.txt") %>% .[1])
-    })
-    
-    if (inherits(res, "try-error") || !exists("model")) {
-      alert("Could not read model from file")
-      return()
-    }
-    
-    if (!is.null(model)) {
-      savedModels(c(savedModels(), model))
-      updateSelectInput(session, "savedModels", choices = names(savedModels()))
-    }
-    
-    alert("Model loaded")
-  })
-  
 }

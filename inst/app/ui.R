@@ -341,7 +341,8 @@ tagList(
                  actionButton("loadModel", "Load"),
                  tags$hr(),
                  downloadModelUI("modelDownload", "Download Model"),
-                 uploadModelUI("modelUpload", "Upload Model")
+                 uploadModelUI("modelUpload", "Upload Model"),
+                 loadRemoteModelUI("predefinedModelLoad", "Load Remote Model")
                )
              )
              ),

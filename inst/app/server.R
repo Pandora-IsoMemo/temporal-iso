@@ -251,6 +251,8 @@ shinyServer(function(input, output, session) {
              savedModels = savedModels, uploadedNotes = uploadedNotes)
   callModule(uploadModel, "modelUpload", 
              savedModels = savedModels, uploadedNotes = uploadedNotes)
+  callModule(loadRemoteModel, "predefinedModelLoad",
+             savedModels = savedModels, uploadedNotes = uploadedNotes)
   
   observeEvent(input$exportSummary, {
     showModal(modalDialog(

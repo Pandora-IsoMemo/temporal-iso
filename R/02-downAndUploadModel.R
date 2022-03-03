@@ -68,7 +68,7 @@ downloadModel <- function(input, output, session, savedModels, uploadedNotes){
 }
 
 
-#' Upwnload model module
+#' Upload model module
 #'
 #' UI function to upload a zip file with notes and a list of models
 #'
@@ -138,4 +138,88 @@ addPackageVersionNo <- function(txt){
     paste(collapse = ".")
   
   paste0(txt, "\n\n", "OsteoBioR version ", versionNo, " .")
+}
+
+
+#' Load remote model module
+#'
+#' UI function to upload a zip file with notes and a list of models
+#'
+#' @param id id of module
+#' @param label label of module
+#'
+#' @rdname loadRemoteModel
+#'
+#' @export
+loadRemoteModelUI <- function(id, label) {
+  ns <- NS(id)
+  
+  tagList(
+    tags$h5(label),
+    selectInput(
+      ns("remoteModel"),
+      "Select Predefined Model",
+      choices = dir(file.path("./predefinedModels")),
+      selected = NULL
+    ),
+    actionButton(ns("loadRemoteModel"), "Load")#,
+    #helpText("Remote models are only available on on https://isomemoapp.com")
+  )
+}
+
+
+#' Server function load remote model
+#'
+#' Backend for upload model module
+#'
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param savedModels (reactive) list of models of class \code{\link{TemporalIso}}
+#' @param uploadedNotes (reactive) variable that stores content of README.txt
+#'
+#' @export
+loadRemoteModel <- function(input, output, session, savedModels, uploadedNotes){
+  
+  modelLocation <- reactive({
+    path <- file.path(tempdir(), "github")
+    dir.create(path)
+    path
+  })
+  
+  # remoteModels <- reactive({
+  #   if (!dir.exists(file.path(modelLocation(), "models"))) {
+  #     success <- system(paste("git clone github-bpred:isomemo/mpi-bpred.git", modelLocation()))
+  #     if (success != 0) return(NULL)
+  #   }
+  #   dir(file.path(modelLocation(), "models"))
+  # })
+  # predefinedModels <- reactive({
+  #   dir(file.path("./predefinedModels"))
+  # })
+  # 
+  # observeEvent(predefinedModels(), {
+  #   updateSelectInput(session, "remoteModel", choices = predefinedModels())
+  # })
+  
+  observeEvent(input$loadRemoteModel, {
+    res <- try({
+      zip::unzip(file.path("./predefinedModels", input$remoteModel))
+      load("model.Rdata")
+      uploadedNotes(readLines("README.txt") %>% .[1])
+    })
+    
+    if (inherits(res, "try-error") || !exists("model")) {
+      alert("Could not read model from file")
+      return()
+    }
+    
+    if (!is.null(model)) {
+      savedModels(c(savedModels(), model))
+      updateSelectInput(session, "savedModels", choices = names(savedModels()))
+    }
+    
+    alert("Model loaded")
+  })
+  
 }

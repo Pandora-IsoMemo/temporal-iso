@@ -189,6 +189,8 @@ loadRemoteModel <- function(input, output, session, savedModels, uploadedNotes){
   
   
   observeEvent(input$loadRemoteModel, {
+    model <- NULL
+    
     res <- try({
       zip::unzip(file.path("./predefinedModels", input$remoteModel))
       load("model.Rdata")

@@ -23,7 +23,7 @@
 #' @importFrom shinyjs alert
 #' @importFrom shinyWidgets pickerInput updatePickerInput
 #' @importFrom stats approx dnorm lm median quantile sd
-#' @importFrom utils write.csv write.table combn
+#' @importFrom utils write.csv write.table combn packageVersion
 #' @importFrom zip zipr
 #' @references
 #' Stan Development Team (NA). RStan: the R interface to Stan. R package version NA. http://mc-stan.org

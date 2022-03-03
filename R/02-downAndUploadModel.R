@@ -108,7 +108,7 @@ uploadModelUI <- function(id, label) {
 #' @param uploadedNotes (reactive) variable that stores content of README.txt
 #'
 #' @export
-uploadModel <- function(input, output, session, savedModels, uploadedNotes){
+uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit){
   pathToModel <- reactiveVal(NULL)
   
   observeEvent(input$uploadModel, {
@@ -137,6 +137,7 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes){
     if (!is.null(model)) {
       savedModels(c(savedModels(), model))
       updateSelectInput(session, "savedModels", choices = names(savedModels()))
+      fit(savedModels()[[length(savedModels())]])
     }
     
     alert("Model loaded")

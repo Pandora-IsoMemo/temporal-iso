@@ -250,7 +250,7 @@ shinyServer(function(input, output, session) {
   callModule(downloadModel, "modelDownload", 
              savedModels = savedModels, uploadedNotes = uploadedNotes)
   callModule(uploadModel, "modelUpload", 
-             savedModels = savedModels, uploadedNotes = uploadedNotes)
+             savedModels = savedModels, uploadedNotes = uploadedNotes, fit = fit)
   
   observeEvent(input$exportSummary, {
     showModal(modalDialog(

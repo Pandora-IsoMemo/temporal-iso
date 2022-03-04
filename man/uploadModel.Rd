@@ -23,6 +23,8 @@ uploadModel(input, output, session, savedModels, uploadedNotes, fit)
 \item{savedModels}{(reactive) list of models of class \code{\link{TemporalIso}}}
 
 \item{uploadedNotes}{(reactive) variable that stores content of README.txt}
+
+\item{fit}{(reactive) model of class \code{\link{TemporalIso}} that is currently displayed}
 }
 \description{
 UI function to upload a zip file with notes and a list of models

@@ -106,6 +106,7 @@ uploadModelUI <- function(id, label) {
 #' @param session shiny session
 #' @param savedModels (reactive) list of models of class \code{\link{TemporalIso}}
 #' @param uploadedNotes (reactive) variable that stores content of README.txt
+#' @param fit (reactive) model of class \code{\link{TemporalIso}} that is currently displayed
 #'
 #' @export
 uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit){

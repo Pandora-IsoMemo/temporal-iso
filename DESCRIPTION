@@ -16,6 +16,7 @@ Imports:
   colourpicker,
   dplyr,
   ggplot2 (>= 2.2.1),
+  htmltools,
   jsonlite,
   magrittr,
   methods,

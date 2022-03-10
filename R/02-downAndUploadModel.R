@@ -54,7 +54,7 @@ downloadModel <- function(input, output, session, savedModels, uploadedNotes){
       zipdir <- tempdir()
       modelfile <- file.path(zipdir, "model.Rdata")
       notesfile <- file.path(zipdir, "README.txt")
-      helpfile <- file.path(zipdir, "help.txt")
+      helpfile <- file.path(zipdir, "help.html")
       
       req(savedModels(), input$selectedModels)
       model <- savedModels()[input$selectedModels]
@@ -63,8 +63,7 @@ downloadModel <- function(input, output, session, savedModels, uploadedNotes){
       save(model, file = modelfile)
       writeLines(input$notes %>% addPackageVersionNo(),
                  notesfile)
-      writeLines(getHelp(input$tab) %>% as.character(),
-                 helpfile)
+      save_html(getHelp(input$tab), helpfile)
       zipr(file, c(modelfile, notesfile, helpfile))
     }
   )

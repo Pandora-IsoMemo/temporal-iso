@@ -133,16 +133,24 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit)
       uploadedNotes(readLines("README.txt") %>% .[1])
     })
     
-    if (inherits(res, "try-error") || !exists("model")) {
-      alert("Could not read model from file")
+    if (inherits(res, "try-error")) {
+      shinyjs::alert("Could not load file.")
       return()
     }
     
-    if (!is.null(model)) {
-      savedModels(c(savedModels(), model))
-      updateSelectInput(session, "savedModels", choices = names(savedModels()))
-      fit(savedModels()[[length(savedModels())]])
+    if (!exists("model")) {
+      shinyjs::alert("File format not valid. Model object not found.")
+      return()
     }
+    
+    if (is.null(model)) {
+      shinyjs::alert("Empty model object.")
+      return()
+    }
+    
+    savedModels(c(savedModels(), model))
+    updateSelectInput(session, "savedModels", choices = names(savedModels()))
+    fit(savedModels()[[length(savedModels())]])
     
     alert("Model loaded")
   })

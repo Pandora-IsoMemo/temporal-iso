@@ -90,7 +90,8 @@ uploadModelUI <- function(id, label) {
     selectInput(
       ns("remoteModel"),
       label = "Select remote model",
-      choices = dir(file.path("./predefinedModels")),
+      choices = dir(file.path("./predefinedModels")) %>%
+        sub(pattern = '\\.zip$', replacement = ''),
       selected = NULL
     ),
     actionButton(ns("loadRemoteModel"), "Load Remote Model")#,

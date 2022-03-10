@@ -90,7 +90,7 @@ uploadModelUI <- function(id, label) {
     selectInput(
       ns("remoteModel"),
       label = "Select remote model",
-      choices = dir(file.path("./predefinedModels")) %>%
+      choices = dir(file.path(settings$pathToSavedModels)) %>%
         sub(pattern = '\\.zip$', replacement = ''),
       selected = NULL
     ),
@@ -120,7 +120,7 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit)
   })
   
   observeEvent(input$loadRemoteModel, {
-    pathToModel(file.path("./predefinedModels", input$remoteModel))
+    pathToModel(file.path(settings$pathToSavedModels, paste0(input$remoteModel, ".zip")))
   })
   
   observeEvent(pathToModel(), {

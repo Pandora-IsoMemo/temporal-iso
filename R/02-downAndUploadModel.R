@@ -52,7 +52,7 @@ downloadModel <- function(input, output, session, savedModels, uploadedNotes){
     },
     content = function(file) {
       zipdir <- tempdir()
-      modelfile <- file.path(zipdir, "model.Rdata")
+      modelfile <- file.path(zipdir, "model.rds")
       notesfile <- file.path(zipdir, "README.txt")
       helpfile <- file.path(zipdir, "help.html")
       
@@ -60,9 +60,10 @@ downloadModel <- function(input, output, session, savedModels, uploadedNotes){
       model <- savedModels()[input$selectedModels]
       
       req(model)
-      save(model, file = modelfile)
-      writeLines(input$notes %>% addPackageVersionNo(),
-                 notesfile)
+      saveRDS(list(model = model,
+                   version = packageVersion("OsteoBioR")),
+              file = modelfile)
+      writeLines(input$notes, notesfile)
       save_html(getHelp(input$tab), helpfile)
       zipr(file, c(modelfile, notesfile, helpfile))
     }
@@ -129,8 +130,8 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit)
     
     res <- try({
       zip::unzip(pathToModel())
-      load("model.Rdata")
-      uploadedNotes(readLines("README.txt") %>% .[1])
+      modelImport <- readRDS("model.rds")
+      uploadedNotes(readLines("README.txt"))
     })
     
     if (inherits(res, "try-error")) {
@@ -138,35 +139,21 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit)
       return()
     }
     
-    if (!exists("model")) {
+    if (!exists("modelImport")) {
       shinyjs::alert("File format not valid. Model object not found.")
       return()
     }
     
-    if (is.null(model)) {
+    if (is.null(modelImport$model)) {
       shinyjs::alert("Empty model object.")
       return()
     }
     
-    savedModels(c(savedModels(), model))
+    savedModels(c(savedModels(), modelImport$model))
     updateSelectInput(session, "savedModels", choices = names(savedModels()))
     fit(savedModels()[[length(savedModels())]])
     
     alert("Model loaded")
   })
   
-}
-
-
-#' Add Package Version Number
-#' 
-#' @param txt (character) text to which version number is appended
-addPackageVersionNo <- function(txt){
-  versionNo <- packageVersion("OsteoBioR") %>%
-    as.character() %>%
-    strsplit(split = "\\.") %>% 
-    unlist() %>% 
-    paste(collapse = ".")
-  
-  paste0(txt, "\n\n", "OsteoBioR version ", versionNo, " .")
 }

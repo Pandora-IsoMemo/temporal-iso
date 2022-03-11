@@ -52,23 +52,26 @@ downloadModel <- function(input, output, session, savedModels, uploadedNotes){
     },
     content = function(file) {
       zipdir <- tempdir()
-      modelfile <- file.path(zipdir, "model.Rdata")
+      modelfile <- file.path(zipdir, "model.rds")
       notesfile <- file.path(zipdir, "README.txt")
+      helpfile <- file.path(zipdir, "help.html")
       
       req(savedModels(), input$selectedModels)
       model <- savedModels()[input$selectedModels]
       
       req(model)
-      save(model, file = modelfile)
-      writeLines(input$notes %>% addPackageVersionNo(),
-                 notesfile)
-      zipr(file, c(modelfile, notesfile))
+      saveRDS(list(model = model,
+                   version = packageVersion("OsteoBioR")),
+              file = modelfile)
+      writeLines(input$notes, notesfile)
+      save_html(getHelp(input$tab), helpfile)
+      zipr(file, c(modelfile, notesfile, helpfile))
     }
   )
 }
 
 
-#' Upwnload model module
+#' Upload model module
 #'
 #' UI function to upload a zip file with notes and a list of models
 #'
@@ -84,7 +87,16 @@ uploadModelUI <- function(id, label) {
   tagList(
     HTML("<br>"),
     tags$h5(label),
-    fileInput(ns("uploadModel"), label = NULL)
+    fileInput(ns("uploadModel"), label = NULL),
+    selectInput(
+      ns("remoteModel"),
+      label = "Select remote model",
+      choices = dir(file.path(settings$pathToSavedModels)) %>%
+        sub(pattern = '\\.zip$', replacement = ''),
+      selected = NULL
+    ),
+    actionButton(ns("loadRemoteModel"), "Load Remote Model")#,
+    #helpText("Remote models are only available on on https://isomemoapp.com")
   )
 }
 
@@ -98,44 +110,50 @@ uploadModelUI <- function(id, label) {
 #' @param session shiny session
 #' @param savedModels (reactive) list of models of class \code{\link{TemporalIso}}
 #' @param uploadedNotes (reactive) variable that stores content of README.txt
+#' @param fit (reactive) model of class \code{\link{TemporalIso}} that is currently displayed
 #'
 #' @export
-uploadModel <- function(input, output, session, savedModels, uploadedNotes){
-
+uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit){
+  pathToModel <- reactiveVal(NULL)
+  
   observeEvent(input$uploadModel, {
+    pathToModel(input$uploadModel$datapath)
+  })
+  
+  observeEvent(input$loadRemoteModel, {
+    pathToModel(file.path(settings$pathToSavedModels, paste0(input$remoteModel, ".zip")))
+  })
+  
+  observeEvent(pathToModel(), {
+    req(pathToModel)
     model <- NULL
     
     res <- try({
-      zip::unzip(input$uploadModel$datapath)
-      load("model.Rdata")
-      uploadedNotes(readLines("README.txt") %>% .[1])
+      zip::unzip(pathToModel())
+      modelImport <- readRDS("model.rds")
+      uploadedNotes(readLines("README.txt"))
     })
     
-    if (inherits(res, "try-error") || !exists("model")) {
-      alert("Could not read model from file")
+    if (inherits(res, "try-error")) {
+      shinyjs::alert("Could not load file.")
       return()
     }
     
-    if (!is.null(model)) {
-      savedModels(c(savedModels(), model))
-      updateSelectInput(session, "savedModels", choices = names(savedModels()))
+    if (!exists("modelImport")) {
+      shinyjs::alert("File format not valid. Model object not found.")
+      return()
     }
+    
+    if (is.null(modelImport$model)) {
+      shinyjs::alert("Empty model object.")
+      return()
+    }
+    
+    savedModels(c(savedModels(), modelImport$model))
+    updateSelectInput(session, "savedModels", choices = names(savedModels()))
+    fit(savedModels()[[length(savedModels())]])
     
     alert("Model loaded")
   })
   
-}
-
-
-#' Add Package Version Number
-#' 
-#' @param txt (character) text to which version number is appended
-addPackageVersionNo <- function(txt){
-  versionNo <- packageVersion("OsteoBioR") %>%
-    as.character() %>%
-    strsplit(split = "\\.") %>% 
-    unlist() %>% 
-    paste(collapse = ".")
-  
-  paste0(txt, "\n\n", "OsteoBioR version ", versionNo, " .")
 }

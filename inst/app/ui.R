@@ -330,16 +330,21 @@ tagList(
                sidebarPanel(
                  width = 2,
                  tags$h5("Save Model"),
-                 #tags$br(),
-                 textInput("modelName", label = NULL, placeholder = "model name"),
-                 HTML("<br>"),
-                 actionButton("saveModel", "Save"),
-                 HTML("<br>"),
+                 fluidRow(
+                   column(width = 8,
+                          textInput("modelName", label = NULL, placeholder = "model name")),
+                   column(width = 4,
+                          actionButton("saveModel", "Save"))
+                 ),
                  HTML("<br>"),
                  tags$h5("Load Model"),
-                 selectInput("savedModels", label = NULL, choices = NULL),
-                 actionButton("loadModel", "Load"),
-                 tags$hr(),
+                 fluidRow(
+                   column(width = 8,
+                          selectInput("savedModels", label = NULL, choices = NULL)),
+                   column(width = 4,
+                          actionButton("loadModel", "Load"))
+                 ),
+                 tags$br(),
                  downloadModelUI("modelDownload", "Download Model"),
                  uploadModelUI("modelUpload", "Upload Model")
                )

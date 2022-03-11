@@ -3,11 +3,11 @@
 \name{uploadModelUI}
 \alias{uploadModelUI}
 \alias{uploadModel}
-\title{Upwnload model module}
+\title{Upload model module}
 \usage{
 uploadModelUI(id, label)
 
-uploadModel(input, output, session, savedModels, uploadedNotes)
+uploadModel(input, output, session, savedModels, uploadedNotes, fit)
 }
 \arguments{
 \item{id}{id of module}
@@ -23,6 +23,8 @@ uploadModel(input, output, session, savedModels, uploadedNotes)
 \item{savedModels}{(reactive) list of models of class \code{\link{TemporalIso}}}
 
 \item{uploadedNotes}{(reactive) variable that stores content of README.txt}
+
+\item{fit}{(reactive) model of class \code{\link{TemporalIso}} that is currently displayed}
 }
 \description{
 UI function to upload a zip file with notes and a list of models

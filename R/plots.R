@@ -155,6 +155,8 @@ adjustTimeColumn <- function(objectTime, deriv){
 #' 
 #' @export
 getXAxisData <- function(object, oldXAxisData = data.frame()){
+  if (is.null(object)) return(data.frame())
+  
   xAxisData <- data.frame(time = object@time,
                           lower = object@timeLower,
                           upper = object@timeUpper)
@@ -244,22 +246,30 @@ joinTimeForDerivation <- function(time){
 #' @export
 getDefaultPlotRange <- function(savedModels, deriv = "1"){
 
-  dat <- lapply(savedModels, function(fit){
+  dat <- lapply(savedModels, function(model){
+    if (is.null(model$fit)) return(NULL)
+    fit <- model$fit
     x <- getPlotData(fit, prop = 0.8, deriv = deriv)
     x$time <- adjustTimeColumn(objectTime = fit@time, deriv = deriv)
     x
     })
+  
   dat <- dat %>% bind_rows()
   
-  minX <- min(dat$time, na.rm = TRUE)
-  maxX <- max(dat$time, na.rm = TRUE)
+  if (nrow(dat) == 0) return(list(xmin = defaultInputsForUI()$xmin,
+                                  xmax = defaultInputsForUI()$xmax,
+                                  ymin = defaultInputsForUI()$ymin,
+                                  ymax = defaultInputsForUI()$ymax))
   
-  minY <- min(dat$lower, na.rm = TRUE)
-  maxY <- max(dat$upper, na.rm = TRUE)
-  rangeY <- maxY - minY
+  xmin <- min(dat$time, na.rm = TRUE)
+  xmax <- max(dat$time, na.rm = TRUE)
   
-  list(minX = minX,
-       maxX = maxX,
-       minY = minY - 0.1*rangeY,
-       maxY = maxY + 0.1*rangeY)
+  ymin <- min(dat$lower, na.rm = TRUE)
+  ymax <- max(dat$upper, na.rm = TRUE)
+  rangeY <- ymax - ymin
+  
+  list(xmin = xmin,
+       xmax = xmax,
+       ymin = ymin - 0.1*rangeY,
+       ymax = ymax + 0.1*rangeY)
 }

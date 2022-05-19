@@ -7,7 +7,17 @@
 \usage{
 uploadModelUI(id, label)
 
-uploadModel(input, output, session, savedModels, uploadedNotes, fit)
+uploadModel(
+  input,
+  output,
+  session,
+  savedModels,
+  uploadedNotes,
+  fit,
+  uploadedModelSpecInputs,
+  uploadedDataMatrix,
+  uploadedIsotope
+)
 }
 \arguments{
 \item{id}{id of module}
@@ -25,6 +35,12 @@ uploadModel(input, output, session, savedModels, uploadedNotes, fit)
 \item{uploadedNotes}{(reactive) variable that stores content of README.txt}
 
 \item{fit}{(reactive) model of class \code{\link{TemporalIso}} that is currently displayed}
+
+\item{uploadedModelSpecInputs}{(reactive) modelSpecifications for the current fit}
+
+\item{uploadedDataMatrix}{(reactive) shinyMatrix matrixInput}
+
+\item{uploadedIsotope}{(reactive) shinyMatrix matrixInput}
 }
 \description{
 UI function to upload a zip file with notes and a list of models

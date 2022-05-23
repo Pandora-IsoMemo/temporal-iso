@@ -17,7 +17,7 @@ downloadModelUI <- function(id, label) {
                 choices = NULL,
                 options = list(`actions-box` = TRUE),
                 multiple = T),
-    checkboxInput(ns("onlyInputs"), "Store only inputs"),
+    checkboxInput(ns("onlyInputs"), "Store only data and model options"),
     textAreaInput(ns("notes"), "Notes"),
     HTML("<br>"),
     downloadButton(ns("downloadModel"), "Download"),

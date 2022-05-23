@@ -75,14 +75,12 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs){
       
       observe({
         req(dataMatrix())
-        
         if (length(uploadedModelSpecInputs()) == 0) {
           updatePickerInput(session, "timeVars", choices = dataMatrix() %>% colnames(),
                             selected = character(0))
           updatePickerInput(session, "boneVars", choices = dataMatrix() %>% colnames(),
                             selected = character(0))
-          updateSelectizeInput(session, "indVar", choices = dataMatrix() %>% colnames(),
-                               selected = character(0))
+          updateSelectizeInput(session, "indVar", choices = dataMatrix() %>% colnames())
           updateSliderInput(session, "iter", value = defaultModelSpecValues()$iter)
           updateSliderInput(session, "burnin", value = defaultModelSpecValues()$burnin)
           updateSliderInput(session, "chains", value = defaultModelSpecValues()$chains)

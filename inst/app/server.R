@@ -94,6 +94,7 @@ shinyServer(function(input, output, session) {
                                                uploadedModelSpecInputs = uploadedModelSpecInputs)
   
   modDat <- eventReactive(input$dataMatrix, {
+    req(modelSpecInputs()$indVar)
     ret <- input$dataMatrix %>%
       data.frame() %>%
       .[colSums(!is.na(.)) > 0] #%>%
@@ -132,6 +133,7 @@ shinyServer(function(input, output, session) {
     if(!(all(length(nIndividuals1())==length(nIndividuals2())) && all(nIndividuals1()==nIndividuals2()))){
       shinyjs::alert("Number of individuals must be the same in both renewal and measurements table")
     }
+    req(modDat())
     fitted <- try({
       lapply(1:length(modDat()), function(x){
         withProgress({

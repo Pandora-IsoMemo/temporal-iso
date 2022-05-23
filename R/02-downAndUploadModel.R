@@ -17,7 +17,7 @@ downloadModelUI <- function(id, label) {
                 choices = NULL,
                 options = list(`actions-box` = TRUE),
                 multiple = T),
-    HTML("<br>"),
+    checkboxInput(ns("onlyInputs"), "Store only data and model options"),
     textAreaInput(ns("notes"), "Notes"),
     HTML("<br>"),
     downloadButton(ns("downloadModel"), "Download"),
@@ -57,7 +57,17 @@ downloadModel <- function(input, output, session, savedModels, uploadedNotes){
       helpfile <- file.path(zipdir, "help.html")
       
       req(savedModels(), input$selectedModels)
-      model <- savedModels()[input$selectedModels]
+      
+      if (input$onlyInputs) {
+        model <- lapply(savedModels()[input$selectedModels], 
+                        function(thisModel) {
+                          thisModel$fit <- NULL 
+                          thisModel
+               })
+      } else {
+        model <- savedModels()[input$selectedModels]
+      }
+      
       
       req(model)
       saveRDS(list(model = model,
@@ -111,9 +121,13 @@ uploadModelUI <- function(id, label) {
 #' @param savedModels (reactive) list of models of class \code{\link{TemporalIso}}
 #' @param uploadedNotes (reactive) variable that stores content of README.txt
 #' @param fit (reactive) model of class \code{\link{TemporalIso}} that is currently displayed
+#' @param uploadedModelSpecInputs (reactive) modelSpecifications for the current fit
+#' @param uploadedDataMatrix (reactive) shinyMatrix matrixInput
+#' @param uploadedIsotope (reactive) shinyMatrix matrixInput
 #'
 #' @export
-uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit){
+uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit,
+                        uploadedModelSpecInputs, uploadedDataMatrix, uploadedIsotope){
   pathToModel <- reactiveVal(NULL)
   
   observeEvent(input$uploadModel, {
@@ -149,11 +163,37 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit)
       return()
     }
     
-    savedModels(c(savedModels(), modelImport$model))
-    updateSelectInput(session, "savedModels", choices = names(savedModels()))
-    fit(savedModels()[[length(savedModels())]])
+    savedModels(c(savedModels(), extractModel(modelImport$model)))
+    
+    currentModel <- savedModels()[[length(savedModels())]]
+    
+    fit(currentModel$fit)
+    uploadedModelSpecInputs(currentModel$modelSpecifications)
+    uploadedDataMatrix(currentModel$inputDataMatrix)
+    uploadedIsotope(currentModel$inputIsotope)
     
     alert("Model loaded")
   })
   
+}
+
+
+#' Extract Model
+#' 
+#' Extract model fit and possibly model specification inputs from a previously exported
+#' model object.
+#' @param modelFromImport imported model object
+extractModel <- function(modelFromImport) {
+  if (all(names(modelFromImport[[1]]) %in% c("fit", "modelSpecifications", 
+                                             "inputDataMatrix", "inputIsotope"))) {
+    # current format of exported models: list(fit = fit, modelSpecifications = modelSpecifications)
+    return(modelFromImport)
+  } else { 
+    # former format of exported models: fit
+    return(lapply(modelFromImport, function(fit) list(fit = fit,
+                                                      modelSpecifications = list(),
+                                                      inputDataMatrix = NULL,
+                                                      inputIsotope = NULL)
+                  ))
+  }
 }

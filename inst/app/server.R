@@ -12,41 +12,10 @@ options(shiny.maxRequestSize = 200*1024^2)
 
 shinyServer(function(input, output, session) {
   ### DATA -------------------------------------------------
-  # isotopeVals <- matrix(c(c(1,1,1,1,2,2,2,2),
-  #                         c(-10, -7, -12, -9, -14, -15, -8, NA), 
-  #                         c(2, 1.5, 2.5, 2.5, 1.5, 3.5, 3, NA)), 
-  #                       ncol = 3, 
-  #                       dimnames = list(NULL, c("individual", "y_mean", "y_sigma")))
-  isotopeVals <- data.frame(individual = rep(c(1,11,2), each = 4),
-                            y_mean = c(rep(c(-10, -7, -12, -9), 2), c(-14, -15, -8, NA)),
-                            y_sigma = c(rep(c(2, 1.5, 2.5, 2.5), 2), c(1.5, 3.5, 3, NA))
-                            ) %>%
-    as.matrix()
-  
   dat <- reactiveValues()
-  # dat$dataExample <- eventReactive(input$exampleData, ignoreNULL = TRUE, {
-  #   as.matrix(data.frame(
-  #     individual = rep(1:2, each = 6),
-  #     intStart = rep(0:5, 2),
-  #     intEnd = rep(1:6, 2),
-  #     bone1 = c(100, 50, 20, 10, 5, 2, 100, 80, 30, 8, 15, 4),
-  #     bone2 = c(100, 10, 5, 1, 1, 1, 90, 40, 5, 1, 12, 1),
-  #     tooth1 = c(0, 100, 0, 0, 0, 0, 0, 80, 20, 0, 0, 0),
-  #     tooth2 = c(0, 0, 100, 0, 0, 0, NA, NA, NA, NA, NA, NA)
-  #   ))
-  dat$dataExample <- eventReactive(input$exampleData, ignoreNULL = TRUE, {
-    exmpl <- data.frame(
-      individual = rep(1:2, each = 6),
-      intStart = rep(0:5, 2),
-      intEnd = rep(1:6, 2),
-      bone1 = c(100, 50, 20, 10, 5, 2, 100, 80, 30, 8, 15, 4),
-      bone2 = c(100, 10, 5, 1, 1, 1, 90, 40, 5, 1, 12, 1),
-      tooth1 = c(0, 100, 0, 0, 0, 0, 0, 80, 20, 0, 0, 0),
-      tooth2 = c(0, 0, 100, 0, 0, 0, NA, NA, NA, NA, NA, NA)
-    ) %>% slice(-4)
-    exmpl$individual[4:5] <- 11
-    as.matrix(exmpl)
-  })
+  uploadedDataMatrix <- reactiveVal()
+  uploadedIsotope <- reactiveVal()
+  uploadedModelSpecInputs <- reactiveVal()
   
   dat$dataFile <- eventReactive(input$fileData, ignoreNULL = TRUE, {
     inFile <- input$fileData
@@ -80,34 +49,58 @@ shinyServer(function(input, output, session) {
   })
   
   
-  
   observeEvent(input$exampleData, {
-    updateMatrixInput(session, "dataMatrix", value = dat$dataExample() )
-    updateMatrixInput(session, "isotope", value = isotopeVals)
+    updateMatrixInput(session, "dataMatrix", value = getExampleDataMatrix() )
+    updateMatrixInput(session, "isotope", value = getExampleIsotopeVals())
+    
+    # reset values storing data from uploaded models
+    uploadedDataMatrix(NULL)
+    uploadedIsotope(NULL)
+    uploadedModelSpecInputs(NULL)
   })
   
   observeEvent(input$fileData, {
     updateMatrixInput(session, "dataMatrix", value = dat$dataFile() )
+    
+    # reset values storing data from uploaded models
+    uploadedDataMatrix(NULL)
+    uploadedIsotope(NULL)
+    uploadedModelSpecInputs(NULL)
   })
   
   observeEvent(input$fileIso, {
     updateMatrixInput(session, "isotope", value = dat$fileIso() )
+    
+    # reset values storing data from uploaded models
+    uploadedDataMatrix(NULL)
+    uploadedIsotope(NULL)
+    uploadedModelSpecInputs(NULL)
+  })
+  
+  observeEvent(uploadedDataMatrix(), {
+    req(uploadedDataMatrix())
+    updateMatrixInput(session, "dataMatrix", value = uploadedDataMatrix() )
+  })
+  
+  observeEvent(uploadedIsotope(), {
+    req(uploadedIsotope())
+    updateMatrixInput(session, "isotope", value = uploadedIsotope() )
   })
   
   ### MODEL -------------------------------------------------
   
+  modelSpecInputs <- modelSpecificationsServer(id = "modelSpecification", 
+                                               dataMatrix = reactive(input$dataMatrix),
+                                               uploadedModelSpecInputs = uploadedModelSpecInputs)
+  
   modDat <- eventReactive(input$dataMatrix, {
+    req(modelSpecInputs()$indVar)
     ret <- input$dataMatrix %>%
       data.frame() %>%
       .[colSums(!is.na(.)) > 0] #%>%
       #filter(complete.cases(.))
-    lapply(split(ret, ret[,input$indVar]), function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
-  })
-  
-  observe({
-    updatePickerInput(session, "timeVars", choices = input$dataMatrix %>% colnames() )
-    updatePickerInput(session, "boneVars", choices = input$dataMatrix %>% colnames() )
-    updateSelectizeInput(session, "indVar", choices = input$dataMatrix %>% colnames() )
+    lapply(split(ret, ret[, modelSpecInputs()$indVar]),
+           function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
   })
   
   isoMean <- eventReactive(input$isotope, {
@@ -133,24 +126,30 @@ shinyServer(function(input, output, session) {
   nIndividuals1 <- reactive({(unique(na.omit(input$isotope[,1])))})
   nIndividuals2 <- reactive({(unique(na.omit(input$dataMatrix[,1])))})
   
+  savedModels <- reactiveVal(list())
+  intervalTimePlot <- reactiveVal()
+  
   observeEvent(input$fitModel, {
     if(!(all(length(nIndividuals1())==length(nIndividuals2())) && all(nIndividuals1()==nIndividuals2()))){
       shinyjs::alert("Number of individuals must be the same in both renewal and measurements table")
     }
+    req(modDat())
     fitted <- try({
       lapply(1:length(modDat()), function(x){
         withProgress({
-      boneVars <- input$boneVars[which(input$boneVars %in% colnames(modDat()[[x]]))]
-      estimateIntervals(renewalRates = data.frame(modDat()[[x]]),
-                      timeVars = input$timeVars,
-                      boneVars = boneVars,
-                      isoMean = unlist(isoMean()[[x]]),
-                      isoSigma = unlist(isoSigma()[[x]]),
-                      iter = input$iter,
-                      burnin = input$burnin,
-                      chains = input$chains)
+          boneVars <- modelSpecInputs()$boneVars[
+            which(modelSpecInputs()$boneVars %in% colnames(modDat()[[x]]))
+          ]
+          estimateIntervals(renewalRates = data.frame(modDat()[[x]]),
+                            timeVars = modelSpecInputs()$timeVars,
+                            boneVars = boneVars,
+                            isoMean = unlist(isoMean()[[x]]),
+                            isoSigma = unlist(isoSigma()[[x]]),
+                            iter = modelSpecInputs()$iter,
+                            burnin = modelSpecInputs()$burnin,
+                            chains = modelSpecInputs()$chains)
         }, value = x / length(modDat()),
-      message = paste0("Calculate model for individual nr.", x))
+        message = paste0("Calculate model for individual nr.", x))
       })
     }, silent = TRUE)
     if (inherits(fitted, "try-error")) {
@@ -159,18 +158,27 @@ shinyServer(function(input, output, session) {
       allModels <- savedModels()
       allModels <- allModels[!grepl("Current", names(allModels))]
       for(i in 1:length(fitted)){
-        fit(fitted[[i]])
-        newModel <- setNames(list(fit()), paste0("Current_", names(modDat())[i]))
+        newModel <- setNames(list(
+          list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
+               inputDataMatrix = input$dataMatrix,
+               inputIsotope = input$isotope,
+               fit = fitted[[i]])
+        ), paste0("Current_", names(modDat())[i]))
         allModels <- c(allModels, newModel)
       }
-      fit(fitted[[1]])
+      
       savedModels(allModels)
+      fit(fitted[[1]])
     }
   })
-  output$summary <- renderPrint({ print(fit(), pars = c("interval", "mu", "rho", "alpha")) })
-  output$shiftTimePoints <- renderPrint({ 
-
-    fits <- savedModels()[input$savedModelsShift]
+  
+  output$summary <- renderPrint({ 
+    req(fit())
+    print(fit(), pars = c("interval", "mu", "rho", "alpha")) 
+    })
+  output$shiftTimePoints <- renderPrint({
+    req(input$savedModelsShift)
+    fits <- getEntry(savedModels()[input$savedModelsShift], "fit")
     if(length(fits) == 0){
       return("Please select a model / individual")
     }
@@ -192,8 +200,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$userDefined <- renderPrint({ 
-    
-    fits <- savedModels()[input$savedModelsUserDefined]
+    fits <- getEntry(savedModels()[input$savedModelsShift], "fit")
     if(length(fits) == 0){
       return("Please select a model / individual")
     }
@@ -214,10 +221,6 @@ shinyServer(function(input, output, session) {
     ifelse(nrow(shiftTime) == 0, stop("Error, Please check your interval settings"), return(shiftTime))
   })
   
-  savedModels <- reactiveVal(list())
-  savedPlot <- reactiveVal(list())
-  savedXAxisData <- reactiveVal(data.frame())
-  
   observeEvent(input$saveModel, {
     if (trimws(input$modelName) == "") {
       shinyjs::alert("Please provide a model name")
@@ -228,29 +231,74 @@ shinyServer(function(input, output, session) {
       return()
     }
 
-    newModel <- setNames(list(fit()), input$modelName)
+    newModel <- setNames(list(
+      list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
+           fit = reactiveValuesToList(fit()))
+    ), input$modelName)
     allModels <- c(savedModels(), newModel)
     savedModels(allModels)
   })
   
-  observe({
-    updateSelectInput(session, "savedModels", choices = names(savedModels()))
-    updateSelectizeInput(session, "savedModelsPlot", choices = names(savedModels()), selected = names(savedModels())[1])
-    updatePickerInput(session, "savedModelsShift", choices = names(savedModels()), selected = names(savedModels())[1])
-    updatePickerInput(session, "savedModelsUserDefined", choices = names(savedModels()), selected = names(savedModels())[1])
+  allXAxisData <- reactiveVal(data.frame())
+  
+  observeEvent(savedModels(), {
+    req(length(savedModels()) > 0)
     
-    updatePickerInput(session, "savedModelsTime", choices = names(savedModels()))
+    modelChoices <- names(savedModels())
+    selectedModel <- names(savedModels())[length(savedModels())]
+    #selectedModel <- names(savedModels())[1]
+    
+    updateSelectInput(session, "savedModels", choices = modelChoices, selected = selectedModel)
+    
+    # inputs in tab "Credibility intervals over time"
+    updateSelectizeInput(session, "credIntTimePlot", 
+                         choices = modelChoices, selected = selectedModel)
+    
+    updateNumericInput(session, "xmin", 
+                       value = getDefaultPlotRange(savedModels(), deriv = "1")$xmin)
+    updateNumericInput(session, "xmax", 
+                       value = getDefaultPlotRange(savedModels(), deriv = "1")$xmax)
+    updateNumericInput(session, "ymin",
+                       value = getDefaultPlotRange(savedModels(), deriv = "1")$ymin)
+    updateNumericInput(session, "ymax",
+                       value = getDefaultPlotRange(savedModels(), deriv = "1")$ymax)
+    
+    # to draw x axis ticks and labels at all possible points in time present in savedModls()
+    for (i in 1:length(savedModels())) {
+      allXAxisData(getXAxisData(savedModels()[[i]]$fit, oldXAxisData = allXAxisData()))
+    }
+    
+    # other tabs
+    updatePickerInput(session, "savedModelsShift", 
+                      choices = modelChoices, selected = selectedModel)
+    updatePickerInput(session, "savedModelsTime", 
+                      choices = modelChoices, selected = selectedModel)
+    updatePickerInput(session, "savedModelsUserDefined", 
+                      choices = modelChoices, selected = selectedModel)
   })
 
   observeEvent(input$loadModel, {
-    fit(savedModels()[[input$savedModels]])
+    currentModel <- savedModels()[[input$savedModels]]
+    uploadedDataMatrix(currentModel$inputDataMatrix)
+    uploadedIsotope(currentModel$inputIsotope)
+    uploadedModelSpecInputs(currentModel$modelSpecifications)
+    fit(currentModel$fit)
+    
+    updateSelectizeInput(session, "credIntTimePlot", selected = input$savedModels)
+    updatePickerInput(session, "savedModelsShift", selected = input$savedModels)
+    updatePickerInput(session, "savedModelsTime", selected = input$savedModels)
+    updatePickerInput(session, "savedModelsUserDefined", selected = input$savedModels)
+    
   })
   
   uploadedNotes <- reactiveVal(NULL)
   callModule(downloadModel, "modelDownload", 
              savedModels = savedModels, uploadedNotes = uploadedNotes)
   callModule(uploadModel, "modelUpload", 
-             savedModels = savedModels, uploadedNotes = uploadedNotes, fit = fit)
+             savedModels = savedModels, uploadedNotes = uploadedNotes, 
+             fit = fit, uploadedModelSpecInputs = uploadedModelSpecInputs,
+             uploadedDataMatrix = uploadedDataMatrix, uploadedIsotope = uploadedIsotope
+             )
   
   observeEvent(input$exportSummary, {
     showModal(modalDialog(
@@ -279,6 +327,7 @@ shinyServer(function(input, output, session) {
       exportFilename(input$exportType)
     },
     content = function(file){
+      req(fit())
       exportData <- extract(fit())$interval
       switch(
         input$exportType,
@@ -290,21 +339,14 @@ shinyServer(function(input, output, session) {
   )
   
   observeEvent(input$deriv,{
-    req(savedModels()[[input$savedModels]])
-    updateNumericInput(session, "xmin", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$minX)
-    updateNumericInput(session, "xmax", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$maxX)
-    updateNumericInput(session, "ymin", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$minY)
-    updateNumericInput(session, "ymax", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$maxY)
+    req(input$savedModels, input$deriv)
+    req((savedModels()[[input$savedModels]])$fit)
+    
+    updateNumericInput(session, "xmin", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$xmin)
+    updateNumericInput(session, "xmax", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$xmax)
+    updateNumericInput(session, "ymin", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$ymin)
+    updateNumericInput(session, "ymax", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$ymax)
   })
-  
-  observeEvent(savedModels(),
-               {
-                 req(length(savedModels()) > 0)
-                 updateNumericInput(session, "xmin", value = getDefaultPlotRange(savedModels(), deriv = "1")$minX)
-                 updateNumericInput(session, "xmax", value = getDefaultPlotRange(savedModels(), deriv = "1")$maxX)
-                 updateNumericInput(session, "ymin", value = getDefaultPlotRange(savedModels(), deriv = "1")$minY)
-                 updateNumericInput(session, "ymax", value = getDefaultPlotRange(savedModels(), deriv = "1")$maxY)
-               })
   
   # observeEvent(input$ymin,
   #              {
@@ -323,76 +365,102 @@ shinyServer(function(input, output, session) {
   #                yLim <- c(ymin, ymax)
   #              })
   
-  output$plot <- renderPlot({ OsteoBioR::plot(fit(), prop = input$modCredInt) })
+  output$plot <- renderPlot({ 
+    req(fit())
+    #OsteoBioR::plot(fit(), prop = input$modCredInt) 
+    plot(fit(), prop = input$modCredInt) 
+    })
     
+  fitForTimePlot <- reactiveVal()
+  savedPlot <- reactiveVal(list())
+  #savedXAxisData <- reactiveVal(data.frame())
   
-  plotAdd <- reactiveVal("new")
-  observeEvent(input$newPlot, 
-               plotAdd("new"))
-  observeEvent(input$addPlot, 
-               plotAdd("add"))
-  
-  plotTimeFunc <- eventReactive({input$newPlot}, {
-    fits <- savedModels()[input$savedModelsPlot]
-    if(length(fits) > 0){
-        p <- plotTime(fits[[1]], prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
-                      xLim = c(input$xmin, input$xmax), deriv = input$deriv,
-                      colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
-                      xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
-                      sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
-                      sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY)
-      savedPlot(p)
-      savedXAxisData(getXAxisData(fits[[1]]))
-      return(p)
-    } else {
-      return(NULL)
-    }
+  observeEvent(input$credIntTimePlot, {
+    req(savedModels(), input$credIntTimePlot)
+    fits <- getEntry(savedModels()[input$credIntTimePlot], "fit")
+    req(length(fits) > 0)
+    fitForTimePlot(fits[[length(fits)]])
+    
+    # show default plot if plot is empty but data received
+    req(is.null(intervalTimePlot()), fitForTimePlot())
+    p <- plotTime(fitForTimePlot(), prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
+                  xLim = c(input$xmin, input$xmax), deriv = input$deriv,
+                  oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
+                  colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
+                  xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
+                  sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
+                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY)
+    intervalTimePlot(p)
+    savedPlot(p)
+    #savedXAxisData(getXAxisData(fitForTimePlot()))
   })
   
-  plotTimeAdd <- eventReactive({input$addPlot}, {
-    fits <- savedModels()[input$savedModelsPlot]
-    if(length(fits) > 0 && length(savedPlot()) > 0){
-        oldPlot <- savedPlot()
-        oldXAxisData <- savedXAxisData()
-        p <- plotTime(fits[[1]], prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
-                      xLim = c(input$xmin, input$xmax), oldPlot = oldPlot, oldXAxisData = oldXAxisData,
-                      deriv = input$deriv, colorL = input$colorL, colorU = input$colorU,
-                      alphaL = input$alphaL, alphaU =  input$alphaU,
-                      sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
-                      xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
-                      sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY, secAxis = input$secAxis)
-      savedPlot(p)
-      savedXAxisData(getXAxisData(object = fits[[1]], oldXAxisData = oldXAxisData))
-      return(p)
-    } else {
-      return(NULL)
-    }
+  observeEvent(fit(), {
+    # not as default plot, when fit() is ready, xLim & yLim are not
+    req(fit(), intervalTimePlot())
+
+    p <- plotTime(fit(), prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
+                  xLim = c(input$xmin, input$xmax), deriv = input$deriv,
+                  oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
+                  colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
+                  xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
+                  sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
+                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY)
+    intervalTimePlot(p)
+    savedPlot(p)
+    #savedXAxisData(getXAxisData(fitForTimePlot()))
+  })
+  
+  observeEvent(input$newPlot, {
+    req(fitForTimePlot())
+    p <- plotTime(fitForTimePlot(), prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
+                  xLim = c(input$xmin, input$xmax), deriv = input$deriv,
+                  oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
+                  colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
+                  xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
+                  sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
+                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY)
+    intervalTimePlot(p)
+    savedPlot(p)
+    #savedXAxisData(getXAxisData(fitForTimePlot()))
+  })
+  
+  observeEvent(input$addPlot, {
+    req(fitForTimePlot(), length(savedPlot()) > 0)
+    oldPlot <- savedPlot()
+    #oldXAxisData <- savedXAxisData()
+    p <- plotTime(fitForTimePlot(), prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
+                  xLim = c(input$xmin, input$xmax), deriv = input$deriv, oldPlot = oldPlot, 
+                  #oldXAxisData = oldXAxisData,
+                  oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
+                  colorL = input$colorL, colorU = input$colorU,
+                  alphaL = input$alphaL, alphaU =  input$alphaU,
+                  sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
+                  xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
+                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY, secAxis = input$secAxis)
+    intervalTimePlot(p)
+    savedPlot(p)
+    #savedXAxisData(getXAxisData(object = fitForTimePlot(), oldXAxisData = oldXAxisData))
   })
   
   output$plotTime <- renderPlot({
-    if(length(plotAdd() > 0) && plotAdd() == "add"){
-      return(plotTimeAdd())
-    } 
-    if(length(plotAdd() > 0) && plotAdd() == "new"){
-      return(plotTimeFunc())
-    } 
-    
-  })
-  
-  minimum <- eventReactive(input$timeVars, {
-    input$dataMatrix[, input$timeVars[1]] %>% min
-  })
-  
-  maximum <- eventReactive(input$timeVars, {
-    input$dataMatrix[, input$timeVars[1]] %>% max
+    req(intervalTimePlot())
+    intervalTimePlot()
   })
   
   observe({
-    updateNumericInput(session, "from", value = minimum())
-    updateNumericInput(session, "to", value = maximum())
-    updateNumericInput(session, "from2", value = minimum())
-    updateNumericInput(session, "to2", value = maximum())
+    if (is.null(modelSpecInputs()$timeMinimum) || is.null(modelSpecInputs()$timeMaximum)) {
+      updateNumericInput(session, "from", value = defaultInputsForUI()$from)
+      updateNumericInput(session, "to", value = defaultInputsForUI()$to)
+      updateNumericInput(session, "from2", value = defaultInputsForUI()$from2)
+      updateNumericInput(session, "to2", value = defaultInputsForUI()$to2)
+    }
     
+    req(modelSpecInputs()$timeMinimum, modelSpecInputs()$timeMaximum)
+    updateNumericInput(session, "from", value = modelSpecInputs()$timeMinimum)
+    updateNumericInput(session, "to", value = modelSpecInputs()$timeMaximum)
+    updateNumericInput(session, "from2", value = modelSpecInputs()$timeMinimum)
+    updateNumericInput(session, "to2", value = modelSpecInputs()$timeMaximum)
   })
   
   estimates <- eventReactive(input$estSpecTimePoint, {
@@ -400,17 +468,16 @@ shinyServer(function(input, output, session) {
       return("Please select a fitted a model.")
     }
     
-    fits <- savedModels()[input$savedModelsTime]
+    fits <- getEntry(savedModels()[input$savedModelsTime], "fit")
     
     tryCatch(
       withCallingHandlers(
         {
           ret <- lapply(fits, function(x) 
-            estimateTimePoint(x, time = seq(input$from, input$to,
-                                            by = input$by))
+            if (!is.null(x)) estimateTimePoint(x, time = seq(input$from, input$to, by = input$by))
           )
           do.call("rbind", lapply(1:length(ret), function(x)
-            data.frame(Individual = names(ret)[x], ret[[x]])
+            if (!is.null(x)) data.frame(Individual = names(ret)[x], ret[[x]])
             ))
         },
         message = function(m) showNotification(m$message, type = "message"),
@@ -516,6 +583,7 @@ shinyServer(function(input, output, session) {
         paste("credibilityIntervals", input$exportType, sep = ".")
       },
       content = function(file){
+        req(fit())
         exportData <- as.data.frame(fit())
         switch(
           input$exportType,
@@ -531,7 +599,10 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$exportCredIntPlot, {
     
-    plotOutputElement <- renderPlot({ OsteoBioR::plot(fit(), prop = input$modCredInt) })
+    plotOutputElement <- renderPlot({ 
+      req(fit())
+      OsteoBioR::plot(fit(), prop = input$modCredInt) 
+      })
     exportTypeChoices <- c("png", "pdf", "svg", "tiff")
     
     showModal(modalDialog(
@@ -560,7 +631,10 @@ shinyServer(function(input, output, session) {
           tiff = tiff(file, width = input$width, height = input$height),
           svg = svg(file, width = input$width / 72, height = input$height / 72)
         )
-        print( OsteoBioR::plot(fit(), prop = input$modCredInt) )
+        print({
+          req(fit())
+          OsteoBioR::plot(fit(), prop = input$modCredInt) 
+          })
         
         dev.off()
       }
@@ -643,6 +717,7 @@ shinyServer(function(input, output, session) {
       filter(complete.cases(.))
   })
   estimatedStayTimes <- eventReactive(input$stayingTime, {
+    req(fit())
     getSiteStayTimes(object = fit(),
                      siteMeans = stayTimeDat()[, 1] %>% unlist(),
                      siteSigma = stayTimeDat()[, 2] %>% unlist(),

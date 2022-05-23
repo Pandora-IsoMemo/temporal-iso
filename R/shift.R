@@ -72,6 +72,10 @@ getShiftTime <- function(object,
                          threshold = NULL,
                          probability = 0.5){
   
+  if(is.null(object)){
+    return(data.frame(noShifts = c()))
+  }
+  
   index <- getShiftIndex(object = object,
                          type = type,
                          slope = slope,
@@ -112,6 +116,10 @@ getUserDefinedEst <- function(object,
                          minim = 0,
                          maxim = 1,
                          type = "1"){
+  if(is.null(object)){
+    return(data.frame(Mean = NA, SD = NA))
+  }
+  
   dat <- rstan::extract(object)$interval
   times <- which(object@time >= minim & object@time <= maxim)
   

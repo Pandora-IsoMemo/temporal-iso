@@ -207,6 +207,8 @@ estimateIntervals <- function(renewalRates,
 #' 
 #' @export
 estimateTimePoint <- function(object, time, intervalProb = 0.95){
+  if (is.null(object)) return(data.frame(time = NA, mean = NA, sd = NA, intLower = NA, intUpper = NA))
+  
   if(any(time < min(object@timeLower) | time > max(object@timeUpper))){
     stop("Provided time must be inside fitted intervals")
   }

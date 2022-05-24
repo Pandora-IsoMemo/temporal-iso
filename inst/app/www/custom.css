@@ -1,3 +1,11 @@
+body {
+    padding-top: 80px;
+}   
+
+* {
+    box-sizing: border-box;
+}
+
 .shiny-table {
     background-color: #ecf0f1;
     margin-left:auto; 
@@ -7,7 +15,6 @@
 
 hr {
   border-top: 1px solid #000000;
-  
 }
 
 .help-block {
@@ -43,9 +50,12 @@ h5 {
 
 #header-right {
   position: fixed;
-  top: 5px;
+  top: 15px;
   right:14px;
+  white-space: nowrap;
   z-index: 9999;
+  overflow: hidden;
+  display: inline;
 }
 
 #help {

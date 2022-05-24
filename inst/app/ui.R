@@ -12,16 +12,18 @@ library(rstan)
 tagList(
   shinyjs::useShinyjs(),
   shiny::navbarPage(
+    includeCSS("www/custom.css"),
     title = paste("OsteoBioR App", packageVersion("OsteoBioR")),
     theme = shinythemes::shinytheme("flatly"),
     id = "tab",
+    position = "fixed-top",
+    collapsible = TRUE,
+    # DATA  ------------------------------------------------------------------------------------------------
     tabPanel(
       title = "Data",
       id = "Data",
       value = "Data",
-      
       sidebarLayout(
-        # DATA  ------------------------------------------------------------------------------------------------
         sidebarPanel(
           width = 2,
           HTML("<h4>Upload</h4><br>"),
@@ -495,28 +497,29 @@ tagList(
                  actionButton("exportResultsDat", "Export Isotopic Values")
                )
              ))
+    # STYLE of navbarPage ----
   ),
-  tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
-  ),
+  # tags$head(
+  #   tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+  # ),
   div(
     id = "header-right",
-    div(
-      id = "logo-mpi",
-      tags$a(
-        href = "https://www.mpg.de/en",
-        img(src = "MPIlogo.png", alt = "Supported by the Max Planck society"),
-        target = "_blank"
-      )
-    ),
-    div(
-      id = "logo-isomemo",
-      tags$a(
-        href = "https://isomemo.com/",
-        img(src = "IsoMemoLogo.png", alt = "IsoMemo"),
-        target = "_blank"
-      )
-    ),
+    # div(
+    #   id = "logo-mpi",
+    #   tags$a(
+    #     href = "https://www.mpg.de/en",
+    #     img(src = "MPIlogo.png", alt = "Supported by the Max Planck society"),
+    #     target = "_blank"
+    #   )
+    # ),
+    # div(
+    #   id = "logo-isomemo",
+    #   tags$a(
+    #     href = "https://isomemo.com/",
+    #     img(src = "IsoMemoLogo.png", alt = "IsoMemo"),
+    #     target = "_blank"
+    #   )
+    # ),
     div(
       id = "further-help",
       tags$button(onclick = "window.open('https://isomemo.com','_blank');",

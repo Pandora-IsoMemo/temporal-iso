@@ -2,6 +2,8 @@
 
 R Package to estimate isotopic values in the past and their change over time.
 
+Access App: https://isomemoapp.com/app/osteo-bio-r
+
 ## Stan Development
 * The precompiled stanmodel objects will appear in a named list called 'stanmodels', 
 and you can call them with something like rstan::sampling(stanmodels$foo, ...)

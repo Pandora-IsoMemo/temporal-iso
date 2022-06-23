@@ -179,20 +179,19 @@ testthat::test_that("getBreaks, deriv = 2",  {
 
 
 testthat::test_that("getDefaultPlotRange, deriv = 2",  {
-  testRange1 <- getDefaultPlotRange(list(testObjectDefault1,
-                                         testObjectDefault2,
-                                         testObjectGap1,
-                                         testObjectGap11), deriv = "1")
-  
-  testRange2 <- getDefaultPlotRange(list(testObjectDefault1,
-                                         testObjectDefault2,
-                                         testObjectGap1,
-                                         testObjectGap11), deriv = "2")
+  savedModels <- list(
+    list(fit = testObjectDefault1),
+    list(fit = testObjectDefault2),
+    list(fit = testObjectGap1),
+    list(fit = testObjectGap11)
+  )
+  testRange1 <- getDefaultPlotRange(savedModels, deriv = "1")
+  testRange2 <- getDefaultPlotRange(savedModels, deriv = "2")
   
   testthat::expect_equal(testRange1 %>% unlist(),
-                         c(minX = 0.5, maxX = 6, 
-                           minY = -12.9045490738921, maxY = -4.58609303324681))
+                         c(xmin = 0.5, xmax = 6, 
+                           ymin = -12.9045490738921, ymax = -4.58609303324681))
   testthat::expect_equal(testRange2 %>% unlist(),
-                         c(minX = 1, maxX = 5.5,
-                           minY = -4.2100298618177, maxY = 3.69646935224212))
+                         c(xmin = 1, xmax = 5.5,
+                           ymin = -4.2100298618177, ymax = 3.69646935224212))
 })

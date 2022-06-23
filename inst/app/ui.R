@@ -12,16 +12,18 @@ library(rstan)
 tagList(
   shinyjs::useShinyjs(),
   shiny::navbarPage(
+    includeCSS("www/custom.css"),
     title = paste("OsteoBioR App", packageVersion("OsteoBioR")),
     theme = shinythemes::shinytheme("flatly"),
     id = "tab",
+    position = "fixed-top",
+    collapsible = TRUE,
+    # DATA  ------------------------------------------------------------------------------------------------
     tabPanel(
       title = "Data",
       id = "Data",
       value = "Data",
-      
       sidebarLayout(
-        # DATA  ------------------------------------------------------------------------------------------------
         sidebarPanel(
           width = 2,
           HTML("<h4>Upload</h4><br>"),
@@ -84,8 +86,8 @@ tagList(
             value = matrix(ncol = 6, dimnames = list(
               c(""),  c("individual", "intStart", "intEnd", "bone1", "bone2", "tooth1")
             )),
-            copy = TRUE,
-            paste = TRUE,
+            #copy = TRUE,
+            #paste = TRUE,
             cols = list(
               names = TRUE,
               extend = TRUE,
@@ -99,14 +101,16 @@ tagList(
               delta = 1
             )
           ),
+          # To do: Add  time cuts: Split predictions into groups at the following points in time
+          # for the selected individual
           HTML("<h5>Mean and (optional) standard deviation of measurements</h5>"),
           matrixInput(
             inputId = "isotope",
             #inputClass = "matrix-input-rownames",
             class = "numeric",
             value = matrix(ncol = 3, dimnames = list(c(""),  c("individual", "y_mean", "y_sigma"))),
-            copy = TRUE,
-            paste = TRUE,
+            #copy = TRUE,
+            #paste = TRUE,
             cols = list(
               names = TRUE,
               extend = FALSE,
@@ -129,49 +133,7 @@ tagList(
              fluidRow(
                sidebarPanel(
                  width = 2,
-                 HTML("<h5>Model Specification</h5>"),
-                 # TIME VARS
-                 pickerInput(
-                   inputId = "timeVars",
-                   label = "Time variable(s):",
-                   choices = character(0),
-                   options = list(
-                     "actions-box" = FALSE,
-                     "none-selected-text" = 'No variables selected',
-                     "max-options" = 2
-                   ),
-                   multiple = TRUE
-                 ),
-                 helpText("Max. 2 time variables"),
-                 # BONE VARS
-                 pickerInput(
-                   inputId = "boneVars",
-                   label = "Element variables:",
-                   choices = character(0),
-                   options = list(
-                     `actions-box` = FALSE,
-                     size = 10,
-                     `none-selected-text` = "No variables selected"
-                   ),
-                   multiple = TRUE
-                 ),
-                 tags$br(),
-                 selectizeInput(
-                   inputId = "indVar",
-                   label = "Individual variable",
-                   choices = character(0)
-                 ),
-                 tags$br(),
-                 sliderInput(inputId = "iter",
-                             label = "Number of total iterations",
-                             min = 500, max = 10000, step = 100, value = 2000),
-                 sliderInput(inputId = "burnin",
-                             label = "Number of burnin iterations",
-                             min = 200, max = 3000, step = 100, value = 500),
-                 sliderInput(inputId = "chains",
-                             label = "Number of MCMC chains",
-                             min = 1, max = 12, step = 1, value = 4),
-                 HTML("<br>"),
+                 modelSpecificationsUI("modelSpecification", "Model Specification"),
                  actionButton("fitModel", "Fit Model")
                ),
                mainPanel(
@@ -200,35 +162,23 @@ tagList(
                      tags$br(),
                      tags$br(),
                      fluidRow(
-                       column(4,
-                              selectizeInput("savedModelsPlot", "Select Models / Individuals", choices = NULL),
-                              actionButton("newPlot", "New Plot"),
-                              actionButton("addPlot", "Add Plot"),
-                              actionButton("exportCredIntTimePlot", "Export Plot"),
-                              tags$br(),
-                              tags$br(),
-                              checkboxInput("secAxis", "Add new secondary axis to existing plot", value = F),
-                              radioButtons("deriv", "Type", choices = c("Absolute values" = "1", "First derivate" = "2")), 
-                              sliderInput("modCredInt",
-                                          "Credibility interval:",
-                                          min = 0,
-                                          max = .99,
-                                          value = .8,
-                                          step = .05)
-                              ),
                        column(2,
                               textInput("xAxisLabel", label = "X-Axis title", value = "Time"),
                               numericInput(inputId = "sizeTextX", label = "Font size x-axis title", value = 24),
                               numericInput(inputId = "sizeAxisX", label = "Font size x-axis", value = 18),
-                              numericInput("xmin", "Lower x limit", value = 0),
-                              numericInput("xmax", "Upper x limit", value = 1)
+                              numericInput("xmin", "Lower x limit", 
+                                           value = defaultInputsForUI()$xmin),
+                              numericInput("xmax", "Upper x limit", 
+                                           value = defaultInputsForUI()$xmax)
                               ),
                        column(2,
                               textInput("yAxisLabel", label = "Y-Axis title", value = "Estimate"),
                               numericInput(inputId = "sizeTextY", label = "Font size y-axis title", value = 24),
                               numericInput(inputId = "sizeAxisY", label = "Font size y-axis", value = 18),
-                              numericInput("ymin", "Lower y limit", value = 0),
-                              numericInput("ymax", "Upper y limit", value = 1),
+                              numericInput("ymin", "Lower y limit",
+                                           value = defaultInputsForUI()$ymin),
+                              numericInput("ymax", "Upper y limit",
+                                           value = defaultInputsForUI()$ymax),
                               ),
                        column(4,
                               colourInput(inputId = "colorL",
@@ -241,7 +191,23 @@ tagList(
                                           label = "Color uncertainty region",
                                           value = rgb(0, 35 / 255, 80 / 255, alpha = 0.6)),
                               sliderInput("alphaU", "Transparency uncertainty region", min = 0, max = 1, value = 0.1)
-                              )
+                              ),
+                       column(4,
+                              checkboxInput("secAxis", "Add new secondary axis to existing plot", value = F),
+                              radioButtons("deriv", "Type", choices = c("Absolute values" = "1", "First derivate" = "2")), 
+                              sliderInput("modCredInt",
+                                          "Credibility interval:",
+                                          min = 0,
+                                          max = .99,
+                                          value = .8,
+                                          step = .05),
+                              tags$br(),
+                              tags$br(),
+                              selectizeInput("credIntTimePlot", "Select Models / Individuals", choices = NULL),
+                              actionButton("newPlot", "New Plot"),
+                              actionButton("addPlot", "Add Plot"),
+                              actionButton("exportCredIntTimePlot", "Export Plot")
+                       )
                      )
                    ),
                    tabPanel(
@@ -291,9 +257,9 @@ tagList(
                               actionButton("estSpecTimePoint", "Estimate")
                        ),
                        column(4,
-                              numericInput("from", "From", 0),
-                              numericInput("to", "To", 5),
-                              numericInput("by", "By", 0.5)
+                              numericInput("from", "From", defaultInputsForUI()$from),
+                              numericInput("to", "To", defaultInputsForUI()$to),
+                              numericInput("by", "By", defaultInputsForUI()$by)
                               ),
                        column(4,
                               tags$br(),
@@ -317,8 +283,8 @@ tagList(
                                            choices = c("Absolute Mean + SD" = "1", "Total turnover Mean + SD" = "2"))
                               ),
                        column(4,
-                              numericInput("from2", "From", value = 0),
-                              numericInput("to2", "To", value = 5)
+                              numericInput("from2", "From", value = defaultInputsForUI()$from2),
+                              numericInput("to2", "To", value = defaultInputsForUI()$to2)
                               )
                        
                      ),
@@ -330,16 +296,21 @@ tagList(
                sidebarPanel(
                  width = 2,
                  tags$h5("Save Model"),
-                 #tags$br(),
-                 textInput("modelName", label = NULL, placeholder = "model name"),
-                 HTML("<br>"),
-                 actionButton("saveModel", "Save"),
-                 HTML("<br>"),
+                 fluidRow(
+                   column(width = 8,
+                          textInput("modelName", label = NULL, placeholder = "model name")),
+                   column(width = 4,
+                          actionButton("saveModel", "Save"))
+                 ),
                  HTML("<br>"),
                  tags$h5("Load Model"),
-                 selectInput("savedModels", label = NULL, choices = NULL),
-                 actionButton("loadModel", "Load"),
-                 tags$hr(),
+                 fluidRow(
+                   column(width = 8,
+                          selectInput("savedModels", label = NULL, choices = NULL)),
+                   column(width = 4,
+                          actionButton("loadModel", "Load"))
+                 ),
+                 tags$br(),
                  downloadModelUI("modelDownload", "Download Model"),
                  uploadModelUI("modelUpload", "Upload Model")
                )
@@ -387,8 +358,8 @@ tagList(
                    value = matrix(ncol = 2, dimnames = list(c(""),  c(
                      "siteMeans", "siteSigma"
                    ))),
-                   copy = TRUE,
-                   paste = TRUE,
+                   #copy = TRUE,
+                   #paste = TRUE,
                    cols = list(
                      names = TRUE,
                      extend = TRUE,
@@ -504,8 +475,8 @@ tagList(
                    value = matrix(ncol = 5, dimnames = list(
                      c(""),  c("t", "bone1", "bone2", "mean", "sd")
                    )),
-                   copy = TRUE,
-                   paste = TRUE,
+                   #copy = TRUE,
+                   #paste = TRUE,
                    cols = list(
                      names = TRUE,
                      extend = TRUE,
@@ -526,28 +497,29 @@ tagList(
                  actionButton("exportResultsDat", "Export Isotopic Values")
                )
              ))
+    # STYLE of navbarPage ----
   ),
-  tags$head(
-    tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
-  ),
+  # tags$head(
+  #   tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+  # ),
   div(
     id = "header-right",
-    div(
-      id = "logo-mpi",
-      tags$a(
-        href = "https://www.mpg.de/en",
-        img(src = "MPIlogo.png", alt = "Supported by the Max Planck society"),
-        target = "_blank"
-      )
-    ),
-    div(
-      id = "logo-isomemo",
-      tags$a(
-        href = "https://isomemo.com/",
-        img(src = "IsoMemoLogo.png", alt = "IsoMemo"),
-        target = "_blank"
-      )
-    ),
+    # div(
+    #   id = "logo-mpi",
+    #   tags$a(
+    #     href = "https://www.mpg.de/en",
+    #     img(src = "MPIlogo.png", alt = "Supported by the Max Planck society"),
+    #     target = "_blank"
+    #   )
+    # ),
+    # div(
+    #   id = "logo-isomemo",
+    #   tags$a(
+    #     href = "https://isomemo.com/",
+    #     img(src = "IsoMemoLogo.png", alt = "IsoMemo"),
+    #     target = "_blank"
+    #   )
+    # ),
     div(
       id = "further-help",
       tags$button(onclick = "window.open('https://isomemo.com','_blank');",

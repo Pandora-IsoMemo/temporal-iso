@@ -328,7 +328,7 @@ shinyServer(function(input, output, session) {
     },
     content = function(file){
       req(fit())
-      exportData <- extract(fit())$interval
+      exportData <- as.data.frame(extract(fit())$interval)
       switch(
         input$exportType,
         csv = exportCSV(file, exportData, colseparator(), decseparator()),

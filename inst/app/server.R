@@ -329,6 +329,9 @@ shinyServer(function(input, output, session) {
     content = function(file){
       req(fit())
       exportData <- as.data.frame(extract(fit())$interval)
+      namesStan <- names(fit())
+      intervalNamesStan <- namesStan[grepl(pattern = "interval", namesStan)]
+      colnames(exportData) <- intervalNamesStan
       switch(
         input$exportType,
         csv = exportCSV(file, exportData, colseparator(), decseparator()),
@@ -601,7 +604,8 @@ shinyServer(function(input, output, session) {
     
     plotOutputElement <- renderPlot({ 
       req(fit())
-      OsteoBioR::plot(fit(), prop = input$modCredInt) 
+      plot(fit(), prop = input$modCredInt) 
+      #OsteoBioR::plot(fit(), prop = input$modCredInt) 
       })
     exportTypeChoices <- c("png", "pdf", "svg", "tiff")
     
@@ -633,7 +637,8 @@ shinyServer(function(input, output, session) {
         )
         print({
           req(fit())
-          OsteoBioR::plot(fit(), prop = input$modCredInt) 
+          #OsteoBioR::plot(fit(), prop = input$modCredInt) 
+          plot(fit(), prop = input$modCredInt) 
           })
         
         dev.off()

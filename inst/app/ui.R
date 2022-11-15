@@ -131,14 +131,34 @@ tagList(
     tabPanel("Model",
              id = "Model",
              fluidRow(
+               ## left sidebar ----
                sidebarPanel(
                  width = 2,
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
                  actionButton("fitModel", "Fit Model")
                ),
+               ## main panel ----
                mainPanel(
                  tabsetPanel(
                    id = "modTabs",
+                   header = tagList(
+                     tags$br(),
+                     fluidRow(
+                       column(width = 3, 
+                              selectInput("savedModels", label = "Load Model", choices = NULL)),
+                       column(width = 1, 
+                              style = "margin-top: 14px;",
+                              actionButton("loadModel", "Load")),
+                       column(width = 3, 
+                              offset = 2,
+                              style = "margin-top: -12px;",
+                              textInput("modelName", label = "Save Model", placeholder = "model name")),
+                       column(width = 1, 
+                              style = "margin-top: 14px;",
+                              actionButton("saveModel", "Save"))
+                     ),
+                     tags$hr()
+                   ),
                    tabPanel(
                      "Summary",
                      value = "summaryTab",
@@ -293,24 +313,9 @@ tagList(
                    )
                  )
                ),
+               ## right sidebar ----
                sidebarPanel(
                  width = 2,
-                 tags$h5("Save Model"),
-                 fluidRow(
-                   column(width = 8,
-                          textInput("modelName", label = NULL, placeholder = "model name")),
-                   column(width = 4,
-                          actionButton("saveModel", "Save"))
-                 ),
-                 HTML("<br>"),
-                 tags$h5("Load Model"),
-                 fluidRow(
-                   column(width = 8,
-                          selectInput("savedModels", label = NULL, choices = NULL)),
-                   column(width = 4,
-                          actionButton("loadModel", "Load"))
-                 ),
-                 tags$br(),
                  downloadModelUI("modelDownload", "Download Model"),
                  uploadModelUI("modelUpload", "Upload Model")
                )

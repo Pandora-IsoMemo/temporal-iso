@@ -168,7 +168,7 @@ shinyServer(function(input, output, session) {
       }
       
       savedModels(allModels)
-      fit(fitted[[1]])
+      fit(fitted[[length(modDat())]])
     }
   })
   

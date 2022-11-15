@@ -143,6 +143,7 @@ tagList(
                    id = "modTabs",
                    header = tagList(
                      tags$br(),
+                     tags$br(),
                      fluidRow(
                        column(width = 3, 
                               selectInput("savedModels", label = "Load Model", choices = NULL)),

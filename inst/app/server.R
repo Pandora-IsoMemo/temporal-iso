@@ -163,7 +163,7 @@ shinyServer(function(input, output, session) {
                inputDataMatrix = input$dataMatrix,
                inputIsotope = input$isotope,
                fit = fitted[[i]])
-        ), paste0("Current_", names(modDat())[i]))
+        ), paste0(modelSpecInputs()$indVar, "_", names(modDat())[i]))
         allModels <- c(allModels, newModel)
       }
       

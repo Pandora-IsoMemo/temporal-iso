@@ -14,3 +14,4 @@ of "Current"
 - fixed export of interval data (#12)
 - fixed reactive behavior after model upload in the tab _Credibility intervals over time_ (#12)
 - fixed error when trying to export credibility interval plot 
+- fix update of min/max time in the tabs Time point estimates and Estimates for user defined interval

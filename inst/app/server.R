@@ -478,6 +478,18 @@ shinyServer(function(input, output, session) {
     updateNumericInput(session, "to2", value = modelSpecInputs()$timeMaximum)
   })
   
+  observeEvent(input$savedModelsTime, {
+    req(savedModels())
+    
+    fits <- getEntry(savedModels()[input$savedModelsTime], "fit")
+    
+    timeMin <- max(sapply(fits, function(fit) {min(fit@timeLower)}))
+    timeMax <- min(sapply(fits, function(fit) {max(fit@timeUpper)}))
+    
+    updateNumericInput(session, "from", value = timeMin)
+    updateNumericInput(session, "to", value = timeMax)
+  })
+  
   estimates <- eventReactive(input$estSpecTimePoint, {
     if (is.null(input$savedModelsTime)) {
       return("Please select a fitted a model.")

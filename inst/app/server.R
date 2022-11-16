@@ -236,8 +236,23 @@ shinyServer(function(input, output, session) {
     ifelse(nrow(shiftTime) == 0, stop("No shifts were found"), return(shiftTime))
   })
   
+  observeEvent(input$savedModelsUserDefined, {
+    req(savedModels())
+    
+    fits <- getEntry(savedModels()[input$savedModelsUserDefined], "fit")
+    req(!all(sapply(fits, is.null)))
+    fits <- fits[!sapply(fits, is.null)]
+    
+    timeMin <- min(sapply(fits, function(fit) {min(fit@timeLower)}))
+    timeMax <- max(sapply(fits, function(fit) {max(fit@timeUpper)}))
+    
+    updateNumericInput(session, "from2", value = timeMin)
+    updateNumericInput(session, "to2", value = timeMax)
+  })
+  
   output$userDefined <- renderPrint({ 
-    fits <- getEntry(savedModels()[input$savedModelsShift], "fit")
+    req(input$savedModelsUserDefined)
+    fits <- getEntry(savedModels()[input$savedModelsUserDefined], "fit")
     if(length(fits) == 0){
       return("Please select a model / individual")
     }
@@ -482,6 +497,8 @@ shinyServer(function(input, output, session) {
     req(savedModels())
     
     fits <- getEntry(savedModels()[input$savedModelsTime], "fit")
+    req(!all(sapply(fits, is.null)))
+    fits <- fits[!sapply(fits, is.null)]
     
     timeMin <- max(sapply(fits, function(fit) {min(fit@timeLower)}))
     timeMax <- min(sapply(fits, function(fit) {max(fit@timeUpper)}))

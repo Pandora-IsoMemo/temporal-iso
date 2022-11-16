@@ -7,8 +7,10 @@
 - shifted the UI to load/save a model from the right sidebar to the main panel above the tabs
 - the content of the input _Individual varaible_ is now used to create default model names instead 
 of "Current"
+- new model name and note in remote Test data containing only model inputs and data
     
 ### Bug Fixes
 
 - fixed export of interval data (#12)
+- fixed reactive behavior after model upload in the tab _Credibility intervals over time_ (#12)
 - fixed error when trying to export credibility interval plot 

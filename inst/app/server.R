@@ -134,6 +134,7 @@ shinyServer(function(input, output, session) {
       shinyjs::alert("Number of individuals must be the same in both renewal and measurements table")
     }
     req(modDat())
+    fit(NULL)
     fitted <- try({
       lapply(1:length(modDat()), function(x){
         withProgress({
@@ -156,26 +157,62 @@ shinyServer(function(input, output, session) {
       shinyjs::alert(fitted[[1]])
     } else {
       allModels <- savedModels()
-      allModels <- allModels[!grepl("Current", names(allModels))]
+      allModels <- allModels[!grepl("Current", names(allModels))] # kept for the case if models 
+      # from versions before 22.11.1 were uploaded
       for(i in 1:length(fitted)){
+        newName <- paste0(modelSpecInputs()$indVar, "_", names(modDat())[i])
+        allModels <- allModels[!grepl(newName, names(allModels))]
         newModel <- setNames(list(
           list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
                inputDataMatrix = input$dataMatrix,
                inputIsotope = input$isotope,
                fit = fitted[[i]])
-        ), paste0(modelSpecInputs()$indVar, "_", names(modDat())[i]))
+        ), newName)
         allModels <- c(allModels, newModel)
       }
       
       savedModels(allModels)
-      fit(fitted[[length(modDat())]])
     }
   })
   
-  output$summary <- renderPrint({ 
-    req(fit())
-    print(fit(), pars = c("interval", "mu", "rho", "alpha")) 
-    })
+  allXAxisData <- reactiveVal(data.frame())
+  
+  observeEvent(savedModels(), {
+    req(length(savedModels()) > 0)
+    
+    modelChoices <- names(savedModels())
+    selectedModel <- names(savedModels())[length(savedModels())]
+    updateSelectInput(session, "savedModels", choices = modelChoices, selected = selectedModel)
+    
+    fit(savedModels()[[length(savedModels())]]$fit)
+    
+    # inputs in tab "Credibility intervals over time"
+    updateSelectizeInput(session, "credIntTimePlot", 
+                         choices = modelChoices, selected = selectedModel)
+    
+    updateNumericInput(session, "xmin", 
+                       value = getDefaultPlotRange(savedModels(), deriv = "1")$xmin)
+    updateNumericInput(session, "xmax", 
+                       value = getDefaultPlotRange(savedModels(), deriv = "1")$xmax)
+    updateNumericInput(session, "ymin",
+                       value = getDefaultPlotRange(savedModels(), deriv = "1")$ymin)
+    updateNumericInput(session, "ymax",
+                       value = getDefaultPlotRange(savedModels(), deriv = "1")$ymax)
+    
+    # to draw x axis ticks and labels at all possible points in time present in savedModls()
+    for (i in 1:length(savedModels())) {
+      allXAxisData(getXAxisData(savedModels()[[i]]$fit, oldXAxisData = allXAxisData()))
+    }
+    
+    # other tabs
+    updatePickerInput(session, "savedModelsShift", 
+                      choices = modelChoices, selected = selectedModel)
+    updatePickerInput(session, "savedModelsTime", 
+                      choices = modelChoices, selected = selectedModel)
+    updatePickerInput(session, "savedModelsUserDefined", 
+                      choices = modelChoices, selected = selectedModel)
+  })
+  
   output$shiftTimePoints <- renderPrint({
     req(input$savedModelsShift)
     fits <- getEntry(savedModels()[input$savedModelsShift], "fit")
@@ -221,6 +258,10 @@ shinyServer(function(input, output, session) {
     ifelse(nrow(shiftTime) == 0, stop("Error, Please check your interval settings"), return(shiftTime))
   })
   
+  output$summary <- renderPrint({ 
+    print(fit(), pars = c("interval", "mu", "rho", "alpha")) 
+  })
+  
   observeEvent(input$saveModel, {
     if (trimws(input$modelName) == "") {
       shinyjs::alert("Please provide a model name")
@@ -230,54 +271,25 @@ shinyServer(function(input, output, session) {
       shinyjs::alert("Model name already present. Please choose another name")
       return()
     }
-
+    
+    if (is.null(fit())) {
+      fitToSave <- NULL 
+    } else {
+      fitToSave <- reactiveValuesToList(fit())
+    }
     newModel <- setNames(list(
       list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
-           fit = reactiveValuesToList(fit()))
+           inputDataMatrix = input$dataMatrix,
+           inputIsotope = input$isotope,
+           fit = fitToSave)
     ), input$modelName)
     allModels <- c(savedModels(), newModel)
     savedModels(allModels)
   })
   
-  allXAxisData <- reactiveVal(data.frame())
-  
-  observeEvent(savedModels(), {
-    req(length(savedModels()) > 0)
-    
-    modelChoices <- names(savedModels())
-    selectedModel <- names(savedModels())[length(savedModels())]
-    #selectedModel <- names(savedModels())[1]
-    
-    updateSelectInput(session, "savedModels", choices = modelChoices, selected = selectedModel)
-    
-    # inputs in tab "Credibility intervals over time"
-    updateSelectizeInput(session, "credIntTimePlot", 
-                         choices = modelChoices, selected = selectedModel)
-    
-    updateNumericInput(session, "xmin", 
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$xmin)
-    updateNumericInput(session, "xmax", 
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$xmax)
-    updateNumericInput(session, "ymin",
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$ymin)
-    updateNumericInput(session, "ymax",
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$ymax)
-    
-    # to draw x axis ticks and labels at all possible points in time present in savedModls()
-    for (i in 1:length(savedModels())) {
-      allXAxisData(getXAxisData(savedModels()[[i]]$fit, oldXAxisData = allXAxisData()))
-    }
-    
-    # other tabs
-    updatePickerInput(session, "savedModelsShift", 
-                      choices = modelChoices, selected = selectedModel)
-    updatePickerInput(session, "savedModelsTime", 
-                      choices = modelChoices, selected = selectedModel)
-    updatePickerInput(session, "savedModelsUserDefined", 
-                      choices = modelChoices, selected = selectedModel)
-  })
-
   observeEvent(input$loadModel, {
+    req(savedModels())
+    
     currentModel <- savedModels()[[input$savedModels]]
     uploadedDataMatrix(currentModel$inputDataMatrix)
     uploadedIsotope(currentModel$inputIsotope)

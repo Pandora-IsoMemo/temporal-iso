@@ -6,6 +6,8 @@ Access App: https://isomemoapp.com/app/osteo-bio-r
 
 Remote models that can be loaded inside the app can be found [here](https://github.com/Pandora-IsoMemo/osteo-bior/tree/beta/inst/app/predefinedModels).
 
+_NEW:_ Release notes can be found [here](https://github.com/Pandora-IsoMemo/osteo-bior/blob/beta/NEWS.md).
+
 ## Stan Development
 * The precompiled stanmodel objects will appear in a named list called 'stanmodels', 
 and you can call them with something like rstan::sampling(stanmodels$foo, ...)

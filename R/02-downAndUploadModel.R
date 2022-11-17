@@ -153,6 +153,10 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit,
       return()
     }
     
+    file.remove("model.rds")
+    file.remove("README.txt")
+    file.remove("help.html")
+    
     if (!exists("modelImport")) {
       shinyjs::alert("File format not valid. Model object not found.")
       return()

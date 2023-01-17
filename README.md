@@ -12,3 +12,4 @@ and you can call them with something like rstan::sampling(stanmodels$foo, ...)
 but be sure to #include your C++ files in inst/include/meta_header.hpp
 * While developing your package use devtools::install('.', local=FALSE) 
 to reinstall the package AND recompile Stan programs, or set local=FALSE to skip the recompilation.
+

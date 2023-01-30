@@ -78,6 +78,9 @@ defaultInputsForUI <- function() {
        to2 = 5)
 }
 
+#' Update only matrix row/colnames
+#' 
+#' Used for renewal uncertainties
 #' 
 #' @export
 updateMatrixNamesInput <- function(session, inputId, value, value2) {

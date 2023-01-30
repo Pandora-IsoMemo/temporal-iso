@@ -138,7 +138,6 @@ estimateIntervals <- function(renewalRates,
     stop("Number of bone variables must be equal to number
          of isotopic mean and standard deviation values!")
   }
-  browser()
   stopifnot(
     isoSigma > 0,
     max(renewalRates[boneVars], na.rm = TRUE) <= 100
@@ -171,13 +170,12 @@ estimateIntervals <- function(renewalRates,
   
   t <- time / min(abs(diff(time))) # normalization: nearest neighbour is 1 away
   x <- t(as.matrix(apply(renewalRates[boneVars], 2, calcInfluence)))
-  
-  xlow <- t(as.matrix(apply(pmax(renewalRates[boneVars]- renewalRatesSD[boneVars], 0), 2, calcInfluence)))
-  xhigh <- t(as.matrix(apply(pmin(renewalRates[boneVars]+ renewalRatesSD[boneVars], 100), 2, calcInfluence)))
+
+  xlow <- t(as.matrix(apply(pmax(as.matrix(renewalRates[boneVars]- renewalRatesSD[boneVars]), 0), 2, calcInfluence)))
+  xhigh <- t(as.matrix(apply(pmin(as.matrix(renewalRates[boneVars]+ renewalRatesSD[boneVars]), 100), 2, calcInfluence)))
   
   xsd <- (xhigh - xlow) / 2
-  
-  
+  xsd[is.na(xsd)] <- 0
   #cores <- getOption("mc.cores", if (mc) min(4, chains) else 1)
   model <- suppressWarnings(sampling(stanmodels$linRegGP,
                      data = list(N = N,

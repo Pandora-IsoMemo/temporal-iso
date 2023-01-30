@@ -48,6 +48,12 @@ tagList(
           ),
           helpText("The first row in your file needs to contain variable names."),
           fileInput("fileData", ""),
+          checkboxInput("renewUnc", "Use renewal rates uncertainty (optional)"),
+          conditionalPanel(
+            condition = "input.renewUnc == true",
+          HTML("<h5>Optional renewal rates uncertainty dataset</h5>"),
+          fileInput("fileDataSD", "")
+          ),
           # ISOTOPIC VALUES
           HTML("<h5>Measurements dataset</h5>"),
           selectInput(
@@ -101,6 +107,32 @@ tagList(
               delta = 1
             )
           ),
+          conditionalPanel(
+            condition = "input.renewUnc == true",
+          HTML("<h5>Renewal rates uncertainty dataset (standard deviation, optional) </h5>"),
+          matrixInput(
+            inputId = "dataMatrixSD",
+            #inputClass = "matrix-input-rownames",
+            class = "numeric",
+            value = matrix(0, ncol = 6, dimnames = list(
+              c(""),  c("individual", "intStart", "intEnd", "bone1", "bone2", "tooth1")
+            )),
+            #copy = TRUE,
+            #paste = TRUE,
+            cols = list(
+              names = TRUE,
+              extend = FALSE,
+              delta = 1,
+              editableNames = FALSE
+            ),
+            rows = list(
+              names = FALSE,
+              editableNames = FALSE,
+              extend = FALSE,
+              delta = 1
+            )
+          ),
+          ),
           # To do: Add  time cuts: Split predictions into groups at the following points in time
           # for the selected individual
           HTML("<h5>Mean and (optional) standard deviation of measurements</h5>"),
@@ -141,7 +173,7 @@ tagList(
                mainPanel(
                  tabsetPanel(
                    id = "modTabs",
-                   header = tagList(
+                   #header = tagList(
                      tags$br(),
                      tags$br(),
                      fluidRow(
@@ -157,7 +189,8 @@ tagList(
                        column(width = 1, 
                               style = "margin-top: 14px;",
                               actionButton("saveModel", "Save"))
-                     ),
+                     #)
+                     ,
                      tags$hr()
                    ),
                    tabPanel(

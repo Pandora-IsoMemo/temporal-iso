@@ -20,6 +20,8 @@
 #' @param mc A boolean indicating if multiple cores should be used. If \code{TRUE}, which is the default, 4 cores are used.
 #' @param adapt_delta A numeric value between 0 and 1 controlling the samplers behavior. Defaults to 0.9999. See \code{\link[rstan]{stan}} for more details.
 #' @param max_treedepth A numeric, positive value controling the NUTS sampler. Defaults to 25. See \code{\link[rstan]{stan}} for more details.
+#' @param renewalRatesSD An optional dataframe specifying the renewal rates uncertainties in standard deviations of different probes for
+#' each time interval.
 #' @param mu_df Hyperparameter for the mean of the interval estimates: degrees of freedom of a non-standardized t-Student distribution. Defaults to 1.
 #' @param mu_mean Hyperparameter for the mean of the interval estimates: mean of a non-standardized t-Student distribution. Defaults to 0.
 #' @param mu_sd Hyperparameter for the mean of the interval estimates: standard deviation of a non-standardized t-Student distribution. Defaults to 10.
@@ -117,6 +119,7 @@ estimateIntervals <- function(renewalRates,
                               boneVars = NULL,
                               isoMean,
                               isoSigma,
+                              renewalRatesSD = NULL,
                               mu_df = 3,
                               mu_mean = 0,
                               mu_sd = 20,
@@ -135,7 +138,7 @@ estimateIntervals <- function(renewalRates,
     stop("Number of bone variables must be equal to number
          of isotopic mean and standard deviation values!")
   }
-    
+  browser()
   stopifnot(
     isoSigma > 0,
     max(renewalRates[boneVars], na.rm = TRUE) <= 100
@@ -169,6 +172,12 @@ estimateIntervals <- function(renewalRates,
   t <- time / min(abs(diff(time))) # normalization: nearest neighbour is 1 away
   x <- t(as.matrix(apply(renewalRates[boneVars], 2, calcInfluence)))
   
+  xlow <- t(as.matrix(apply(pmax(renewalRates[boneVars]- renewalRatesSD[boneVars], 0), 2, calcInfluence)))
+  xhigh <- t(as.matrix(apply(pmin(renewalRates[boneVars]+ renewalRatesSD[boneVars], 100), 2, calcInfluence)))
+  
+  xsd <- (xhigh - xlow) / 2
+  
+  
   #cores <- getOption("mc.cores", if (mc) min(4, chains) else 1)
   model <- suppressWarnings(sampling(stanmodels$linRegGP,
                      data = list(N = N,
@@ -176,7 +185,8 @@ estimateIntervals <- function(renewalRates,
                                  y_mean = y_mean,
                                  y_sigma = y_sigma,
                                  t = t,
-                                 x = x),
+                                 x = x,
+                                 xsd = xsd),
                                      chains = chains,
                                      iter = iter,
                                      warmup = burnin,

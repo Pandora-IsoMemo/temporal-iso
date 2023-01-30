@@ -14,6 +14,7 @@ shinyServer(function(input, output, session) {
   ### DATA -------------------------------------------------
   dat <- reactiveValues()
   uploadedDataMatrix <- reactiveVal()
+  uploadedDataMatrixSD <- reactiveVal()
   uploadedIsotope <- reactiveVal()
   uploadedModelSpecInputs <- reactiveVal()
   
@@ -52,18 +53,26 @@ shinyServer(function(input, output, session) {
   observeEvent(input$exampleData, {
     updateMatrixInput(session, "dataMatrix", value = getExampleDataMatrix() )
     updateMatrixInput(session, "isotope", value = getExampleIsotopeVals())
+    updateMatrixInput(session, "dataMatrixSD", value = getExampleDataMatrix(sd=TRUE))
     
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
+    uploadedDataMatrixSD(NULL)
     uploadedIsotope(NULL)
     uploadedModelSpecInputs(NULL)
   })
   
+  observeEvent(input$dataMatrix, {
+    updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = input$dataMatrixSD)
+  })
+  
   observeEvent(input$fileData, {
     updateMatrixInput(session, "dataMatrix", value = dat$dataFile() )
+    updateMatrixInput(session, "dataMatrixSD", value = dat$dataFile(inputId = input$fileDataSD) )
     
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
+    uploadedDataMatrixSD(NULL)
     uploadedIsotope(NULL)
     uploadedModelSpecInputs(NULL)
   })
@@ -73,6 +82,7 @@ shinyServer(function(input, output, session) {
     
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
+    uploadedDataMatrixSD(NULL)
     uploadedIsotope(NULL)
     uploadedModelSpecInputs(NULL)
   })
@@ -80,6 +90,11 @@ shinyServer(function(input, output, session) {
   observeEvent(uploadedDataMatrix(), {
     req(uploadedDataMatrix())
     updateMatrixInput(session, "dataMatrix", value = uploadedDataMatrix() )
+  })
+  
+  observeEvent(uploadedDataMatrixSD(), {
+    req(uploadedDataMatrixSD())
+    updateMatrixInput(session, "dataMatrixSD", value = uploadedDataMatrixSD() )
   })
   
   observeEvent(uploadedIsotope(), {
@@ -102,6 +117,17 @@ shinyServer(function(input, output, session) {
     lapply(split(ret, ret[, modelSpecInputs()$indVar]),
            function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
   })
+  
+  modDatSD <- eventReactive(input$dataMatrixSD, {
+    req(modelSpecInputs()$indVar)
+    ret <- input$dataMatrixSD %>%
+      data.frame() %>%
+      .[colSums(!is.na(.)) > 0] #%>%
+    #filter(complete.cases(.))
+    lapply(split(ret, ret[, modelSpecInputs()$indVar]),
+           function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
+  })
+  
   
   isoMean <- eventReactive(input$isotope, {
     ret <- (input$isotope %>%
@@ -146,6 +172,7 @@ shinyServer(function(input, output, session) {
                             boneVars = boneVars,
                             isoMean = unlist(isoMean()[[x]]),
                             isoSigma = unlist(isoSigma()[[x]]),
+                            renewalRatesSD = data.frame(modDatSD()[[x]]),
                             iter = modelSpecInputs()$iter,
                             burnin = modelSpecInputs()$burnin,
                             chains = modelSpecInputs()$chains)
@@ -307,6 +334,8 @@ shinyServer(function(input, output, session) {
     
     currentModel <- savedModels()[[input$savedModels]]
     uploadedDataMatrix(currentModel$inputDataMatrix)
+    uploadedDataMatrixSD(currentModel$inputDataMatrixSD)
+    
     uploadedIsotope(currentModel$inputIsotope)
     uploadedModelSpecInputs(currentModel$modelSpecifications)
     fit(currentModel$fit)
@@ -324,7 +353,9 @@ shinyServer(function(input, output, session) {
   callModule(uploadModel, "modelUpload", 
              savedModels = savedModels, uploadedNotes = uploadedNotes, 
              fit = fit, uploadedModelSpecInputs = uploadedModelSpecInputs,
-             uploadedDataMatrix = uploadedDataMatrix, uploadedIsotope = uploadedIsotope
+             uploadedDataMatrix = uploadedDataMatrix,
+             uploadedDataMatrixSD = uploadedDataMatrixSD,
+             uploadedIsotope = uploadedIsotope
              )
   
   observeEvent(input$exportSummary, {

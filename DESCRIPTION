@@ -16,6 +16,7 @@ Imports:
   colourpicker,
   dplyr,
   ggplot2 (>= 2.2.1),
+  DataTools (>= 23.2.1),
   htmltools,
   jsonlite,
   magrittr,
@@ -39,5 +40,5 @@ Suggests:
     testthat (>= 3.0.0)
 SystemRequirements: GNU make
 NeedsCompilation: yes
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Config/testthat/edition: 3

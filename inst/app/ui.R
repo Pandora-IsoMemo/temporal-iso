@@ -25,30 +25,12 @@ tagList(
       value = "Data",
       sidebarLayout(
         sidebarPanel(
+          ## left sidebar ----
           width = 2,
           HTML("<h4>Upload</h4><br>"),
-          HTML("<h5>Renewal rates dataset</h5>"),
-          # DATASET
-          selectInput(
-            "filetypeData",
-            "File type",
-            choices = c("xlsx", "csv"),
-            selected = "xlsx"
-          ),
-          conditionalPanel(
-            condition = "input.filetypeData == 'csv'",
-            div(
-              style = "display: inline-block;horizontal-align:top; width: 80px;",
-              textInput("colseparatorData", "column separator:", value = ",")
-            ),
-            div(
-              style = "display: inline-block;horizontal-align:top; width: 80px;",
-              textInput("decseparatorData", "decimal separator:", value = ".")
-            )
-          ),
-          helpText("The first row in your file needs to contain variable names."),
-          fileInput("fileData", ""),
-          # ISOTOPIC VALUES
+          DataTools::importDataUI("fileData", "Import Renewal rates"),
+          tags$br(), tags$br(),
+          ### ISOTOPIC VALUES ----
           HTML("<h5>Measurements dataset</h5>"),
           selectInput(
             "filetypeIso",
@@ -71,13 +53,12 @@ tagList(
           fileInput("fileIso", ""),
           HTML("<hr>"),
           
-          # DATA GENERATE
+          ### DATA GENERATE ----
           HTML("<h5>Generate data</h5><br>"),
           actionButton("exampleData", "Load Example Data")
-          
         ),
-        
         mainPanel(
+          ## main panel ----
           HTML("<h5>Renewal rates dataset </h5>"),
           matrixInput(
             inputId = "dataMatrix",

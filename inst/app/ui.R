@@ -30,31 +30,9 @@ tagList(
           HTML("<h4>Upload</h4><br>"),
           DataTools::importDataUI("fileData", "Import Renewal rates"),
           tags$br(), tags$br(),
-          ### ISOTOPIC VALUES ----
-          HTML("<h5>Measurements dataset</h5>"),
-          selectInput(
-            "filetypeIso",
-            "File type",
-            choices = c("xlsx", "csv"),
-            selected = "xlsx"
-          ),
-          conditionalPanel(
-            condition = "input.filetypeIso == 'csv'",
-            div(
-              style = "display: inline-block;horizontal-align:top; width: 80px;",
-              textInput("colseparatorIso", "column separator:", value = ",")
-            ),
-            div(
-              style = "display: inline-block;horizontal-align:top; width: 80px;",
-              textInput("decseparatorIso", "decimal separator:", value = ".")
-            )
-          ),
-          helpText("The first row in your file needs to contain variable names."),
-          fileInput("fileIso", ""),
-          HTML("<hr>"),
-          
-          ### DATA GENERATE ----
-          HTML("<h5>Generate data</h5><br>"),
+          DataTools::importDataUI("fileIso", "Import Measurements"),
+          tags$br(), tags$br(),
+          HTML("<h4>Generate data</h4><br>"),
           actionButton("exampleData", "Load Example Data")
         ),
         mainPanel(

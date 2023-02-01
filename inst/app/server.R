@@ -30,21 +30,18 @@ shinyServer(function(input, output, session) {
   }) %>%
     bindEvent(importedData())
   
+  importedIso <- DataTools::importDataServer(
+    "fileIso",
+    defaultSource = "file",
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+  )
   
-  dat$fileIso <- eventReactive(input$fileIso, ignoreNULL = TRUE, {
-    inFile <- input$fileIso
-    if (is.null(inFile)) return(NULL)
-    file <- inFile$datapath
-    if(grepl(".csv$", file)){
-      name <- read.csv(file, sep = input$colseparatorIso, dec = input$decseparatorIso)
-    } else if(grepl(".xlsx$", file)){
-      name <- read.xlsx(file, sheetIndex = 1)
-    } 
-    if(any(sapply(as.matrix(name), is.character))) { shinyjs::alert("Please provide a dataset with all numeric variables.") }
-    name <- name[, !(apply(name, 2, function(x) all(is.na(x))))]
-    as.matrix(name)
-    
-  })
+  observe({
+    req(length(importedIso()) > 0)
+    dat$fileIso <- importedIso()[[1]] %>%
+      as.matrix()
+  }) %>%
+    bindEvent(importedIso())
   
   
   observeEvent(input$exampleData, {
@@ -66,8 +63,8 @@ shinyServer(function(input, output, session) {
     uploadedModelSpecInputs(NULL)
   })
   
-  observeEvent(input$fileIso, {
-    updateMatrixInput(session, "isotope", value = dat$fileIso() )
+  observeEvent(dat$fileIso, {
+    updateMatrixInput(session, "isotope", value = dat$fileIso)
     
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)

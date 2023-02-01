@@ -27,12 +27,12 @@ tagList(
         sidebarPanel(
           ## left sidebar ----
           width = 2,
-          HTML("<h4>Upload</h4><br>"),
+          HTML("<h5>Upload</h5><br>"),
           DataTools::importDataUI("fileData", "Import Renewal rates"),
           tags$br(), tags$br(),
           DataTools::importDataUI("fileIso", "Import Measurements"),
           tags$br(), tags$br(),
-          HTML("<h4>Generate data</h4><br>"),
+          HTML("<h5>Generate data</h5><br>"),
           actionButton("exampleData", "Load Example Data")
         ),
         mainPanel(
@@ -287,26 +287,8 @@ tagList(
                sidebarPanel(
                  width = 2,
                  HTML("<h5>Upload</h5><br>"),
-                 selectInput(
-                   "stayTimeDataSelect",
-                   "File type",
-                   choices = c("xlsx", "csv"),
-                   selected = "xlsx"
-                 ),
-                 conditionalPanel(
-                   condition = "input.stayTimeDataSelect == 'csv'",
-                   div(
-                     style = "display: inline-block;horizontal-align:top; width: 80px;",
-                     textInput("colseparatorStay", "column separator:", value = ",")
-                   ),
-                   div(
-                     style = "display: inline-block;horizontal-align:top; width: 80px;",
-                     textInput("decseparatorStay", "decimal separator:", value = ".")
-                   )
-                 ),
-                 helpText("The first row in your file needs to contain variable names."),
-                 fileInput("stayTimeData", ""),
-                 HTML("<hr>"),
+                 DataTools::importDataUI("stayTimeData", "Import Data"),
+                 tags$br(), tags$br(),
                  HTML("<h5>Generate data</h5>"),
                  actionButton("loadStayTimeData", "Load Example Data"),
                  HTML("<hr>"),

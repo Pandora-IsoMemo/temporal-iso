@@ -730,25 +730,25 @@ shinyServer(function(input, output, session) {
       siteSigma = c(1, 1.5)))
   })
   
-  datStayTime$dataFile <- eventReactive(input$stayTimeData, ignoreNULL = TRUE, {
-    inFile <- input$stayTimeData
-    if (is.null(inFile)) return(NULL)
-    file <- inFile$datapath
-    if(grepl(".csv$", file)){
-      name <- read.csv(file, sep = input$colseparatorStay, dec = input$decseparatorStay)
-    } else if(grepl(".xlsx$", file)){
-      name <- readxl::read_xlsx(file)
-    } 
-    if(any(sapply(as.matrix(name), is.character))) { shinyjs::alert("Please provide a dataset with all numeric variables.") }
-    as.matrix(name)
-    
-  })
-  observeEvent(input$loadStayTimeData, {
-    updateMatrixInput(session, "stayTimeMatrix", value = datStayTime$dataExample() )
+  importedStayTime <- DataTools::importDataServer(
+    "stayTimeData",
+    defaultSource = "file",
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+  )
+  
+  observe({
+    req(length(importedStayTime()) > 0)
+    datStayTime$dataFile <- importedStayTime()[[1]] %>%
+      as.matrix()
+  }) %>%
+    bindEvent(importedStayTime())
+  
+  observeEvent(datStayTime$dataFile, {
+    updateMatrixInput(session, "stayTimeMatrix", value = datStayTime$dataFile)
   })
   
-  observeEvent(input$stayTimeData, {
-    updateMatrixInput(session, "stayTimeMatrix", value = datStayTime$dataFile() )
+  observeEvent(input$loadStayTimeData, {
+    updateMatrixInput(session, "stayTimeMatrix", value = datStayTime$dataExample() )
   })
   
   stayTimeDat <- eventReactive(input$stayTimeMatrix, {

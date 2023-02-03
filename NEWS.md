@@ -1,6 +1,15 @@
-# OsteoBioR development version
+# OsteoBioR
 
-## OsteoBioR 22.11.1
+## Version 23.02.1
+
+### New Features
+- the _Import Data_ module is now imported from the new package DataTools (#15, PR #16)
+  - additionally to file import, now import from _URL_ or from _Pandora Platform_ is possible
+  - all redundant code was removed
+  - using "file" as default source in _Import Data_
+- now, sidebars are fixed with auto scroll in all tabs (iso-app #4)
+
+## Version 22.11.1
 
 ### Updates
 - added column names to exported interval data

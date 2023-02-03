@@ -96,10 +96,7 @@ tagList(
                  width = 2,
                  style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
-                 actionButton("fitModel", "Fit Model"),
-                 tags$hr(),
-                 downloadModelUI("modelDownload", "Download Model"),
-                 uploadModelUI("modelUpload", "Upload Model")
+                 actionButton("fitModel", "Fit Model")
                ),
                ## main panel ----
                mainPanel(
@@ -277,13 +274,14 @@ tagList(
                      verbatimTextOutput("userDefined") %>% withSpinner(color ="#20c997")
                    )
                  )
-               )#,
+               ),
                ## right sidebar ----
-               # sidebarPanel(
-               #   width = 2,
-               #   downloadModelUI("modelDownload", "Download Model"),
-               #   uploadModelUI("modelUpload", "Upload Model")
-               # )
+               sidebarPanel(
+                 width = 2,
+                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+                 uploadModelUI("modelUpload", "Upload Model"),
+                 downloadModelUI("modelDownload", "Download Model")
+               )
              )
              ),
     # RESIDING TIME ------------------------------------------------------------------------------------------------------

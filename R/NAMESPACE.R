@@ -19,7 +19,7 @@
 #' @importFrom htmltools save_html
 #' @importFrom jsonlite toJSON
 #' @importFrom magrittr %>%
-#' @importFrom openxlsx read.xlsx write.xlsx
+#' @importFrom openxlsx write.xlsx
 #' @importFrom rlang .data
 #' @importFrom rstan sampling extract
 #' @importFrom shinyjs alert

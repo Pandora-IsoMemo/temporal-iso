@@ -25,59 +25,19 @@ tagList(
       value = "Data",
       sidebarLayout(
         sidebarPanel(
+          ## left sidebar ----
           width = 2,
-          HTML("<h4>Upload</h4><br>"),
-          HTML("<h5>Renewal rates dataset</h5>"),
-          # DATASET
-          selectInput(
-            "filetypeData",
-            "File type",
-            choices = c("xlsx", "csv"),
-            selected = "xlsx"
-          ),
-          conditionalPanel(
-            condition = "input.filetypeData == 'csv'",
-            div(
-              style = "display: inline-block;horizontal-align:top; width: 80px;",
-              textInput("colseparatorData", "column separator:", value = ",")
-            ),
-            div(
-              style = "display: inline-block;horizontal-align:top; width: 80px;",
-              textInput("decseparatorData", "decimal separator:", value = ".")
-            )
-          ),
-          helpText("The first row in your file needs to contain variable names."),
-          fileInput("fileData", ""),
-          # ISOTOPIC VALUES
-          HTML("<h5>Measurements dataset</h5>"),
-          selectInput(
-            "filetypeIso",
-            "File type",
-            choices = c("xlsx", "csv"),
-            selected = "xlsx"
-          ),
-          conditionalPanel(
-            condition = "input.filetypeIso == 'csv'",
-            div(
-              style = "display: inline-block;horizontal-align:top; width: 80px;",
-              textInput("colseparatorIso", "column separator:", value = ",")
-            ),
-            div(
-              style = "display: inline-block;horizontal-align:top; width: 80px;",
-              textInput("decseparatorIso", "decimal separator:", value = ".")
-            )
-          ),
-          helpText("The first row in your file needs to contain variable names."),
-          fileInput("fileIso", ""),
-          HTML("<hr>"),
-          
-          # DATA GENERATE
-          HTML("<h5>Generate data</h5><br>"),
+          style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+          HTML("<h5>Upload</h5>"),
+          DataTools::importDataUI("fileData", "Import Renewal rates"),
+          tags$br(), tags$br(),
+          DataTools::importDataUI("fileIso", "Import Measurements"),
+          tags$br(), tags$br(),
+          HTML("<h5>Generate Data</h5>"),
           actionButton("exampleData", "Load Example Data")
-          
         ),
-        
         mainPanel(
+          ## main panel ----
           HTML("<h5>Renewal rates dataset </h5>"),
           matrixInput(
             inputId = "dataMatrix",
@@ -134,6 +94,7 @@ tagList(
                ## left sidebar ----
                sidebarPanel(
                  width = 2,
+                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
                  actionButton("fitModel", "Fit Model")
                ),
@@ -317,8 +278,9 @@ tagList(
                ## right sidebar ----
                sidebarPanel(
                  width = 2,
-                 downloadModelUI("modelDownload", "Download Model"),
-                 uploadModelUI("modelUpload", "Upload Model")
+                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+                 uploadModelUI("modelUpload", "Upload Model"),
+                 downloadModelUI("modelDownload", "Download Model")
                )
              )
              ),
@@ -327,28 +289,11 @@ tagList(
              sidebarLayout(
                sidebarPanel(
                  width = 2,
-                 HTML("<h5>Upload</h5><br>"),
-                 selectInput(
-                   "stayTimeDataSelect",
-                   "File type",
-                   choices = c("xlsx", "csv"),
-                   selected = "xlsx"
-                 ),
-                 conditionalPanel(
-                   condition = "input.stayTimeDataSelect == 'csv'",
-                   div(
-                     style = "display: inline-block;horizontal-align:top; width: 80px;",
-                     textInput("colseparatorStay", "column separator:", value = ",")
-                   ),
-                   div(
-                     style = "display: inline-block;horizontal-align:top; width: 80px;",
-                     textInput("decseparatorStay", "decimal separator:", value = ".")
-                   )
-                 ),
-                 helpText("The first row in your file needs to contain variable names."),
-                 fileInput("stayTimeData", ""),
-                 HTML("<hr>"),
-                 HTML("<h5>Generate data</h5>"),
+                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+                 HTML("<h5>Upload</h5>"),
+                 DataTools::importDataUI("stayTimeData", "Import Data"),
+                 tags$br(), tags$br(),
+                 HTML("<h5>Generate Data</h5>"),
                  actionButton("loadStayTimeData", "Load Example Data"),
                  HTML("<hr>"),
                  HTML("<h5>Estimation</h5>"),
@@ -391,29 +336,11 @@ tagList(
              sidebarLayout(
                sidebarPanel(
                  width = 2,
-                 HTML("<h5>Upload</h5><br>"),
-                 # DATASET
-                 selectInput(
-                   "filetypeHistData",
-                   "File type",
-                   choices = c("xlsx", "csv"),
-                   selected = "xlsx"
-                 ),
-                 conditionalPanel(
-                   condition = "input.filetypeHistData == 'csv'",
-                   div(
-                     style = "display: inline-block;horizontal-align:top; width: 80px;",
-                     textInput("colseparatorHistData", "column separator:", value = ",")
-                   ),
-                   div(
-                     style = "display: inline-block;horizontal-align:top; width: 80px;",
-                     textInput("decseparatorHistData", "decimal separator:", value = ".")
-                   )
-                 ),
-                 helpText("The first row in your file needs to contain variable names."),
-                 fileInput("fileHistData", ""),
-                 HTML("<hr>"),
-                 HTML("<h5>Generate Data</h5><br>"),
+                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+                 HTML("<h5>Upload</h5>"),
+                 DataTools::importDataUI("fileHistData", "Import Data"),
+                 tags$br(), tags$br(),
+                 HTML("<h5>Generate Data</h5>"),
                  # EXAMPLE DATA
                  actionButton("loadHistData", "Load Example Data"),
                  

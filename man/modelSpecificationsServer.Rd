@@ -4,7 +4,11 @@
 \alias{modelSpecificationsServer}
 \title{server funtion of modelSpecifications module}
 \usage{
-modelSpecificationsServer(id, dataMatrix, uploadedModelSpecInputs)
+modelSpecificationsServer(
+  id,
+  dataMatrix,
+  uploadedModelSpecInputs = reactiveVal()
+)
 }
 \arguments{
 \item{id}{An ID string that corresponds with the ID used to call the module's UI function.}

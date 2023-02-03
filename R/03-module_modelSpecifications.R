@@ -67,7 +67,7 @@ modelSpecificationsUI <- function(id, title) {
 #' @param uploadedModelSpecInputs (reactive) modelSpecifications for the current fit
 #' 
 #' @export
-modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs){
+modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = reactiveVal()){
   moduleServer(
     id,
     function(input, output, session) {

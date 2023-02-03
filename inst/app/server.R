@@ -826,25 +826,24 @@ shinyServer(function(input, output, session) {
     )) 
   })
   
-  datIso$dataFile <- eventReactive(input$fileHistData, ignoreNULL = TRUE, {
-    inFile <- input$fileHistData
-    if (is.null(inFile)) return(NULL)
-    file <- inFile$datapath
-    if(grepl(".csv$", file)){
-      name <- read.csv(file, sep = input$colseparatorHistData, dec = input$decseparatorHistData)
-    } else if(grepl(".xlsx$", file)){
-      name <- read.xlsx(file, sheetIndex = 1)
-    } 
-    if(any(sapply(as.matrix(name), is.character))) { shinyjs::alert("Please provide a dataset with all numeric variables.") }
-    as.matrix(name)
-    
-  })
-  
   observeEvent(input$loadHistData, {
     updateMatrixInput(session, "historicData", value = datIso$dataExample() )
   })
   
-  observeEvent(input$fileHistData, {
+  importedHistData <- DataTools::importDataServer(
+    "fileHistData",
+    defaultSource = "file",
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+  )
+  
+  observe({
+    req(length(importedHistData()) > 0)
+    datIso$dataFile <- importedHistData()[[1]] %>%
+      as.matrix()
+  }) %>%
+    bindEvent(importedHistData())
+  
+  observeEvent(datIso$dataFile, {
     updateMatrixInput(session, "historicData", value = datIso$dataFile() )
   })
   

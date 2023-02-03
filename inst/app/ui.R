@@ -27,12 +27,13 @@ tagList(
         sidebarPanel(
           ## left sidebar ----
           width = 2,
-          HTML("<h5>Upload</h5><br>"),
+          style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+          HTML("<h5>Upload</h5>"),
           DataTools::importDataUI("fileData", "Import Renewal rates"),
           tags$br(), tags$br(),
           DataTools::importDataUI("fileIso", "Import Measurements"),
           tags$br(), tags$br(),
-          HTML("<h5>Generate data</h5><br>"),
+          HTML("<h5>Generate Data</h5>"),
           actionButton("exampleData", "Load Example Data")
         ),
         mainPanel(
@@ -93,8 +94,12 @@ tagList(
                ## left sidebar ----
                sidebarPanel(
                  width = 2,
+                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
-                 actionButton("fitModel", "Fit Model")
+                 actionButton("fitModel", "Fit Model"),
+                 tags$hr(),
+                 downloadModelUI("modelDownload", "Download Model"),
+                 uploadModelUI("modelUpload", "Upload Model")
                ),
                ## main panel ----
                mainPanel(
@@ -272,13 +277,13 @@ tagList(
                      verbatimTextOutput("userDefined") %>% withSpinner(color ="#20c997")
                    )
                  )
-               ),
+               )#,
                ## right sidebar ----
-               sidebarPanel(
-                 width = 2,
-                 downloadModelUI("modelDownload", "Download Model"),
-                 uploadModelUI("modelUpload", "Upload Model")
-               )
+               # sidebarPanel(
+               #   width = 2,
+               #   downloadModelUI("modelDownload", "Download Model"),
+               #   uploadModelUI("modelUpload", "Upload Model")
+               # )
              )
              ),
     # RESIDING TIME ------------------------------------------------------------------------------------------------------
@@ -286,10 +291,11 @@ tagList(
              sidebarLayout(
                sidebarPanel(
                  width = 2,
-                 HTML("<h5>Upload</h5><br>"),
+                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+                 HTML("<h5>Upload</h5>"),
                  DataTools::importDataUI("stayTimeData", "Import Data"),
                  tags$br(), tags$br(),
-                 HTML("<h5>Generate data</h5>"),
+                 HTML("<h5>Generate Data</h5>"),
                  actionButton("loadStayTimeData", "Load Example Data"),
                  HTML("<hr>"),
                  HTML("<h5>Estimation</h5>"),
@@ -332,29 +338,11 @@ tagList(
              sidebarLayout(
                sidebarPanel(
                  width = 2,
-                 HTML("<h5>Upload</h5><br>"),
-                 # DATASET
-                 selectInput(
-                   "filetypeHistData",
-                   "File type",
-                   choices = c("xlsx", "csv"),
-                   selected = "xlsx"
-                 ),
-                 conditionalPanel(
-                   condition = "input.filetypeHistData == 'csv'",
-                   div(
-                     style = "display: inline-block;horizontal-align:top; width: 80px;",
-                     textInput("colseparatorHistData", "column separator:", value = ",")
-                   ),
-                   div(
-                     style = "display: inline-block;horizontal-align:top; width: 80px;",
-                     textInput("decseparatorHistData", "decimal separator:", value = ".")
-                   )
-                 ),
-                 helpText("The first row in your file needs to contain variable names."),
-                 fileInput("fileHistData", ""),
-                 HTML("<hr>"),
-                 HTML("<h5>Generate Data</h5><br>"),
+                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+                 HTML("<h5>Upload</h5>"),
+                 DataTools::importDataUI("fileHistData", "Import Data"),
+                 tags$br(), tags$br(),
+                 HTML("<h5>Generate Data</h5>"),
                  # EXAMPLE DATA
                  actionButton("loadHistData", "Load Example Data"),
                  

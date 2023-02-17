@@ -6,14 +6,14 @@ R Package to estimate isotopic values in the past and their change over time.
 - MAIN version: https://isomemoapp.com/app/osteo-bio-r
 - BETA version: https://isomemoapp.com/app/osteo-bio-r-beta
 
-### Help and installation Instructions:
+### Help and installation instructions:
 - https://github.com/Pandora-IsoMemo/osteo-bior/wiki
 
 ### Folder for remote models
 - `inst/app/predefinedModels`
 
 
-## Stan Development
+## Stan development
 * The precompiled stanmodel objects will appear in a named list called 'stanmodels', 
 and you can call them with something like rstan::sampling(stanmodels$foo, ...)
 * You can put into src/stan_files/chunks any file that is needed by any .stan file in src/stan_files, 

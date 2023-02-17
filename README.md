@@ -15,8 +15,6 @@ R Package to estimate isotopic values in the past and their change over time.
 ### Folder for remote models
 - `inst/app/predefinedModels`
 
-----
-
 ## Stan Development
 * The precompiled stanmodel objects will appear in a named list called 'stanmodels', 
 and you can call them with something like rstan::sampling(stanmodels$foo, ...)

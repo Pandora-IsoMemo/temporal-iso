@@ -1,5 +1,10 @@
 # OsteoBioR
 
+## Version 23.02.2
+
+### Updates
+- add more tryCatch statements
+
 ## Version 23.02.1
 
 ### New Features

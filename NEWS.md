@@ -1,5 +1,10 @@
 # OsteoBioR
 
+## Version 23.03.1
+
+### Bug fixes
+- add remote package to enable the _Import Data_ module
+
 ## Version 23.02.2
 
 ### Updates

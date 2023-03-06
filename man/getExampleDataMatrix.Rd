@@ -4,7 +4,7 @@
 \alias{getExampleDataMatrix}
 \title{Get Example Matrix of Data}
 \usage{
-getExampleDataMatrix()
+getExampleDataMatrix(sd = FALSE)
 }
 \description{
 Get Example Matrix of Data

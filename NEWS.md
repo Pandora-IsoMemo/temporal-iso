@@ -1,5 +1,10 @@
 # OsteoBioR development version
 
+OsteoBioR 23.01.1
+
+### New Features
+- option to use renewal rates uncertainties
+
 ## OsteoBioR 22.11.1
 
 ### Updates

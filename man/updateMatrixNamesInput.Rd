@@ -6,6 +6,15 @@
 \usage{
 updateMatrixNamesInput(session, inputId, value, value2)
 }
+\arguments{
+\item{session}{session}
+
+\item{inputId}{input Id}
+
+\item{value}{matrix of renewal rates}
+
+\item{value2}{matrix of uncertainties of renewal rates}
+}
 \description{
 Used for renewal uncertainties
 }

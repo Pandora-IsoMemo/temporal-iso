@@ -1,6 +1,7 @@
 # helper functions
 
 #' Get Example Matrix of Data
+#' @param sd boolean - if true, get uncertainty renewal rates example data
 #' 
 #' @export
 getExampleDataMatrix <- function(sd = FALSE) {
@@ -81,6 +82,10 @@ defaultInputsForUI <- function() {
 #' Update only matrix row/colnames
 #' 
 #' Used for renewal uncertainties
+#' @param session session
+#' @param inputId input Id
+#' @param value matrix of renewal rates 
+#' @param value2 matrix of uncertainties of renewal rates
 #' 
 #' @export
 updateMatrixNamesInput <- function(session, inputId, value, value2) {

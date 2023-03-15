@@ -1,11 +1,11 @@
-# OsteoBioR development version
+# OsteoBioR
 
-OsteoBioR 23.01.1
+## Version 23.01.1
 
 ### New Features
 - option to use renewal rates uncertainties
 
-## OsteoBioR 22.11.1
+## Version 22.11.1
 
 ### Updates
 - added column names to exported interval data

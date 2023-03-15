@@ -4,7 +4,10 @@
 \alias{getExampleDataMatrix}
 \title{Get Example Matrix of Data}
 \usage{
-getExampleDataMatrix()
+getExampleDataMatrix(sd = FALSE)
+}
+\arguments{
+\item{sd}{boolean - if true, get uncertainty renewal rates example data}
 }
 \description{
 Get Example Matrix of Data

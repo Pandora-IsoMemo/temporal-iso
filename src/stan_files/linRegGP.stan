@@ -7,7 +7,7 @@ data {
   vector[N] y_sigma; // SD of Normal distributions of isotopic values
   real t[NT]; // index indicating the time
   matrix[N, NT] x; // predictor matrix containing the renewal percentage for each interval and bone
-  
+  matrix[N, NT] xsd; // predictor matrix containing the renewal percentage for each interval and bone
   // Hyperparameters
   // int < lower = 0 > mu_df;
   // real mu_mean;
@@ -28,9 +28,11 @@ transformed parameters{
   vector[NT] muInt;
   matrix[NT, NT] sdInt;
   vector[N] sdY;
+  vector[N] sdYX;
   vector[N] meanY;
   meanY = x * interval;
   sdY = y_sigma;
+  sdYX = xsd * interval;
   muInt = rep_vector(mu, NT);
   sdInt = cholesky_decompose(cov_exp_quad(t, alpha, rho));
 }
@@ -41,5 +43,7 @@ model {
   alpha ~ normal(2, 0.5);
   interval ~ multi_normal_cholesky(muInt, sdInt);
   // likelihood
-  y_mean ~ normal(meanY , sdY); 
+  for (n in 1:N) {
+    y_mean[n] ~ normal(meanY[n] , sqrt(pow(sdY[n], 2) + pow(sdYX[n], 2)));
+  }
 }

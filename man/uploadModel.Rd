@@ -16,6 +16,7 @@ uploadModel(
   fit,
   uploadedModelSpecInputs,
   uploadedDataMatrix,
+  uploadedDataMatrixSD,
   uploadedIsotope
 )
 }
@@ -39,6 +40,8 @@ uploadModel(
 \item{uploadedModelSpecInputs}{(reactive) modelSpecifications for the current fit}
 
 \item{uploadedDataMatrix}{(reactive) shinyMatrix matrixInput}
+
+\item{uploadedDataMatrixSD}{(reactive) shinyMatrix matrixInput}
 
 \item{uploadedIsotope}{(reactive) shinyMatrix matrixInput}
 }

@@ -1,9 +1,10 @@
 # helper functions
 
 #' Get Example Matrix of Data
+#' @param sd boolean - if true, get uncertainty renewal rates example data
 #' 
 #' @export
-getExampleDataMatrix <- function() {
+getExampleDataMatrix <- function(sd = FALSE) {
   #   as.matrix(data.frame(
   #     individual = rep(1:2, each = 6),
   #     intStart = rep(0:5, 2),
@@ -24,6 +25,9 @@ getExampleDataMatrix <- function() {
     tooth2 = c(0, 0, 100, 0, 0, 0, NA, NA, NA, NA, NA, NA)
   ) %>% slice(-4)
   exmpl$individual[4:5] <- 11
+  if(sd == TRUE){
+    exmpl[,c("bone1","bone2", "tooth1", "tooth2")] <- 0
+  }
   as.matrix(exmpl)
 }
 
@@ -73,4 +77,24 @@ defaultInputsForUI <- function() {
        by = 0.5,
        from2 = 0,
        to2 = 5)
+}
+
+#' Update only matrix row/colnames
+#' 
+#' Used for renewal uncertainties
+#' @param session session
+#' @param inputId input Id
+#' @param value matrix of renewal rates 
+#' @param value2 matrix of uncertainties of renewal rates
+#' 
+#' @export
+updateMatrixNamesInput <- function(session, inputId, value, value2) {
+  stopifnot(is.matrix(value))
+  
+  message <- list(value = list(
+    data = value2,
+    rownames = rownames(value),
+    colnames = colnames(value)
+  ))
+  session$sendInputMessage(inputId, message)
 }

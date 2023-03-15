@@ -123,11 +123,12 @@ uploadModelUI <- function(id, label) {
 #' @param fit (reactive) model of class \code{\link{TemporalIso}} that is currently displayed
 #' @param uploadedModelSpecInputs (reactive) modelSpecifications for the current fit
 #' @param uploadedDataMatrix (reactive) shinyMatrix matrixInput
+#' @param uploadedDataMatrixSD (reactive) shinyMatrix matrixInput
 #' @param uploadedIsotope (reactive) shinyMatrix matrixInput
 #'
 #' @export
 uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit,
-                        uploadedModelSpecInputs, uploadedDataMatrix, uploadedIsotope){
+                        uploadedModelSpecInputs, uploadedDataMatrix, uploadedDataMatrixSD, uploadedIsotope){
   pathToModel <- reactiveVal(NULL)
   
   observeEvent(input$uploadModel, {
@@ -153,6 +154,10 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit,
       return()
     }
     
+    file.remove("model.rds")
+    file.remove("README.txt")
+    file.remove("help.html")
+    
     if (!exists("modelImport")) {
       shinyjs::alert("File format not valid. Model object not found.")
       return()
@@ -170,6 +175,7 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit,
     fit(currentModel$fit)
     uploadedModelSpecInputs(currentModel$modelSpecifications)
     uploadedDataMatrix(currentModel$inputDataMatrix)
+    uploadedDataMatrixSD(currentModel$inputDataMatrixSD)
     uploadedIsotope(currentModel$inputIsotope)
     
     alert("Model loaded")

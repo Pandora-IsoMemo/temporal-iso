@@ -14,6 +14,7 @@ shinyServer(function(input, output, session) {
   ### DATA -------------------------------------------------
   dat <- reactiveValues()
   uploadedDataMatrix <- reactiveVal()
+  uploadedDataMatrixSD <- reactiveVal()
   uploadedIsotope <- reactiveVal()
   uploadedModelSpecInputs <- reactiveVal()
   
@@ -52,18 +53,26 @@ shinyServer(function(input, output, session) {
   observeEvent(input$exampleData, {
     updateMatrixInput(session, "dataMatrix", value = getExampleDataMatrix() )
     updateMatrixInput(session, "isotope", value = getExampleIsotopeVals())
+    updateMatrixInput(session, "dataMatrixSD", value = getExampleDataMatrix(sd=TRUE))
     
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
+    uploadedDataMatrixSD(NULL)
     uploadedIsotope(NULL)
     uploadedModelSpecInputs(NULL)
   })
   
+  observeEvent(input$dataMatrix, {
+    updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = input$dataMatrixSD)
+  })
+  
   observeEvent(input$fileData, {
     updateMatrixInput(session, "dataMatrix", value = dat$dataFile() )
+    updateMatrixInput(session, "dataMatrixSD", value = dat$dataFile(inputId = input$fileDataSD) )
     
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
+    uploadedDataMatrixSD(NULL)
     uploadedIsotope(NULL)
     uploadedModelSpecInputs(NULL)
   })
@@ -73,6 +82,7 @@ shinyServer(function(input, output, session) {
     
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
+    uploadedDataMatrixSD(NULL)
     uploadedIsotope(NULL)
     uploadedModelSpecInputs(NULL)
   })
@@ -80,6 +90,11 @@ shinyServer(function(input, output, session) {
   observeEvent(uploadedDataMatrix(), {
     req(uploadedDataMatrix())
     updateMatrixInput(session, "dataMatrix", value = uploadedDataMatrix() )
+  })
+  
+  observeEvent(uploadedDataMatrixSD(), {
+    req(uploadedDataMatrixSD())
+    updateMatrixInput(session, "dataMatrixSD", value = uploadedDataMatrixSD() )
   })
   
   observeEvent(uploadedIsotope(), {
@@ -102,6 +117,17 @@ shinyServer(function(input, output, session) {
     lapply(split(ret, ret[, modelSpecInputs()$indVar]),
            function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
   })
+  
+  modDatSD <- eventReactive(input$dataMatrixSD, {
+    req(modelSpecInputs()$indVar)
+    ret <- input$dataMatrixSD %>%
+      data.frame() %>%
+      .[colSums(!is.na(.)) > 0] #%>%
+    #filter(complete.cases(.))
+    lapply(split(ret, ret[, modelSpecInputs()$indVar]),
+           function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
+  })
+  
   
   isoMean <- eventReactive(input$isotope, {
     ret <- (input$isotope %>%
@@ -134,6 +160,7 @@ shinyServer(function(input, output, session) {
       shinyjs::alert("Number of individuals must be the same in both renewal and measurements table")
     }
     req(modDat())
+    fit(NULL)
     fitted <- try({
       lapply(1:length(modDat()), function(x){
         withProgress({
@@ -145,6 +172,7 @@ shinyServer(function(input, output, session) {
                             boneVars = boneVars,
                             isoMean = unlist(isoMean()[[x]]),
                             isoSigma = unlist(isoSigma()[[x]]),
+                            renewalRatesSD = data.frame(modDatSD()[[x]]),
                             iter = modelSpecInputs()$iter,
                             burnin = modelSpecInputs()$burnin,
                             chains = modelSpecInputs()$chains)
@@ -156,87 +184,22 @@ shinyServer(function(input, output, session) {
       shinyjs::alert(fitted[[1]])
     } else {
       allModels <- savedModels()
-      allModels <- allModels[!grepl("Current", names(allModels))]
+      allModels <- allModels[!grepl("Current", names(allModels))] # kept for the case if models 
+      # from versions before 22.11.1 were uploaded
       for(i in 1:length(fitted)){
+        newName <- paste0(modelSpecInputs()$indVar, "_", names(modDat())[i])
+        allModels <- allModels[!grepl(newName, names(allModels))]
         newModel <- setNames(list(
           list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
                inputDataMatrix = input$dataMatrix,
                inputIsotope = input$isotope,
                fit = fitted[[i]])
-        ), paste0("Current_", names(modDat())[i]))
+        ), newName)
         allModels <- c(allModels, newModel)
       }
       
       savedModels(allModels)
-      fit(fitted[[1]])
     }
-  })
-  
-  output$summary <- renderPrint({ 
-    req(fit())
-    print(fit(), pars = c("interval", "mu", "rho", "alpha")) 
-    })
-  output$shiftTimePoints <- renderPrint({
-    req(input$savedModelsShift)
-    fits <- getEntry(savedModels()[input$savedModelsShift], "fit")
-    if(length(fits) == 0){
-      return("Please select a model / individual")
-    }
-    shiftTime <- lapply(fits, function(x) getShiftTime(x, 
-                              type = ifelse(input$shiftTimeAbsOrRel == "absolute", TRUE, FALSE), 
-                              slope = ifelse(input$slope == "slope", TRUE, FALSE),
-                              threshold = input$shiftTimeThreshold, 
-                              probability = input$shiftTimeProb))
-    shiftTime <- do.call("rbind", lapply(1:length(shiftTime),
-                                         function(x){
-                                           if(NROW(shiftTime[[x]]) > 0){
-                                             data.frame(Individual = names(shiftTime)[x], shiftTime[[x]])
-                                           } else {
-                                             data.frame(Individual = character(0), c())
-                                           }
-                                         } ))
-    
-    ifelse(nrow(shiftTime) == 0, stop("No shifts were found"), return(shiftTime))
-  })
-  
-  output$userDefined <- renderPrint({ 
-    fits <- getEntry(savedModels()[input$savedModelsShift], "fit")
-    if(length(fits) == 0){
-      return("Please select a model / individual")
-    }
-    shiftTime <- lapply(fits, function(x) getUserDefinedEst(x, 
-                                                       minim = input$from2,
-                                                       maxim = input$to2,
-                                                       type = input$typeEstUser))
-    
-    shiftTime <- do.call("rbind", lapply(1:length(shiftTime),
-                                         function(x){
-                                           if(NROW(shiftTime[[x]]) > 0){
-                                             data.frame(Individual = names(shiftTime)[x], shiftTime[[x]])
-                                           } else {
-                                             data.frame(Individual = character(0), c())
-                                           }
-                                         } ))
-    
-    ifelse(nrow(shiftTime) == 0, stop("Error, Please check your interval settings"), return(shiftTime))
-  })
-  
-  observeEvent(input$saveModel, {
-    if (trimws(input$modelName) == "") {
-      shinyjs::alert("Please provide a model name")
-      return()
-    }
-    if (input$modelName %in% names(savedModels())) {
-      shinyjs::alert("Model name already present. Please choose another name")
-      return()
-    }
-
-    newModel <- setNames(list(
-      list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
-           fit = reactiveValuesToList(fit()))
-    ), input$modelName)
-    allModels <- c(savedModels(), newModel)
-    savedModels(allModels)
   })
   
   allXAxisData <- reactiveVal(data.frame())
@@ -246,9 +209,9 @@ shinyServer(function(input, output, session) {
     
     modelChoices <- names(savedModels())
     selectedModel <- names(savedModels())[length(savedModels())]
-    #selectedModel <- names(savedModels())[1]
-    
     updateSelectInput(session, "savedModels", choices = modelChoices, selected = selectedModel)
+    
+    fit(savedModels()[[length(savedModels())]]$fit)
     
     # inputs in tab "Credibility intervals over time"
     updateSelectizeInput(session, "credIntTimePlot", 
@@ -276,10 +239,103 @@ shinyServer(function(input, output, session) {
     updatePickerInput(session, "savedModelsUserDefined", 
                       choices = modelChoices, selected = selectedModel)
   })
-
+  
+  output$shiftTimePoints <- renderPrint({
+    req(input$savedModelsShift)
+    fits <- getEntry(savedModels()[input$savedModelsShift], "fit")
+    if(length(fits) == 0){
+      return("Please select a model / individual")
+    }
+    shiftTime <- lapply(fits, function(x) getShiftTime(x, 
+                              type = ifelse(input$shiftTimeAbsOrRel == "absolute", TRUE, FALSE), 
+                              slope = ifelse(input$slope == "slope", TRUE, FALSE),
+                              threshold = input$shiftTimeThreshold, 
+                              probability = input$shiftTimeProb))
+    shiftTime <- do.call("rbind", lapply(1:length(shiftTime),
+                                         function(x){
+                                           if(NROW(shiftTime[[x]]) > 0){
+                                             data.frame(Individual = names(shiftTime)[x], shiftTime[[x]])
+                                           } else {
+                                             data.frame(Individual = character(0), c())
+                                           }
+                                         } ))
+    
+    ifelse(nrow(shiftTime) == 0, stop("No shifts were found"), return(shiftTime))
+  })
+  
+  observeEvent(input$savedModelsUserDefined, {
+    req(savedModels())
+    
+    fits <- getEntry(savedModels()[input$savedModelsUserDefined], "fit")
+    req(!all(sapply(fits, is.null)))
+    fits <- fits[!sapply(fits, is.null)]
+    
+    timeMin <- min(sapply(fits, function(fit) {min(fit@timeLower)}))
+    timeMax <- max(sapply(fits, function(fit) {max(fit@timeUpper)}))
+    
+    updateNumericInput(session, "from2", value = timeMin)
+    updateNumericInput(session, "to2", value = timeMax)
+  })
+  
+  output$userDefined <- renderPrint({ 
+    req(input$savedModelsUserDefined)
+    fits <- getEntry(savedModels()[input$savedModelsUserDefined], "fit")
+    if(length(fits) == 0){
+      return("Please select a model / individual")
+    }
+    shiftTime <- lapply(fits, function(x) getUserDefinedEst(x, 
+                                                       minim = input$from2,
+                                                       maxim = input$to2,
+                                                       type = input$typeEstUser))
+    
+    shiftTime <- do.call("rbind", lapply(1:length(shiftTime),
+                                         function(x){
+                                           if(NROW(shiftTime[[x]]) > 0){
+                                             data.frame(Individual = names(shiftTime)[x], shiftTime[[x]])
+                                           } else {
+                                             data.frame(Individual = character(0), c())
+                                           }
+                                         } ))
+    
+    ifelse(nrow(shiftTime) == 0, stop("Error, Please check your interval settings"), return(shiftTime))
+  })
+  
+  output$summary <- renderPrint({ 
+    print(fit(), pars = c("interval", "mu", "rho", "alpha")) 
+  })
+  
+  observeEvent(input$saveModel, {
+    if (trimws(input$modelName) == "") {
+      shinyjs::alert("Please provide a model name")
+      return()
+    }
+    if (input$modelName %in% names(savedModels())) {
+      shinyjs::alert("Model name already present. Please choose another name")
+      return()
+    }
+    
+    if (is.null(fit())) {
+      fitToSave <- NULL 
+    } else {
+      fitToSave <- reactiveValuesToList(fit())
+    }
+    newModel <- setNames(list(
+      list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
+           inputDataMatrix = input$dataMatrix,
+           inputIsotope = input$isotope,
+           fit = fitToSave)
+    ), input$modelName)
+    allModels <- c(savedModels(), newModel)
+    savedModels(allModels)
+  })
+  
   observeEvent(input$loadModel, {
+    req(savedModels())
+    
     currentModel <- savedModels()[[input$savedModels]]
     uploadedDataMatrix(currentModel$inputDataMatrix)
+    uploadedDataMatrixSD(currentModel$inputDataMatrixSD)
+    
     uploadedIsotope(currentModel$inputIsotope)
     uploadedModelSpecInputs(currentModel$modelSpecifications)
     fit(currentModel$fit)
@@ -297,7 +353,9 @@ shinyServer(function(input, output, session) {
   callModule(uploadModel, "modelUpload", 
              savedModels = savedModels, uploadedNotes = uploadedNotes, 
              fit = fit, uploadedModelSpecInputs = uploadedModelSpecInputs,
-             uploadedDataMatrix = uploadedDataMatrix, uploadedIsotope = uploadedIsotope
+             uploadedDataMatrix = uploadedDataMatrix,
+             uploadedDataMatrixSD = uploadedDataMatrixSD,
+             uploadedIsotope = uploadedIsotope
              )
   
   observeEvent(input$exportSummary, {
@@ -328,7 +386,10 @@ shinyServer(function(input, output, session) {
     },
     content = function(file){
       req(fit())
-      exportData <- extract(fit())$interval
+      exportData <- as.data.frame(extract(fit())$interval)
+      namesStan <- names(fit())
+      intervalNamesStan <- namesStan[grepl(pattern = "interval", namesStan)]
+      colnames(exportData) <- intervalNamesStan
       switch(
         input$exportType,
         csv = exportCSV(file, exportData, colseparator(), decseparator()),
@@ -461,6 +522,20 @@ shinyServer(function(input, output, session) {
     updateNumericInput(session, "to", value = modelSpecInputs()$timeMaximum)
     updateNumericInput(session, "from2", value = modelSpecInputs()$timeMinimum)
     updateNumericInput(session, "to2", value = modelSpecInputs()$timeMaximum)
+  })
+  
+  observeEvent(input$savedModelsTime, {
+    req(savedModels())
+    
+    fits <- getEntry(savedModels()[input$savedModelsTime], "fit")
+    req(!all(sapply(fits, is.null)))
+    fits <- fits[!sapply(fits, is.null)]
+    
+    timeMin <- max(sapply(fits, function(fit) {min(fit@timeLower)}))
+    timeMax <- min(sapply(fits, function(fit) {max(fit@timeUpper)}))
+    
+    updateNumericInput(session, "from", value = timeMin)
+    updateNumericInput(session, "to", value = timeMax)
   })
   
   estimates <- eventReactive(input$estSpecTimePoint, {
@@ -601,7 +676,8 @@ shinyServer(function(input, output, session) {
     
     plotOutputElement <- renderPlot({ 
       req(fit())
-      OsteoBioR::plot(fit(), prop = input$modCredInt) 
+      plot(fit(), prop = input$modCredInt) 
+      #OsteoBioR::plot(fit(), prop = input$modCredInt) 
       })
     exportTypeChoices <- c("png", "pdf", "svg", "tiff")
     
@@ -633,7 +709,8 @@ shinyServer(function(input, output, session) {
         )
         print({
           req(fit())
-          OsteoBioR::plot(fit(), prop = input$modCredInt) 
+          #OsteoBioR::plot(fit(), prop = input$modCredInt) 
+          plot(fit(), prop = input$modCredInt) 
           })
         
         dev.off()

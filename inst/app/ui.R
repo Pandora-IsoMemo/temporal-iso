@@ -48,6 +48,12 @@ tagList(
           ),
           helpText("The first row in your file needs to contain variable names."),
           fileInput("fileData", ""),
+          checkboxInput("renewUnc", "Use renewal rates uncertainty (optional)"),
+          conditionalPanel(
+            condition = "input.renewUnc == true",
+          HTML("<h5>Optional renewal rates uncertainty dataset</h5>"),
+          fileInput("fileDataSD", "")
+          ),
           # ISOTOPIC VALUES
           HTML("<h5>Measurements dataset</h5>"),
           selectInput(
@@ -101,6 +107,32 @@ tagList(
               delta = 1
             )
           ),
+          conditionalPanel(
+            condition = "input.renewUnc == true",
+          HTML("<h5>Renewal rates uncertainty dataset (standard deviation, optional) </h5>"),
+          matrixInput(
+            inputId = "dataMatrixSD",
+            #inputClass = "matrix-input-rownames",
+            class = "numeric",
+            value = matrix(0, ncol = 6, dimnames = list(
+              c(""),  c("individual", "intStart", "intEnd", "bone1", "bone2", "tooth1")
+            )),
+            #copy = TRUE,
+            #paste = TRUE,
+            cols = list(
+              names = TRUE,
+              extend = FALSE,
+              delta = 1,
+              editableNames = FALSE
+            ),
+            rows = list(
+              names = FALSE,
+              editableNames = FALSE,
+              extend = FALSE,
+              delta = 1
+            )
+          ),
+          ),
           # To do: Add  time cuts: Split predictions into groups at the following points in time
           # for the selected individual
           HTML("<h5>Mean and (optional) standard deviation of measurements</h5>"),
@@ -131,14 +163,36 @@ tagList(
     tabPanel("Model",
              id = "Model",
              fluidRow(
+               ## left sidebar ----
                sidebarPanel(
                  width = 2,
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
                  actionButton("fitModel", "Fit Model")
                ),
+               ## main panel ----
                mainPanel(
                  tabsetPanel(
                    id = "modTabs",
+                   #header = tagList(
+                     tags$br(),
+                     tags$br(),
+                     fluidRow(
+                       column(width = 3, 
+                              selectInput("savedModels", label = "Load Model", choices = NULL)),
+                       column(width = 1, 
+                              style = "margin-top: 14px;",
+                              actionButton("loadModel", "Load")),
+                       column(width = 3, 
+                              offset = 2,
+                              style = "margin-top: -12px;",
+                              textInput("modelName", label = "Save Model", placeholder = "model name")),
+                       column(width = 1, 
+                              style = "margin-top: 14px;",
+                              actionButton("saveModel", "Save"))
+                     #)
+                     ,
+                     tags$hr()
+                   ),
                    tabPanel(
                      "Summary",
                      value = "summaryTab",
@@ -163,22 +217,22 @@ tagList(
                      tags$br(),
                      fluidRow(
                        column(2,
-                              textInput("xAxisLabel", label = "X-Axis title", value = "Time"),
-                              numericInput(inputId = "sizeTextX", label = "Font size x-axis title", value = 24),
-                              numericInput(inputId = "sizeAxisX", label = "Font size x-axis", value = 18),
                               numericInput("xmin", "Lower x limit", 
                                            value = defaultInputsForUI()$xmin),
                               numericInput("xmax", "Upper x limit", 
-                                           value = defaultInputsForUI()$xmax)
+                                           value = defaultInputsForUI()$xmax),
+                              textInput("xAxisLabel", label = "X-Axis title", value = "Time"),
+                              numericInput(inputId = "sizeTextX", label = "Font size x-axis title", value = 24),
+                              numericInput(inputId = "sizeAxisX", label = "Font size x-axis", value = 18)
                               ),
                        column(2,
-                              textInput("yAxisLabel", label = "Y-Axis title", value = "Estimate"),
-                              numericInput(inputId = "sizeTextY", label = "Font size y-axis title", value = 24),
-                              numericInput(inputId = "sizeAxisY", label = "Font size y-axis", value = 18),
                               numericInput("ymin", "Lower y limit",
                                            value = defaultInputsForUI()$ymin),
                               numericInput("ymax", "Upper y limit",
                                            value = defaultInputsForUI()$ymax),
+                              textInput("yAxisLabel", label = "Y-Axis title", value = "Estimate"),
+                              numericInput(inputId = "sizeTextY", label = "Font size y-axis title", value = 24),
+                              numericInput(inputId = "sizeAxisY", label = "Font size y-axis", value = 18)
                               ),
                        column(4,
                               colourInput(inputId = "colorL",
@@ -293,24 +347,9 @@ tagList(
                    )
                  )
                ),
+               ## right sidebar ----
                sidebarPanel(
                  width = 2,
-                 tags$h5("Save Model"),
-                 fluidRow(
-                   column(width = 8,
-                          textInput("modelName", label = NULL, placeholder = "model name")),
-                   column(width = 4,
-                          actionButton("saveModel", "Save"))
-                 ),
-                 HTML("<br>"),
-                 tags$h5("Load Model"),
-                 fluidRow(
-                   column(width = 8,
-                          selectInput("savedModels", label = NULL, choices = NULL)),
-                   column(width = 4,
-                          actionButton("loadModel", "Load"))
-                 ),
-                 tags$br(),
                  downloadModelUI("modelDownload", "Download Model"),
                  uploadModelUI("modelUpload", "Upload Model")
                )

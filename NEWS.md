@@ -1,5 +1,13 @@
 # OsteoBioR
 
+## Version 23.03.2
+
+### Updates
+- remote models are loaded from the github folder `inst/app/predefinedModels` of the respective 
+repository
+- if there is no internet connection remote models are taken from the models that were saved with
+  the last deployed app version
+
 ## Version 23.03.1
 
 ### Bug fixes

@@ -27,76 +27,19 @@ tagList(
         sidebarPanel(
           ## left sidebar ----
           width = 2,
-#<<<<<<< HEAD
           style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
-          HTML("<h5>Upload</h5>"),
-          DataTools::importDataUI("fileData", "Import Renewal rates"),
+          HTML("<h5>Upload of datasets</h5>"),
+          DataTools::importDataUI("fileData", "Renewal rates"),
           tags$br(), tags$br(),
           checkboxInput("renewUnc", "Use renewal rates uncertainty (optional)"),
           conditionalPanel(
             condition = "input.renewUnc == true",
-            HTML("<h5>Optional renewal rates uncertainty dataset</h5>"),
-            fileInput("fileDataSD", "")
+            DataTools::importDataUI("fileDataSD", HTML("Renewal rates uncertainty")),
           ),
           tags$br(), tags$br(),
-          DataTools::importDataUI("fileIso", "Import Measurements"),
+          DataTools::importDataUI("fileIso", "Measurements"),
           tags$br(), tags$br(),
           HTML("<h5>Generate Data</h5>"),
-# =======
-#           HTML("<h4>Upload</h4><br>"),
-#           HTML("<h5>Renewal rates dataset</h5>"),
-#           # DATASET
-#           selectInput(
-#             "filetypeData",
-#             "File type",
-#             choices = c("xlsx", "csv"),
-#             selected = "xlsx"
-#           ),
-#           conditionalPanel(
-#             condition = "input.filetypeData == 'csv'",
-#             div(
-#               style = "display: inline-block;horizontal-align:top; width: 80px;",
-#               textInput("colseparatorData", "column separator:", value = ",")
-#             ),
-#             div(
-#               style = "display: inline-block;horizontal-align:top; width: 80px;",
-#               textInput("decseparatorData", "decimal separator:", value = ".")
-#             )
-#           ),
-#           helpText("The first row in your file needs to contain variable names."),
-#           fileInput("fileData", ""),
-#           checkboxInput("renewUnc", "Use renewal rates uncertainty (optional)"),
-#           conditionalPanel(
-#             condition = "input.renewUnc == true",
-#           HTML("<h5>Optional renewal rates uncertainty dataset</h5>"),
-#           fileInput("fileDataSD", "")
-#           ),
-#           # ISOTOPIC VALUES
-#           HTML("<h5>Measurements dataset</h5>"),
-#           selectInput(
-#             "filetypeIso",
-#             "File type",
-#             choices = c("xlsx", "csv"),
-#             selected = "xlsx"
-#           ),
-#           conditionalPanel(
-#             condition = "input.filetypeIso == 'csv'",
-#             div(
-#               style = "display: inline-block;horizontal-align:top; width: 80px;",
-#               textInput("colseparatorIso", "column separator:", value = ",")
-#             ),
-#             div(
-#               style = "display: inline-block;horizontal-align:top; width: 80px;",
-#               textInput("decseparatorIso", "decimal separator:", value = ".")
-#             )
-#           ),
-#           helpText("The first row in your file needs to contain variable names."),
-#           fileInput("fileIso", ""),
-#           HTML("<hr>"),
-#           
-#           # DATA GENERATE
-#           HTML("<h5>Generate data</h5><br>"),
-# >>>>>>> main
           actionButton("exampleData", "Load Example Data")
         ),
         mainPanel(

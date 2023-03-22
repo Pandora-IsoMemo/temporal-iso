@@ -12,7 +12,7 @@ R Package to estimate isotopic values in the past and their change over time.
 ### Release notes:
 - see `NEWS.md`
 
-### Folder for remote models
+### Folder for online models
 - `inst/app/predefinedModels`
 
 ## Stan development

@@ -19,6 +19,11 @@
   - using "file" as default source in _Import Data_
 - now, sidebars are fixed with auto scroll in all tabs (iso-app #4)
 
+## Version 23.01.1
+
+### New Features
+- option to use renewal rates uncertainties
+
 ## Version 22.11.1
 
 ### Updates

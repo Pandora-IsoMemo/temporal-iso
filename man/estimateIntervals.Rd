@@ -10,6 +10,7 @@ estimateIntervals(
   boneVars = NULL,
   isoMean,
   isoSigma,
+  renewalRatesSD = NULL,
   mu_df = 3,
   mu_mean = 0,
   mu_sd = 20,
@@ -40,6 +41,9 @@ renewal rates of bones and teeth. If not given, the variables with bones are all
 \item{isoMean}{A numeric number indicating the mean of the isotopic values measured.}
 
 \item{isoSigma}{A numeric, positive number indicating the standard deviation of the isotopic values measured.}
+
+\item{renewalRatesSD}{An optional dataframe specifying the renewal rates uncertainties in standard deviations of different probes for
+each time interval.}
 
 \item{mu_df}{Hyperparameter for the mean of the interval estimates: degrees of freedom of a non-standardized t-Student distribution. Defaults to 1.}
 

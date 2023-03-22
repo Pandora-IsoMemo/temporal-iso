@@ -28,10 +28,16 @@ tagList(
           ## left sidebar ----
           width = 2,
           style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
-          HTML("<h5>Upload</h5>"),
-          DataTools::importDataUI("fileData", "Import Renewal rates"),
+          HTML("<h5>Upload of datasets</h5>"),
+          DataTools::importDataUI("fileData", "Renewal rates"),
           tags$br(), tags$br(),
-          DataTools::importDataUI("fileIso", "Import Measurements"),
+          checkboxInput("renewUnc", "Use renewal rates uncertainty (optional)"),
+          conditionalPanel(
+            condition = "input.renewUnc == true",
+            DataTools::importDataUI("fileDataSD", HTML("Renewal rates uncertainty")),
+          ),
+          tags$br(), tags$br(),
+          DataTools::importDataUI("fileIso", "Measurements"),
           tags$br(), tags$br(),
           HTML("<h5>Generate Data</h5>"),
           actionButton("exampleData", "Load Example Data")
@@ -60,6 +66,32 @@ tagList(
               extend = TRUE,
               delta = 1
             )
+          ),
+          conditionalPanel(
+            condition = "input.renewUnc == true",
+          HTML("<h5>Renewal rates uncertainty dataset (standard deviation, optional) </h5>"),
+          matrixInput(
+            inputId = "dataMatrixSD",
+            #inputClass = "matrix-input-rownames",
+            class = "numeric",
+            value = matrix(0, ncol = 6, dimnames = list(
+              c(""),  c("individual", "intStart", "intEnd", "bone1", "bone2", "tooth1")
+            )),
+            #copy = TRUE,
+            #paste = TRUE,
+            cols = list(
+              names = TRUE,
+              extend = FALSE,
+              delta = 1,
+              editableNames = FALSE
+            ),
+            rows = list(
+              names = FALSE,
+              editableNames = FALSE,
+              extend = FALSE,
+              delta = 1
+            )
+          ),
           ),
           # To do: Add  time cuts: Split predictions into groups at the following points in time
           # for the selected individual

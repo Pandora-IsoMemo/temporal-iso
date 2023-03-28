@@ -13,7 +13,7 @@ R Package to estimate isotopic values in the past and their change over time.
 - see `NEWS.md`
 
 ### Folder for online models
-- `inst/app/predefinedModels`
+- [`inst/app/predefinedModels`](https://github.com/Pandora-IsoMemo/osteo-bior/tree/main/inst/app/predefinedModels)
 
 ## Stan development
 * The precompiled stanmodel objects will appear in a named list called 'stanmodels', 

@@ -9,8 +9,8 @@ R Package to estimate isotopic values in the past and their change over time.
 ### Help and installation instructions:
 - https://github.com/Pandora-IsoMemo/osteo-bior/wiki
 
-### Folder for remote models
-- `inst/app/predefinedModels`
+### Folder for online models
+- [`inst/app/predefinedModels`](https://github.com/Pandora-IsoMemo/osteo-bior/tree/main/inst/app/predefinedModels)
 
 
 ## Stan development

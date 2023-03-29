@@ -38,7 +38,7 @@ shinyServer(function(input, output, session) {
     defaultSource = "file",
     customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
   )
-  
+
   observe({
     req(length(importedDataSD()) > 0)
     dat$dataFileSD <- importedDataSD()[[1]] %>%
@@ -65,7 +65,7 @@ shinyServer(function(input, output, session) {
     updateMatrixInput(session, "dataMatrix", value = getExampleDataMatrix() )
     updateMatrixInput(session, "isotope", value = getExampleIsotopeVals())
     updateMatrixInput(session, "dataMatrixSD", value = getExampleDataMatrix(sd=TRUE))
-    
+
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
     uploadedDataMatrixSD(NULL)
@@ -80,7 +80,21 @@ shinyServer(function(input, output, session) {
 
   observeEvent(dat$dataFile, {
     updateMatrixInput(session, "dataMatrix", value = dat$dataFile)
-    
+
+    # reset values storing data from uploaded models
+    uploadedDataMatrix(NULL)
+    uploadedDataMatrixSD(NULL)
+    uploadedIsotope(NULL)
+    uploadedModelSpecInputs(NULL)
+  })
+  
+  observeEvent(input$dataMatrix, {
+    updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = input$dataMatrixSD)
+  })
+  
+  observeEvent(input$fileData, {
+    updateMatrixInput(session, "dataMatrix", value = dat$dataFile())
+
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
     uploadedIsotope(NULL)

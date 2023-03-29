@@ -16,6 +16,7 @@ R Package to estimate isotopic values in the past and their change over time.
 - [`inst/app/predefinedModels`](https://github.com/Pandora-IsoMemo/osteo-bior/tree/main/inst/app/predefinedModels)
 
 ## Stan development
+
 * The precompiled stanmodel objects will appear in a named list called 'stanmodels', 
 and you can call them with something like rstan::sampling(stanmodels$foo, ...)
 * You can put into src/stan_files/chunks any file that is needed by any .stan file in src/stan_files, 

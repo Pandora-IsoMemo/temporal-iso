@@ -150,7 +150,7 @@ tagList(
                        column(width = 1, 
                               style = "margin-top: 14px;",
                               actionButton("saveModel", "Save"))
-                     ),
+                       ),
                      tags$hr()
                    ),
                    tabPanel(

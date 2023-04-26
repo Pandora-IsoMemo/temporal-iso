@@ -15,6 +15,7 @@
 #' @param timeVars A character string specifying the name of the column indicating the time.
 #' @param boneVars A vector of character strings indicating the relevant variables containing the
 #' renewal rates of bones and teeth. If not given, the variables with bones are all variables of the dataframe apart from the time variables.
+#' @param indVar A character string specifying the name of the column indicating the individual.
 #' @param isoMean A numeric number indicating the mean of the isotopic values measured.
 #' @param isoSigma A numeric, positive number indicating the standard deviation of the isotopic values measured.
 #' @param mc A boolean indicating if multiple cores should be used. If \code{TRUE}, which is the default, 4 cores are used.
@@ -117,6 +118,7 @@
 estimateIntervals <- function(renewalRates,
                               timeVars,
                               boneVars = NULL,
+                              indVar = "",
                               isoMean,
                               isoSigma,
                               renewalRatesSD = NULL,
@@ -172,6 +174,13 @@ estimateIntervals <- function(renewalRates,
   x <- t(as.matrix(apply(renewalRates[boneVars], 2, calcInfluence)))
 
   # must always have the same dimensions: renewalRates[boneVars] and renewalRatesSD[boneVars]
+  if (ncol(renewalRates[boneVars]) != ncol(renewalRatesSD[boneVars]))
+    stop(paste0("Error: Number of valid bone variables differ between renewal rates and renewal rates ",
+               "uncertainty for individual ", indVar, "."))
+  if (nrow(renewalRates[boneVars]) != nrow(renewalRatesSD[boneVars]))
+    stop(paste0("Error: Number of valid rows differ between renewal rates and renewal rates ",
+               "uncertainty for individual ", indVar, "."))
+  
   xlow <- t(as.matrix(apply(pmax(as.matrix(renewalRates[boneVars]- renewalRatesSD[boneVars]), 0), 2, calcInfluence)))
   xhigh <- t(as.matrix(apply(pmin(as.matrix(renewalRates[boneVars]+ renewalRatesSD[boneVars]), 100), 2, calcInfluence)))
   

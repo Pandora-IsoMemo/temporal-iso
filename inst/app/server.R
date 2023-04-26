@@ -197,6 +197,7 @@ shinyServer(function(input, output, session) {
           estimateIntervals(renewalRates = data.frame(modDat[[x]]),
                             timeVars = modelSpecInputs()$timeVars,
                             boneVars = boneVars,
+                            indVar = names(modDat)[x],
                             isoMean = unlist(isoMean()[[x]]),
                             isoSigma = unlist(isoSigma()[[x]]),
                             renewalRatesSD = data.frame(modDatSD[[x]]),

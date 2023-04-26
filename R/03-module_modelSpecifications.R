@@ -28,7 +28,7 @@ modelSpecificationsUI <- function(id, title) {
       label = "Element variables:",
       choices = character(0),
       options = list(
-        `actions-box` = FALSE,
+        `actions-box` = TRUE,
         size = 10,
         `none-selected-text` = "No variables selected"
       ),

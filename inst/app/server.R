@@ -74,7 +74,13 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$dataMatrix, {
-    updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = input$dataMatrixSD)
+    if (input$renewUnc) {
+      # use row- and column names from dataMatrix but content from dataMatrixSD
+      updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = input$dataMatrixSD)
+    } else {
+      zeroUnc <- matrix(0, ncol = ncol(input$dataMatrix), nrow = nrow(input$dataMatrix))
+      updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = zeroUnc)
+    }
   })
   
 
@@ -84,19 +90,6 @@ shinyServer(function(input, output, session) {
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
     uploadedDataMatrixSD(NULL)
-    uploadedIsotope(NULL)
-    uploadedModelSpecInputs(NULL)
-  })
-  
-  observeEvent(input$dataMatrix, {
-    updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = input$dataMatrixSD)
-  })
-  
-  observeEvent(input$fileData, {
-    updateMatrixInput(session, "dataMatrix", value = dat$dataFile())
-
-    # reset values storing data from uploaded models
-    uploadedDataMatrix(NULL)
     uploadedIsotope(NULL)
     uploadedModelSpecInputs(NULL)
   })
@@ -142,13 +135,8 @@ shinyServer(function(input, output, session) {
                                                uploadedModelSpecInputs = uploadedModelSpecInputs)
   
   modDat <- eventReactive(input$dataMatrix, {
-    req(modelSpecInputs()$indVar)
-    ret <- input$dataMatrix %>%
-      data.frame() %>%
-      .[colSums(!is.na(.)) > 0] #%>%
-      #filter(complete.cases(.))
-    lapply(split(ret, ret[, modelSpecInputs()$indVar]),
-           function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
+    cleanAndSplitData(indVar = modelSpecInputs()$indVar, 
+                      renewalRates = input$dataMatrix)
   })
   
   modDatSD <- eventReactive(input$dataMatrixSD, {

@@ -171,6 +171,7 @@ estimateIntervals <- function(renewalRates,
   t <- time / min(abs(diff(time))) # normalization: nearest neighbour is 1 away
   x <- t(as.matrix(apply(renewalRates[boneVars], 2, calcInfluence)))
 
+  # must always have the same dimensions: renewalRates[boneVars] and renewalRatesSD[boneVars]
   xlow <- t(as.matrix(apply(pmax(as.matrix(renewalRates[boneVars]- renewalRatesSD[boneVars]), 0), 2, calcInfluence)))
   xhigh <- t(as.matrix(apply(pmin(as.matrix(renewalRates[boneVars]+ renewalRatesSD[boneVars]), 100), 2, calcInfluence)))
   

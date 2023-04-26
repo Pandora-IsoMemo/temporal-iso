@@ -4,12 +4,14 @@
 \alias{cleanAndSplitData}
 \title{Clean and Split Data}
 \usage{
-cleanAndSplitData(indVar, renewalRates)
+cleanAndSplitData(indVar, renewalRates, renewalRatesUnc)
 }
 \arguments{
 \item{indVar}{(character) name of variable for individuals}
 
-\item{renewalRates}{(matrix) matrix with renewal rates or renewal rates uncertainties}
+\item{renewalRates}{(matrix) matrix with renewal rates}
+
+\item{renewalRatesUnc}{(matrix) matrix with renewal rates uncertainties}
 }
 \description{
 Clean and Split Data

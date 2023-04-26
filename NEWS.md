@@ -1,5 +1,13 @@
 # OsteoBioR
 
+## Version 23.04.1
+
+### Bug Fixes
+- add missing logic for default values if "Use renewal rates uncertainty" is unchecked (#24)
+- add an error message if the number of rows or columns do not match between renewal rates and their
+uncertainties
+- add tests to check new logic
+
 ## Version 23.03.2
 
 ### Updates

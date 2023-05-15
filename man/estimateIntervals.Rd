@@ -8,6 +8,7 @@ estimateIntervals(
   renewalRates,
   timeVars,
   boneVars = NULL,
+  indVar = "",
   isoMean,
   isoSigma,
   renewalRatesSD = NULL,
@@ -37,6 +38,8 @@ containing 100.}
 
 \item{boneVars}{A vector of character strings indicating the relevant variables containing the
 renewal rates of bones and teeth. If not given, the variables with bones are all variables of the dataframe apart from the time variables.}
+
+\item{indVar}{A character string specifying the name of the column indicating the individual.}
 
 \item{isoMean}{A numeric number indicating the mean of the isotopic values measured.}
 

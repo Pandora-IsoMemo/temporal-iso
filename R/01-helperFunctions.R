@@ -90,11 +90,32 @@ defaultInputsForUI <- function() {
 #' @export
 updateMatrixNamesInput <- function(session, inputId, value, value2) {
   stopifnot(is.matrix(value))
-  
   message <- list(value = list(
     data = value2,
-    rownames = rownames(value),
-    colnames = colnames(value)
+    rownames = rownames(value)[1:nrow(value2)],
+    colnames = colnames(value)[1:ncol(value2)]
   ))
   session$sendInputMessage(inputId, message)
+}
+
+#' Set Vars For Unc Matrix
+#' 
+#' @param indVar (character) name of variable for individuals
+#' @param renewalRates (matrix) matrix with renewal rates
+#' @param renewalRatesUnc (matrix) matrix with renewal rates uncertainties
+#' @inheritParams estimateIntervals
+setVarsForUncMatrix <- function(timeVars, indVar, renewalRates, renewalRatesUnc = NULL) {
+  if (is.null(renewalRatesUnc)) {
+    notIndOrTime <- colnames(renewalRates)[!colnames(renewalRates) %in% c(timeVars, indVar)]
+    renewalRatesUnc <- data.frame(renewalRates)
+    renewalRatesUnc[notIndOrTime] <- 0
+  } else {
+    renewalRatesUnc <- data.frame(renewalRatesUnc)
+    if ((!is.null(timeVars) && all(timeVars != "")) || (!is.null(indVar) && indVar != ""))
+    renewalRatesUnc[c(timeVars, indVar)] <- data.frame(renewalRates)[c(timeVars, indVar)]
+  }
+  
+  renewalRatesUnc <- as.matrix(renewalRatesUnc)
+  rownames(renewalRatesUnc) <- rep("", nrow(renewalRatesUnc))
+  renewalRatesUnc
 }

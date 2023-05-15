@@ -74,29 +74,26 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$dataMatrix, {
+    # use row- and column names from dataMatrix but content from dataMatrixSD
     updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = input$dataMatrixSD)
   })
-  
 
   observeEvent(dat$dataFile, {
     updateMatrixInput(session, "dataMatrix", value = dat$dataFile)
-
+    
+    if (!input$renewUnc) {
+      zeroSD <- setVarsForUncMatrix(renewalRates = dat$dataFile,
+                                    renewalRatesUnc = NULL,
+                                    timeVars = modelSpecInputs()$timeVars,
+                                    indVar = modelSpecInputs()$indVar)
+      
+      # use row- and column names from dataMatrix but content from dataMatrixSD
+      updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = zeroSD)
+    }
+    
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
     uploadedDataMatrixSD(NULL)
-    uploadedIsotope(NULL)
-    uploadedModelSpecInputs(NULL)
-  })
-  
-  observeEvent(input$dataMatrix, {
-    updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = input$dataMatrixSD)
-  })
-  
-  observeEvent(input$fileData, {
-    updateMatrixInput(session, "dataMatrix", value = dat$dataFile())
-
-    # reset values storing data from uploaded models
-    uploadedDataMatrix(NULL)
     uploadedIsotope(NULL)
     uploadedModelSpecInputs(NULL)
   })
@@ -141,27 +138,6 @@ shinyServer(function(input, output, session) {
                                                dataMatrix = reactive(input$dataMatrix),
                                                uploadedModelSpecInputs = uploadedModelSpecInputs)
   
-  modDat <- eventReactive(input$dataMatrix, {
-    req(modelSpecInputs()$indVar)
-    ret <- input$dataMatrix %>%
-      data.frame() %>%
-      .[colSums(!is.na(.)) > 0] #%>%
-      #filter(complete.cases(.))
-    lapply(split(ret, ret[, modelSpecInputs()$indVar]),
-           function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
-  })
-  
-  modDatSD <- eventReactive(input$dataMatrixSD, {
-    req(modelSpecInputs()$indVar)
-    ret <- input$dataMatrixSD %>%
-      data.frame() %>%
-      .[colSums(!is.na(.)) > 0] #%>%
-    #filter(complete.cases(.))
-    lapply(split(ret, ret[, modelSpecInputs()$indVar]),
-           function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
-  })
-  
-  
   isoMean <- eventReactive(input$isotope, {
     ret <- (input$isotope %>%
       data.frame() %>%
@@ -188,28 +164,47 @@ shinyServer(function(input, output, session) {
   savedModels <- reactiveVal(list())
   intervalTimePlot <- reactiveVal()
   
+  ## Fit Model ----
   observeEvent(input$fitModel, {
     if(!(all(length(nIndividuals1())==length(nIndividuals2())) && all(nIndividuals1()==nIndividuals2()))){
       shinyjs::alert("Number of individuals must be the same in both renewal and measurements table")
     }
-    req(modDat())
+    
+    if (!input$renewUnc) {
+      # update zero SD matrix regarding selected vars
+      renewalRatesUnc <- setVarsForUncMatrix(renewalRates = input$dataMatrix,
+                                             renewalRatesUnc = input$dataMatrixSD,
+                                             timeVars = modelSpecInputs()$timeVars,
+                                             indVar = modelSpecInputs()$indVar)
+    } else {
+      renewalRatesUnc <- input$dataMatrixSD
+    }
+    
+    splittedData <- cleanAndSplitData(indVar = modelSpecInputs()$indVar, 
+                                      renewalRates = input$dataMatrix,
+                                      renewalRatesUnc = renewalRatesUnc)
+    modDat <- splittedData$renewalRatesPerInd
+    modDatSD <- splittedData$renewalRatesUncPerInd
+    
+    req(modDat)
     fit(NULL)
     fitted <- try({
-      lapply(1:length(modDat()), function(x){
+      lapply(1:length(modDat), function(x){
         withProgress({
           boneVars <- modelSpecInputs()$boneVars[
-            which(modelSpecInputs()$boneVars %in% colnames(modDat()[[x]]))
+            which(modelSpecInputs()$boneVars %in% colnames(modDat[[x]]))
           ]
-          estimateIntervals(renewalRates = data.frame(modDat()[[x]]),
+          estimateIntervals(renewalRates = data.frame(modDat[[x]]),
                             timeVars = modelSpecInputs()$timeVars,
                             boneVars = boneVars,
+                            indVar = names(modDat)[x],
                             isoMean = unlist(isoMean()[[x]]),
                             isoSigma = unlist(isoSigma()[[x]]),
-                            renewalRatesSD = data.frame(modDatSD()[[x]]),
+                            renewalRatesSD = data.frame(modDatSD[[x]]),
                             iter = modelSpecInputs()$iter,
                             burnin = modelSpecInputs()$burnin,
                             chains = modelSpecInputs()$chains)
-        }, value = x / length(modDat()),
+        }, value = x / length(modDat),
         message = paste0("Calculate model for individual nr.", x))
       })
     }, silent = TRUE)
@@ -220,7 +215,7 @@ shinyServer(function(input, output, session) {
       allModels <- allModels[!grepl("Current", names(allModels))] # kept for the case if models 
       # from versions before 22.11.1 were uploaded
       for(i in 1:length(fitted)){
-        newName <- paste0(modelSpecInputs()$indVar, "_", names(modDat())[i])
+        newName <- paste0(modelSpecInputs()$indVar, "_", names(modDat)[i])
         allModels <- allModels[!grepl(newName, names(allModels))]
         newModel <- setNames(list(
           list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
@@ -338,6 +333,7 @@ shinyServer(function(input, output, session) {
     print(fit(), pars = c("interval", "mu", "rho", "alpha")) 
   })
   
+  ## Save / Load a Model ----
   observeEvent(input$saveModel, {
     if (trimws(input$modelName) == "") {
       shinyjs::alert("Please provide a model name")
@@ -382,6 +378,7 @@ shinyServer(function(input, output, session) {
     
   })
   
+  ## Down- / Upload Models ----
   uploadedNotes <- reactiveVal(NULL)
   callModule(downloadModel, "modelDownload", 
              savedModels = savedModels, uploadedNotes = uploadedNotes)
@@ -393,6 +390,7 @@ shinyServer(function(input, output, session) {
              uploadedIsotope = uploadedIsotope
              )
   
+  ## Export Summary ----
   observeEvent(input$exportSummary, {
     showModal(modalDialog(
       "Export Data",

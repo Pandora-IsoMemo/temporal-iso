@@ -12,7 +12,7 @@ library(rstan)
 tagList(
   shinyjs::useShinyjs(),
   shiny::navbarPage(
-    includeCSS("www/custom.css"),
+    header = includeCSS("www/custom.css"),
     title = paste("OsteoBioR App", packageVersion("OsteoBioR")),
     theme = shinythemes::shinytheme("flatly"),
     id = "tab",

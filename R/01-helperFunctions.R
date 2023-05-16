@@ -104,6 +104,8 @@ updateMatrixNamesInput <- function(session, inputId, value, value2) {
 #' @param renewalRates (matrix) matrix with renewal rates
 #' @param renewalRatesUnc (matrix) matrix with renewal rates uncertainties
 #' @inheritParams estimateIntervals
+#' 
+#' @export
 setVarsForUncMatrix <- function(timeVars, indVar, renewalRates, renewalRatesUnc = NULL) {
   if (is.null(renewalRatesUnc)) {
     notIndOrTime <- colnames(renewalRates)[!colnames(renewalRates) %in% c(timeVars, indVar)]

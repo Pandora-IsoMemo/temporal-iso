@@ -11,65 +11,61 @@ library(rstan)
 options(shiny.maxRequestSize = 200*1024^2)
 
 shinyServer(function(input, output, session) {
-  ### DATA -------------------------------------------------
+  # DATA -------------------------------------------------
   dat <- reactiveValues()
   uploadedDataMatrix <- reactiveVal()
   uploadedDataMatrixSD <- reactiveVal()
   uploadedIsotope <- reactiveVal()
   uploadedModelSpecInputs <- reactiveVal()
   
-  dat$dataFile <- eventReactive(input$fileData, ignoreNULL = TRUE, {
-    inFile <- input$fileData
-    if (is.null(inFile)) return(NULL)
-    file <- inFile$datapath
-    if(grepl(".csv$", file)){
-      name <- read.csv(file, sep = input$colseparatorData, dec = input$decseparatorData)
-    } else if(grepl(".xlsx$", file)){
-      name <- read.xlsx(file, sheetIndex = 1)
-    }
-    
-    if(any(sapply(as.matrix(name), is.character))) { shinyjs::alert("Please provide a dataset with all numeric variables.") }
-    name <- name[, !(apply(name, 2, function(x) all(is.na(x))))]
-    as.matrix(name)
-  })
+  ## Upload Renewal rates ----
+  importedData <- DataTools::importDataServer(
+    "fileData",
+    defaultSource = "file",
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+  )
   
-  dat$dataFileSD <- eventReactive(input$fileDataSD, ignoreNULL = TRUE, {
-    inFile <- input$fileDataSD
-    if (is.null(inFile)) return(NULL)
-    file <- inFile$datapath
-    if(grepl(".csv$", file)){
-      name <- read.csv(file, sep = input$colseparatorData, dec = input$decseparatorData)
-    } else if(grepl(".xlsx$", file)){
-      name <- read.xlsx(file, sheetIndex = 1)
-    }
-    
-    if(any(sapply(as.matrix(name), is.character))) { shinyjs::alert("Please provide a dataset with all numeric variables.") }
-    name <- name[, !(apply(name, 2, function(x) all(is.na(x))))]
-    as.matrix(name)
-  })
+  observe({
+    req(length(importedData()) > 0)
+    dat$dataFile <- importedData()[[1]] %>%
+      as.matrix()
+  }) %>%
+    bindEvent(importedData())
+
+  ## Upload Renewal rates uncertainty (optional) ----
+  importedDataSD <- DataTools::importDataServer(
+    "fileDataSD",
+    defaultSource = "file",
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+  )
+
+  observe({
+    req(length(importedDataSD()) > 0)
+    dat$dataFileSD <- importedDataSD()[[1]] %>%
+      as.matrix()
+  }) %>%
+    bindEvent(importedDataSD())
   
+  ## Upload Measurements ----
+  importedIso <- DataTools::importDataServer(
+    "fileIso",
+    defaultSource = "file",
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+  )
   
-  dat$fileIso <- eventReactive(input$fileIso, ignoreNULL = TRUE, {
-    inFile <- input$fileIso
-    if (is.null(inFile)) return(NULL)
-    file <- inFile$datapath
-    if(grepl(".csv$", file)){
-      name <- read.csv(file, sep = input$colseparatorIso, dec = input$decseparatorIso)
-    } else if(grepl(".xlsx$", file)){
-      name <- read.xlsx(file, sheetIndex = 1)
-    } 
-    if(any(sapply(as.matrix(name), is.character))) { shinyjs::alert("Please provide a dataset with all numeric variables.") }
-    name <- name[, !(apply(name, 2, function(x) all(is.na(x))))]
-    as.matrix(name)
-    
-  })
+  observe({
+    req(length(importedIso()) > 0)
+    dat$fileIso <- importedIso()[[1]] %>%
+      as.matrix()
+  }) %>%
+    bindEvent(importedIso())
   
   
   observeEvent(input$exampleData, {
     updateMatrixInput(session, "dataMatrix", value = getExampleDataMatrix() )
     updateMatrixInput(session, "isotope", value = getExampleIsotopeVals())
     updateMatrixInput(session, "dataMatrixSD", value = getExampleDataMatrix(sd=TRUE))
-    
+
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
     uploadedDataMatrixSD(NULL)
@@ -78,20 +74,32 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$dataMatrix, {
+    # use row- and column names from dataMatrix but content from dataMatrixSD
     updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = input$dataMatrixSD)
   })
-  
-  observeEvent(input$fileData, {
-    updateMatrixInput(session, "dataMatrix", value = dat$dataFile())
 
+  observeEvent(dat$dataFile, {
+    updateMatrixInput(session, "dataMatrix", value = dat$dataFile)
+    
+    if (!input$renewUnc) {
+      zeroSD <- setVarsForUncMatrix(renewalRates = dat$dataFile,
+                                    renewalRatesUnc = NULL,
+                                    timeVars = modelSpecInputs()$timeVars,
+                                    indVar = modelSpecInputs()$indVar)
+      
+      # use row- and column names from dataMatrix but content from dataMatrixSD
+      updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = zeroSD)
+    }
+    
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
+    uploadedDataMatrixSD(NULL)
     uploadedIsotope(NULL)
     uploadedModelSpecInputs(NULL)
   })
   
-  observeEvent(input$fileDataSD, {
-    updateMatrixInput(session, "dataMatrixSD", value = dat$dataFileSD())
+  observeEvent(dat$dataFileSD, {
+    updateMatrixInput(session, "dataMatrixSD", value = dat$dataFileSD)
     
     # reset values storing data from uploaded models
     uploadedDataMatrixSD(NULL)
@@ -99,8 +107,8 @@ shinyServer(function(input, output, session) {
     uploadedModelSpecInputs(NULL)
   })
   
-  observeEvent(input$fileIso, {
-    updateMatrixInput(session, "isotope", value = dat$fileIso() )
+  observeEvent(dat$fileIso, {
+    updateMatrixInput(session, "isotope", value = dat$fileIso)
     
     # reset values storing data from uploaded models
     uploadedDataMatrix(NULL)
@@ -124,32 +132,11 @@ shinyServer(function(input, output, session) {
     updateMatrixInput(session, "isotope", value = uploadedIsotope() )
   })
   
-  ### MODEL -------------------------------------------------
+  # MODEL -------------------------------------------------
   
   modelSpecInputs <- modelSpecificationsServer(id = "modelSpecification", 
                                                dataMatrix = reactive(input$dataMatrix),
                                                uploadedModelSpecInputs = uploadedModelSpecInputs)
-  
-  modDat <- eventReactive(input$dataMatrix, {
-    req(modelSpecInputs()$indVar)
-    ret <- input$dataMatrix %>%
-      data.frame() %>%
-      .[colSums(!is.na(.)) > 0] #%>%
-      #filter(complete.cases(.))
-    lapply(split(ret, ret[, modelSpecInputs()$indVar]),
-           function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
-  })
-  
-  modDatSD <- eventReactive(input$dataMatrixSD, {
-    req(modelSpecInputs()$indVar)
-    ret <- input$dataMatrixSD %>%
-      data.frame() %>%
-      .[colSums(!is.na(.)) > 0] #%>%
-    #filter(complete.cases(.))
-    lapply(split(ret, ret[, modelSpecInputs()$indVar]),
-           function(x) x[, !apply(x, 2, function(y) all(is.na(y)))])
-  })
-  
   
   isoMean <- eventReactive(input$isotope, {
     ret <- (input$isotope %>%
@@ -177,28 +164,47 @@ shinyServer(function(input, output, session) {
   savedModels <- reactiveVal(list())
   intervalTimePlot <- reactiveVal()
   
+  ## Fit Model ----
   observeEvent(input$fitModel, {
     if(!(all(length(nIndividuals1())==length(nIndividuals2())) && all(nIndividuals1()==nIndividuals2()))){
       shinyjs::alert("Number of individuals must be the same in both renewal and measurements table")
     }
-    req(modDat())
+    
+    if (!input$renewUnc) {
+      # update zero SD matrix regarding selected vars
+      renewalRatesUnc <- setVarsForUncMatrix(renewalRates = input$dataMatrix,
+                                             renewalRatesUnc = input$dataMatrixSD,
+                                             timeVars = modelSpecInputs()$timeVars,
+                                             indVar = modelSpecInputs()$indVar)
+    } else {
+      renewalRatesUnc <- input$dataMatrixSD
+    }
+    
+    splittedData <- cleanAndSplitData(indVar = modelSpecInputs()$indVar, 
+                                      renewalRates = input$dataMatrix,
+                                      renewalRatesUnc = renewalRatesUnc)
+    modDat <- splittedData$renewalRatesPerInd
+    modDatSD <- splittedData$renewalRatesUncPerInd
+    
+    req(modDat)
     fit(NULL)
     fitted <- try({
-      lapply(1:length(modDat()), function(x){
+      lapply(1:length(modDat), function(x){
         withProgress({
           boneVars <- modelSpecInputs()$boneVars[
-            which(modelSpecInputs()$boneVars %in% colnames(modDat()[[x]]))
+            which(modelSpecInputs()$boneVars %in% colnames(modDat[[x]]))
           ]
-          estimateIntervals(renewalRates = data.frame(modDat()[[x]]),
+          estimateIntervals(renewalRates = data.frame(modDat[[x]]),
                             timeVars = modelSpecInputs()$timeVars,
                             boneVars = boneVars,
+                            indVar = names(modDat)[x],
                             isoMean = unlist(isoMean()[[x]]),
                             isoSigma = unlist(isoSigma()[[x]]),
-                            renewalRatesSD = data.frame(modDatSD()[[x]]),
+                            renewalRatesSD = data.frame(modDatSD[[x]]),
                             iter = modelSpecInputs()$iter,
                             burnin = modelSpecInputs()$burnin,
                             chains = modelSpecInputs()$chains)
-        }, value = x / length(modDat()),
+        }, value = x / length(modDat),
         message = paste0("Calculate model for individual nr.", x))
       })
     }, silent = TRUE)
@@ -209,11 +215,12 @@ shinyServer(function(input, output, session) {
       allModels <- allModels[!grepl("Current", names(allModels))] # kept for the case if models 
       # from versions before 22.11.1 were uploaded
       for(i in 1:length(fitted)){
-        newName <- paste0(modelSpecInputs()$indVar, "_", names(modDat())[i])
+        newName <- paste0(modelSpecInputs()$indVar, "_", names(modDat)[i])
         allModels <- allModels[!grepl(newName, names(allModels))]
         newModel <- setNames(list(
           list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
                inputDataMatrix = input$dataMatrix,
+               inputDataMatrixSD = input$inputDataMatrixSD,
                inputIsotope = input$isotope,
                fit = fitted[[i]])
         ), newName)
@@ -326,6 +333,7 @@ shinyServer(function(input, output, session) {
     print(fit(), pars = c("interval", "mu", "rho", "alpha")) 
   })
   
+  ## Save / Load a Model ----
   observeEvent(input$saveModel, {
     if (trimws(input$modelName) == "") {
       shinyjs::alert("Please provide a model name")
@@ -370,6 +378,7 @@ shinyServer(function(input, output, session) {
     
   })
   
+  ## Down- / Upload Models ----
   uploadedNotes <- reactiveVal(NULL)
   callModule(downloadModel, "modelDownload", 
              savedModels = savedModels, uploadedNotes = uploadedNotes)
@@ -381,6 +390,7 @@ shinyServer(function(input, output, session) {
              uploadedIsotope = uploadedIsotope
              )
   
+  ## Export Summary ----
   observeEvent(input$exportSummary, {
     showModal(modalDialog(
       "Export Data",
@@ -780,7 +790,7 @@ shinyServer(function(input, output, session) {
   })
   
   
-  ### RESIDING TIME ------------------------------------------
+  # RESIDING TIME ------------------------------------------
   datStayTime <- reactiveValues()
   
   datStayTime$dataExample <- eventReactive(input$loadStayTimeData, ignoreNULL = TRUE, {
@@ -789,25 +799,25 @@ shinyServer(function(input, output, session) {
       siteSigma = c(1, 1.5)))
   })
   
-  datStayTime$dataFile <- eventReactive(input$stayTimeData, ignoreNULL = TRUE, {
-    inFile <- input$stayTimeData
-    if (is.null(inFile)) return(NULL)
-    file <- inFile$datapath
-    if(grepl(".csv$", file)){
-      name <- read.csv(file, sep = input$colseparatorStay, dec = input$decseparatorStay)
-    } else if(grepl(".xlsx$", file)){
-      name <- readxl::read_xlsx(file)
-    } 
-    if(any(sapply(as.matrix(name), is.character))) { shinyjs::alert("Please provide a dataset with all numeric variables.") }
-    as.matrix(name)
-    
-  })
-  observeEvent(input$loadStayTimeData, {
-    updateMatrixInput(session, "stayTimeMatrix", value = datStayTime$dataExample() )
+  importedStayTime <- DataTools::importDataServer(
+    "stayTimeData",
+    defaultSource = "file",
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+  )
+  
+  observe({
+    req(length(importedStayTime()) > 0)
+    datStayTime$dataFile <- importedStayTime()[[1]] %>%
+      as.matrix()
+  }) %>%
+    bindEvent(importedStayTime())
+  
+  observeEvent(datStayTime$dataFile, {
+    updateMatrixInput(session, "stayTimeMatrix", value = datStayTime$dataFile)
   })
   
-  observeEvent(input$stayTimeData, {
-    updateMatrixInput(session, "stayTimeMatrix", value = datStayTime$dataFile() )
+  observeEvent(input$loadStayTimeData, {
+    updateMatrixInput(session, "stayTimeMatrix", value = datStayTime$dataExample() )
   })
   
   stayTimeDat <- eventReactive(input$stayTimeMatrix, {
@@ -821,7 +831,8 @@ shinyServer(function(input, output, session) {
     getSiteStayTimes(object = fit(),
                      siteMeans = stayTimeDat()[, 1] %>% unlist(),
                      siteSigma = stayTimeDat()[, 2] %>% unlist(),
-                     print = FALSE)
+                     print = FALSE) %>%
+      DataTools::tryCatchWithWarningsAndErrors()
   })
   output$estimatedStayTimes <- renderPrint({ estimatedStayTimes() })
   
@@ -871,7 +882,7 @@ shinyServer(function(input, output, session) {
   })
   
   
-  ### COMPUTE ISOTOPIC VALUES ------------------------------
+  # COMPUTE ISOTOPIC VALUES ------------------------------
   datIso <- reactiveValues()
   
   datIso$dataExample <- eventReactive(input$loadHistData, ignoreNULL = TRUE, {
@@ -885,25 +896,24 @@ shinyServer(function(input, output, session) {
     )) 
   })
   
-  datIso$dataFile <- eventReactive(input$fileHistData, ignoreNULL = TRUE, {
-    inFile <- input$fileHistData
-    if (is.null(inFile)) return(NULL)
-    file <- inFile$datapath
-    if(grepl(".csv$", file)){
-      name <- read.csv(file, sep = input$colseparatorHistData, dec = input$decseparatorHistData)
-    } else if(grepl(".xlsx$", file)){
-      name <- read.xlsx(file, sheetIndex = 1)
-    } 
-    if(any(sapply(as.matrix(name), is.character))) { shinyjs::alert("Please provide a dataset with all numeric variables.") }
-    as.matrix(name)
-    
-  })
-  
   observeEvent(input$loadHistData, {
     updateMatrixInput(session, "historicData", value = datIso$dataExample() )
   })
   
-  observeEvent(input$fileHistData, {
+  importedHistData <- DataTools::importDataServer(
+    "fileHistData",
+    defaultSource = "file",
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+  )
+  
+  observe({
+    req(length(importedHistData()) > 0)
+    datIso$dataFile <- importedHistData()[[1]] %>%
+      as.matrix()
+  }) %>%
+    bindEvent(importedHistData())
+  
+  observeEvent(datIso$dataFile, {
     updateMatrixInput(session, "historicData", value = datIso$dataFile() )
   })
   
@@ -928,7 +938,8 @@ shinyServer(function(input, output, session) {
       boneVars = input$boneVarsHist,
       meanVar = input$meanVarHist,
       sdVar = input$sdVarHist
-    ),
+    ) %>%
+      DataTools::tryCatchWithWarningsAndErrors(),
     sapply(isoHistDat() %>% select(input$boneVarsHist), quantile, probs = c(0.025, 0.975)) %>% t()
     
     )

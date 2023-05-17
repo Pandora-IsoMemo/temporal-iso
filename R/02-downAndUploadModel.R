@@ -17,7 +17,7 @@ downloadModelUI <- function(id, label) {
                 choices = NULL,
                 options = list(`actions-box` = TRUE),
                 multiple = T),
-    checkboxInput(ns("onlyInputs"), "Store only data and model options"),
+    checkboxInput(ns("onlyInputs"), "Store only input data and model options"),
     textAreaInput(ns("notes"), "Notes"),
     HTML("<br>"),
     downloadButton(ns("downloadModel"), "Download"),
@@ -95,18 +95,10 @@ uploadModelUI <- function(id, label) {
   ns <- NS(id)
   
   tagList(
-    HTML("<br>"),
     tags$h5(label),
-    fileInput(ns("uploadModel"), label = NULL),
-    selectInput(
-      ns("remoteModel"),
-      label = "Select remote model",
-      choices = dir(file.path(settings$pathToSavedModels)) %>%
-        sub(pattern = '\\.zip$', replacement = ''),
-      selected = NULL
-    ),
-    actionButton(ns("loadRemoteModel"), "Load Remote Model")#,
-    #helpText("Remote models are only available on on https://isomemoapp.com")
+    fileInput(ns("uploadModel"), label = "Load local model"),
+    remoteModelsUI(ns("remoteModels")),
+    tags$br(), tags$br(), tags$br()
   )
 }
 
@@ -135,8 +127,15 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit,
     pathToModel(input$uploadModel$datapath)
   })
   
-  observeEvent(input$loadRemoteModel, {
-    pathToModel(file.path(settings$pathToSavedModels, paste0(input$remoteModel, ".zip")))
+  pathToRemote <- remoteModelsServer("remoteModels",
+                                     githubRepo = "osteo-bior",
+                                     rPackageName = "OsteoBioR",
+                                     rPackageVersion = "OsteoBioR" %>%
+                                       packageVersion() %>%
+                                       as.character())
+  
+  observeEvent(pathToRemote(), {
+    pathToModel(pathToRemote())
   })
   
   observeEvent(pathToModel(), {
@@ -154,10 +153,10 @@ uploadModel <- function(input, output, session, savedModels, uploadedNotes, fit,
       return()
     }
     
-    file.remove("model.rds")
-    file.remove("README.txt")
-    file.remove("help.html")
-    
+    if (file.exists("model.rds")) file.remove("model.rds")
+    if (file.exists("README.txt")) file.remove("README.txt")
+    if (file.exists("help.html")) file.remove("help.html")
+
     if (!exists("modelImport")) {
       shinyjs::alert("File format not valid. Model object not found.")
       return()

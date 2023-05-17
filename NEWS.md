@@ -1,5 +1,40 @@
 # OsteoBioR
 
+## Version 23.04.1
+
+### Bug Fixes
+- add missing logic for default values if "Use renewal rates uncertainty" is unchecked (#24)
+- add an error message if the number of rows or columns do not match between renewal rates and their
+uncertainties
+- add tests to check new logic
+
+## Version 23.03.2
+
+### Updates
+- remote models are loaded from the github folder `inst/app/predefinedModels` of the respective 
+repository
+- if there is no internet connection remote models are taken from the models that were saved with
+  the last deployed app version
+
+## Version 23.03.1
+
+### Bug fixes
+- add remote package to enable the _Import Data_ module
+
+## Version 23.02.2
+
+### Updates
+- add more tryCatch statements
+
+## Version 23.02.1
+
+### New Features
+- the _Import Data_ module is now imported from the new package DataTools (#15, PR #16)
+  - additionally to file import, now import from _URL_ or from _Pandora Platform_ is possible
+  - all redundant code was removed
+  - using "file" as default source in _Import Data_
+- now, sidebars are fixed with auto scroll in all tabs (iso-app #4)
+
 ## Version 23.01.1
 
 ### New Features

@@ -9,9 +9,11 @@ R Package to estimate isotopic values in the past and their change over time.
 ### Help and installation instructions:
 - https://github.com/Pandora-IsoMemo/osteo-bior/wiki
 
+### Release notes:
+- see `NEWS.md`
+
 ### Folder for online models
 - [`inst/app/predefinedModels`](https://github.com/Pandora-IsoMemo/osteo-bior/tree/main/inst/app/predefinedModels)
-
 
 ## Stan development
 
@@ -22,4 +24,3 @@ and you can call them with something like rstan::sampling(stanmodels$foo, ...)
 but be sure to #include your C++ files in inst/include/meta_header.hpp
 * While developing your package use devtools::install('.', local=FALSE) 
 to reinstall the package AND recompile Stan programs, or set local=FALSE to skip the recompilation.
-

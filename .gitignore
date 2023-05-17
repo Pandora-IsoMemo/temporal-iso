@@ -33,3 +33,9 @@ vignettes/*.pdf
 # jupyter files and notebooks
 .ipynb_checkpoints/
 *.ipynb
+
+# src files
+src/*
+
+# profiling script
+RScripts/profileApp.R

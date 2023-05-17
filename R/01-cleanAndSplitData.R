@@ -3,6 +3,8 @@
 #' @param indVar (character) name of variable for individuals
 #' @param renewalRates (matrix) matrix with renewal rates
 #' @param renewalRatesUnc (matrix) matrix with renewal rates uncertainties
+#' 
+#' @export
 cleanAndSplitData <-
   function(indVar, renewalRates, renewalRatesUnc) {
     if (is.null(indVar))

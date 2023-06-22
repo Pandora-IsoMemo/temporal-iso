@@ -335,19 +335,21 @@ shinyServer(function(input, output, session) {
   
   ## Save / Load a Model ----
   observeEvent(input$saveModel, {
+    logging("Save model")
     if (trimws(input$modelName) == "") {
       shinyjs::alert("Please provide a model name")
       return()
     }
+    
     if (input$modelName %in% names(savedModels())) {
       shinyjs::alert("Model name already present. Please choose another name")
       return()
     }
-    
+
     if (is.null(fit())) {
       fitToSave <- NULL 
     } else {
-      fitToSave <- reactiveValuesToList(fit())
+      fitToSave <- fit()
     }
     newModel <- setNames(list(
       list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),

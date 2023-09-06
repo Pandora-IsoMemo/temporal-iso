@@ -196,13 +196,7 @@ testthat::test_that("getDefaultPlotRange, deriv = 2",  {
                            ymin = -4.2100298618177, ymax = 3.69646935224212))
 })
 
-testthat::test_that("addXScale", {
-  x <- getPlotData(testObjectDefault1, prop = 0.8, time = NULL, deriv = "1")
-  x$time <- adjustTimeColumn(objectTime = testObjectDefault1@time, deriv = "1")
-  
-  p <- ggplot2::ggplot(x, ggplot2::aes(x = .data[["time"]])) + 
-    ggplot2::geom_line(ggplot2::aes(y = .data[["median"]]), alpha = 0.9)
-  
+testthat::test_that("extendXAxis", {
   oldXAxisData <- structure(list(
     time = c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5), 
     lower = c(0, 1, 2, 3, 4, 5), 
@@ -210,10 +204,11 @@ testthat::test_that("addXScale", {
     class = "data.frame", 
     row.names = c(NA,  -6L))
   
-  pTest <- p %>%
-    addXScale(xAxisData = getXAxisData(object = testObjectDefault1, oldXAxisData = oldXAxisData),
-              deriv = "1", 
-              xLim = c(-1, 8))
+  xAxisData <- getXAxisData(object = testObjectDefault1, oldXAxisData = oldXAxisData)
   
-  expect_true(inherits(pTest$data, "data.frame"))
+  testXAxisData <- xAxisData %>%
+    extendXAxis(deriv = "1", 
+                xLim = c(-1, 8))
+  
+  expect_equal(nrow(xAxisData) + 2, nrow(testXAxisData))
 })

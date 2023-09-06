@@ -22,6 +22,8 @@
 #' @param sizeAxisX size text x axis label
 #' @param sizeAxisY size text y axis label
 #' @param secAxis boolean secondary axis on right side?
+#' @param extendLabels (logical) if TRUE, extend the labels of the x-axis to the x-axis limits. 
+#'  If FALSE, the range of the data defines the range of x-axis labels.
 #' @param ... arguments handed to \code{\link{getShiftTime}}
 #' 
 #' @return a \link[ggplot2]{ggplot} object.
@@ -88,15 +90,15 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   }
   
   xAxisData <- getXAxisData(object = object, oldXAxisData = oldXAxisData)
-  if (extendLabels) {
-    xScaleLim <- xLim
-  } else {
-    xScaleLim <- range(xAxisData)
-  }
-  p <- p %>%
-    addXScale(xAxisData = xAxisData,
-              deriv = deriv, 
-              xLim = xScaleLim)
+  xAxisData <- xAxisData %>%
+    extendXAxis(deriv = deriv, 
+                xLim = ifelse(extendLabels, xLim, range(xAxisData)))
+  
+  breaks <- getBreaks(time = xAxisData$time, deriv = deriv)
+  labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
+  
+  p <- p + 
+    scale_x_continuous(breaks = breaks, labels = labels)
 
   if (plotShifts){
     index <- getShiftIndex(object, ...)
@@ -174,15 +176,14 @@ getXAxisData <- function(object, oldXAxisData = data.frame()){
   xAxisData
 }
 
-#' Add X Scale
+#' Extend X Axis
 #' 
 #' Add breaks and labels for x axis
 #' 
-#' @param p (ggplot) ggplot object
 #' @param xAxisData (data.frame) data.frame containing "time", "lower" and "upper" columns used for
 #'  the x axis.
 #' @inheritParams plotTime
-addXScale <- function(p, xAxisData, deriv, xLim) {
+extendXAxis <- function(xAxisData, deriv, xLim) {
   if (min(xLim) < min(xAxisData)) {
     # add new row at the beginning
     newFirstRow <- data.frame(
@@ -207,10 +208,7 @@ addXScale <- function(p, xAxisData, deriv, xLim) {
                           newLastRow)
   }
   
-  breaks <- getBreaks(time = xAxisData$time, deriv = deriv)
-  labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
-  
-  p + scale_x_continuous(breaks = breaks, labels = labels)
+  xAxisData
 }
 
 #' Get Label

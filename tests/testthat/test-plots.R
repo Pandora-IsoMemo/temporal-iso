@@ -195,3 +195,21 @@ testthat::test_that("getDefaultPlotRange, deriv = 2",  {
                          c(xmin = 1, xmax = 5.5,
                            ymin = -4.2100298618177, ymax = 3.69646935224212))
 })
+
+testthat::test_that("addXScale", {
+  x <- getPlotData(testObjectDefault1, prop = 0.8, time = NULL, deriv = "1")
+  x$time <- adjustTimeColumn(objectTime = testObjectDefault1@time, deriv = "1")
+  
+  p <- ggplot(x, aes_string(x = "time")) + 
+    geom_line(aes_string(y = "median"), alpha = 0.9)
+  
+  oldXAxisData <- structure(list(
+    time = c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5), 
+    lower = c(0, 1, 2, 3, 4, 5), 
+    upper = c(1, 2, 3, 4, 5, 6)),
+    class = "data.frame", 
+    row.names = c(NA,  -6L))
+  
+  p %>%
+    addXScale(object = testObjectDefault1, oldXAxisData = oldXAxisData, deriv = "1")
+})

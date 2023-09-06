@@ -39,10 +39,6 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   x <- getPlotData(object, prop = prop, deriv = deriv)
   x$time <- adjustTimeColumn(objectTime = object@time, deriv = deriv)
   
-  newXAxisData <- getXAxisData(object, oldXAxisData = oldXAxisData)
-  breaks <- getBreaks(time = newXAxisData$time, deriv = deriv)
-  labels <- getLabel(xAxisData = newXAxisData, deriv = deriv)
-  
   if (nrow(x) > 1) lineFct <- geom_line else lineFct <- geom_point
   if(is.null(oldPlot)){
     p <- ggplot(x, aes_string(x = "time")) + 
@@ -50,7 +46,6 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
       lineFct(aes_string(y = "lower"), size = 0.05, colour = colorL, alpha = alphaL) +
       lineFct(aes_string(y = "upper"), size = 0.05, colour = colorL, alpha = alphaL) +
       geom_point(aes_string(x = "time", y = "median"), colour = colorL, alpha = alphaL) +
-      scale_x_continuous(breaks = breaks, labels = labels) +
       coord_cartesian(ylim = yLim, xlim = xLim) +
       labs(title = paste0(prop * 100, "%-Credibility-Interval for isotopic values over time"),
            x = xAxisLabel, y = yAxisLabel) + theme(panel.grid.major.x = element_line(size = 0.1)) + 
@@ -78,7 +73,6 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
       geom_line(data = x, aes_string(y = "upper"), size = 0.05, colour = colorL, alpha = alphaL) +
       geom_ribbon(data = x, aes_string(ymin = "lower", ymax = "upper"), linetype = 2, alpha = alphaU, fill = colorU) +
       geom_point(data = x, aes_string(x = "time", y = "median"), colour = colorL, alpha = alphaL) +
-      scale_x_continuous(breaks = breaks, labels = labels) +
       labs(title = paste0(prop * 100, "%-Credibility-Interval for isotopic values over time"),
            x = "Time", y = "Estimation")
     
@@ -92,8 +86,10 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
            )
     }
   }
-
   
+  p <- p %>%
+    addXScale(object = object, oldXAxisData = oldXAxisData, deriv = deriv)
+
   if (plotShifts){
     index <- getShiftIndex(object, ...)
     p <- p + geom_vline(xintercept = breaks[which(index)] + 0.5, col = "darkgrey")
@@ -145,6 +141,20 @@ adjustTimeColumn <- function(objectTime, deriv){
   }
   
   res
+}
+
+#' Add X Scale
+#' 
+#' Add breaks and labels for x axis
+#' 
+#' @param p (ggplot) ggplot object
+#' @inheritParams plotTime
+addXScale <- function(p, object, oldXAxisData, deriv) {
+  newXAxisData <- getXAxisData(object, oldXAxisData = oldXAxisData)
+  breaks <- getBreaks(time = newXAxisData$time, deriv = deriv)
+  labels <- getLabel(xAxisData = newXAxisData, deriv = deriv)
+  
+  p + scale_x_continuous(breaks = breaks, labels = labels)
 }
 
 

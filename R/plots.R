@@ -22,6 +22,8 @@
 #' @param sizeAxisX size text x axis label
 #' @param sizeAxisY size text y axis label
 #' @param secAxis boolean secondary axis on right side?
+#' @param extendLabels boolean if TRUE, extend the labels of the x-axis to the x-axis limits. 
+#'  If FALSE, the range of the data defines the range of x-axis labels.
 #' @param ... arguments handed to \code{\link{getShiftTime}}
 #' 
 #' @return a \link[ggplot2]{ggplot} object.
@@ -32,25 +34,20 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
                      oldPlot = NULL, oldXAxisData = data.frame(), deriv = "1", colorL = NULL,
                      colorU = NULL, alphaL = 0.9, alphaU = 0.1,
                      sizeTextY = 12, sizeTextX = 12, sizeAxisX = 12, sizeAxisY = 12, secAxis = FALSE,
-                     xAxisLabel = "Time", yAxisLabel = "Estimate",
+                     xAxisLabel = "Time", yAxisLabel = "Estimate", extendLabels = FALSE,
                      ...){
   stopifnot(prop < 1)
 
   x <- getPlotData(object, prop = prop, deriv = deriv)
   x$time <- adjustTimeColumn(objectTime = object@time, deriv = deriv)
   
-  newXAxisData <- getXAxisData(object, oldXAxisData = oldXAxisData)
-  breaks <- getBreaks(time = newXAxisData$time, deriv = deriv)
-  labels <- getLabel(xAxisData = newXAxisData, deriv = deriv)
-  
   if (nrow(x) > 1) lineFct <- geom_line else lineFct <- geom_point
   if(is.null(oldPlot)){
-    p <- ggplot(x, aes_string(x = "time")) + 
-      lineFct(aes_string(y = "median"), colour = colorL, alpha = alphaL) +
-      lineFct(aes_string(y = "lower"), size = 0.05, colour = colorL, alpha = alphaL) +
-      lineFct(aes_string(y = "upper"), size = 0.05, colour = colorL, alpha = alphaL) +
-      geom_point(aes_string(x = "time", y = "median"), colour = colorL, alpha = alphaL) +
-      scale_x_continuous(breaks = breaks, labels = labels) +
+    p <- ggplot(x, aes(x = .data[["time"]])) + 
+      lineFct(aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
+      lineFct(aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
+      lineFct(aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL) +
+      geom_point(aes(x = .data[["time"]], y = .data[["median"]]), colour = colorL, alpha = alphaL) +
       coord_cartesian(ylim = yLim, xlim = xLim) +
       labs(title = paste0(prop * 100, "%-Credibility-Interval for isotopic values over time"),
            x = xAxisLabel, y = yAxisLabel) + theme(panel.grid.major.x = element_line(size = 0.1)) + 
@@ -58,7 +55,7 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
             axis.title.y = element_text(size = sizeTextY),
             axis.text.x = element_text(size = sizeAxisX),
             axis.text.y = element_text(size = sizeAxisY))
-    if (nrow(x) > 1) p <- p + geom_ribbon(aes_string(ymin = "lower", ymax = "upper"), 
+    if (nrow(x) > 1) p <- p + geom_ribbon(aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), 
                                           linetype = 2, alpha = alphaU, fill = colorU) 
   } else {
     if(secAxis){
@@ -73,12 +70,11 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
       x$lower <- (x$lower - center ) / scale
       x$upper <- (x$upper  - center ) / scale
     }
-    p <- oldPlot  + geom_line(data = x, aes_string(y = "median"), colour = colorL, alpha = alphaL) +
-      geom_line(data = x, aes_string(y = "lower"), size = 0.05, colour = colorL, alpha = alphaL) +
-      geom_line(data = x, aes_string(y = "upper"), size = 0.05, colour = colorL, alpha = alphaL) +
-      geom_ribbon(data = x, aes_string(ymin = "lower", ymax = "upper"), linetype = 2, alpha = alphaU, fill = colorU) +
-      geom_point(data = x, aes_string(x = "time", y = "median"), colour = colorL, alpha = alphaL) +
-      scale_x_continuous(breaks = breaks, labels = labels) +
+    p <- oldPlot  + geom_line(data = x, aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
+      geom_line(data = x, aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
+      geom_line(data = x, aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL) +
+      geom_ribbon(data = x, aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), linetype = 2, alpha = alphaU, fill = colorU) +
+      geom_point(data = x, aes(x = .data[["time"]], y = .data[["median"]]), colour = colorL, alpha = alphaL) +
       labs(title = paste0(prop * 100, "%-Credibility-Interval for isotopic values over time"),
            x = "Time", y = "Estimation")
     
@@ -92,12 +88,23 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
            )
     }
   }
-
   
+  xAxisData <- getXAxisData(object = object, oldXAxisData = oldXAxisData)
+  xAxisData <- xAxisData %>%
+    extendXAxis(deriv = deriv, 
+                xLim = ifelse(extendLabels, xLim, range(xAxisData)))
+  
+  breaks <- getBreaks(time = xAxisData$time, deriv = deriv)
+  labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
+  
+  p <- p + 
+    scale_x_continuous(breaks = breaks, labels = labels)
+
   if (plotShifts){
     index <- getShiftIndex(object, ...)
     p <- p + geom_vline(xintercept = breaks[which(index)] + 0.5, col = "darkgrey")
   }
+  
   p
 }
 
@@ -147,7 +154,6 @@ adjustTimeColumn <- function(objectTime, deriv){
   res
 }
 
-
 #' Get X-Axis Data
 #' 
 #' @inheritParams plotTime
@@ -170,6 +176,40 @@ getXAxisData <- function(object, oldXAxisData = data.frame()){
   xAxisData
 }
 
+#' Extend X Axis
+#' 
+#' Add breaks and labels for x axis
+#' 
+#' @param xAxisData (data.frame) data.frame containing "time", "lower" and "upper" columns used for
+#'  the x axis.
+#' @inheritParams plotTime
+extendXAxis <- function(xAxisData, deriv, xLim) {
+  if (min(xLim) < min(xAxisData)) {
+    # add new row at the beginning
+    newFirstRow <- data.frame(
+      "time" = mean(c(min(xLim), min(xAxisData))),
+      "lower" = min(xLim),
+      "upper" = min(xAxisData)
+    )
+    
+    xAxisData <- rbind(newFirstRow, 
+                          xAxisData)
+  }
+  
+  if (max(xLim) > max(xAxisData)) {
+    # add new row at the end
+    newLastRow <- data.frame(
+      "time" = mean(c(max(xAxisData), max(xLim))),
+      "lower" = max(xAxisData),
+      "upper" = max(xLim)
+    )
+    
+    xAxisData <- rbind(xAxisData,
+                          newLastRow)
+  }
+  
+  xAxisData
+}
 
 #' Get Label
 #' 

@@ -485,7 +485,8 @@ shinyServer(function(input, output, session) {
                   colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
                   xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
                   sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
-                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY)
+                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY,
+                  extendLabels = input$extendLabels)
     intervalTimePlot(p)
     savedPlot(p)
     #savedXAxisData(getXAxisData(fitForTimePlot()))
@@ -501,7 +502,8 @@ shinyServer(function(input, output, session) {
                   colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
                   xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
                   sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
-                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY)
+                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY,
+                  extendLabels = input$extendLabels)
     intervalTimePlot(p)
     savedPlot(p)
     #savedXAxisData(getXAxisData(fitForTimePlot()))
@@ -515,7 +517,8 @@ shinyServer(function(input, output, session) {
                   colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
                   xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
                   sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
-                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY)
+                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY,
+                  extendLabels = input$extendLabels)
     intervalTimePlot(p)
     savedPlot(p)
     #savedXAxisData(getXAxisData(fitForTimePlot()))
@@ -533,7 +536,8 @@ shinyServer(function(input, output, session) {
                   alphaL = input$alphaL, alphaU =  input$alphaU,
                   sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
                   xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
-                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY, secAxis = input$secAxis)
+                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY, secAxis = input$secAxis,
+                  extendLabels = input$extendLabels)
     intervalTimePlot(p)
     savedPlot(p)
     #savedXAxisData(getXAxisData(object = fitForTimePlot(), oldXAxisData = oldXAxisData))

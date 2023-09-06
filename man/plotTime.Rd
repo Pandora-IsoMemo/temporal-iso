@@ -24,6 +24,7 @@ plotTime(
   secAxis = FALSE,
   xAxisLabel = "Time",
   yAxisLabel = "Estimate",
+  extendLabels = FALSE,
   ...
 )
 }
@@ -65,6 +66,8 @@ plotTime(
 \item{xAxisLabel}{character label x-axis}
 
 \item{yAxisLabel}{character label y-axis}
+
+\item{extendLabels}{boolean if TRUE, extend the labels of the x-axis to the x-axis limits.  If FALSE, the range of the data defines the range of x-axis labels.}
 
 \item{...}{arguments handed to \code{\link{getShiftTime}}}
 }

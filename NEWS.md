@@ -1,5 +1,11 @@
 # OsteoBioR
 
+## Version 23.09.1
+
+### New Features
+- tab _Model_, section _Credibility intervals over time_: new checkbox to extend the x-axis labels
+to the _lower_ and _upper x limit_ (#26)
+
 ## Version 23.04.1
 
 ### Bug Fixes

@@ -32,7 +32,7 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
                      oldPlot = NULL, oldXAxisData = data.frame(), deriv = "1", colorL = NULL,
                      colorU = NULL, alphaL = 0.9, alphaU = 0.1,
                      sizeTextY = 12, sizeTextX = 12, sizeAxisX = 12, sizeAxisY = 12, secAxis = FALSE,
-                     xAxisLabel = "Time", yAxisLabel = "Estimate",
+                     xAxisLabel = "Time", yAxisLabel = "Estimate", extendLabels = FALSE,
                      ...){
   stopifnot(prop < 1)
 
@@ -87,15 +87,22 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
     }
   }
   
+  xAxisData <- getXAxisData(object = object, oldXAxisData = oldXAxisData)
+  if (extendLabels) {
+    xScaleLim <- xLim
+  } else {
+    xScaleLim <- range(xAxisData)
+  }
   p <- p %>%
-    addXScale(xAxisData = getXAxisData(object = object, oldXAxisData = oldXAxisData),
+    addXScale(xAxisData = xAxisData,
               deriv = deriv, 
-              xLim = xLim)
+              xLim = xScaleLim)
 
   if (plotShifts){
     index <- getShiftIndex(object, ...)
     p <- p + geom_vline(xintercept = breaks[which(index)] + 0.5, col = "darkgrey")
   }
+  
   p
 }
 
@@ -145,46 +152,6 @@ adjustTimeColumn <- function(objectTime, deriv){
   res
 }
 
-#' Add X Scale
-#' 
-#' Add breaks and labels for x axis
-#' 
-#' @param p (ggplot) ggplot object
-#' @param xAxisData (data.frame) data.frame containing "time", "lower" and "upper" columns used for
-#'  the x axis.
-#' @inheritParams plotTime
-addXScale <- function(p, xAxisData, deriv, xLim) {
-  if (min(xLim) < min(xAxisData$lower)) {
-    # add new row at the beginning
-    newFirstRow <- data.frame(
-      "time" = mean(c(min(xLim), min(xAxisData$lower))),
-      "lower" = min(xLim),
-      "upper" = min(xAxisData$lower)
-    )
-    
-    xAxisData <- rbind(newFirstRow, 
-                          xAxisData)
-  }
-  
-  if (max(xLim) > max(xAxisData$upper)) {
-    # add new row at the end
-    newLastRow <- data.frame(
-      "time" = mean(c(max(xAxisData$upper), max(xLim))),
-      "lower" = max(xAxisData$upper),
-      "upper" = max(xLim)
-    )
-    
-    xAxisData <- rbind(xAxisData,
-                          newLastRow)
-  }
-  
-  breaks <- getBreaks(time = xAxisData$time, deriv = deriv)
-  labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
-  
-  p + scale_x_continuous(breaks = breaks, labels = labels)
-}
-
-
 #' Get X-Axis Data
 #' 
 #' @inheritParams plotTime
@@ -207,6 +174,44 @@ getXAxisData <- function(object, oldXAxisData = data.frame()){
   xAxisData
 }
 
+#' Add X Scale
+#' 
+#' Add breaks and labels for x axis
+#' 
+#' @param p (ggplot) ggplot object
+#' @param xAxisData (data.frame) data.frame containing "time", "lower" and "upper" columns used for
+#'  the x axis.
+#' @inheritParams plotTime
+addXScale <- function(p, xAxisData, deriv, xLim) {
+  if (min(xLim) < min(xAxisData)) {
+    # add new row at the beginning
+    newFirstRow <- data.frame(
+      "time" = mean(c(min(xLim), min(xAxisData))),
+      "lower" = min(xLim),
+      "upper" = min(xAxisData)
+    )
+    
+    xAxisData <- rbind(newFirstRow, 
+                          xAxisData)
+  }
+  
+  if (max(xLim) > max(xAxisData)) {
+    # add new row at the end
+    newLastRow <- data.frame(
+      "time" = mean(c(max(xAxisData), max(xLim))),
+      "lower" = max(xAxisData),
+      "upper" = max(xLim)
+    )
+    
+    xAxisData <- rbind(xAxisData,
+                          newLastRow)
+  }
+  
+  breaks <- getBreaks(time = xAxisData$time, deriv = deriv)
+  labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
+  
+  p + scale_x_continuous(breaks = breaks, labels = labels)
+}
 
 #' Get Label
 #' 

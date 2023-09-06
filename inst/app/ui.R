@@ -183,7 +183,10 @@ tagList(
                                            value = defaultInputsForUI()$xmax),
                               textInput("xAxisLabel", label = "X-Axis title", value = "Time"),
                               numericInput(inputId = "sizeTextX", label = "Font size x-axis title", value = 24),
-                              numericInput(inputId = "sizeAxisX", label = "Font size x-axis", value = 18)
+                              numericInput(inputId = "sizeAxisX", label = "Font size x-axis", value = 18),
+                              checkboxInput(inputId = "extendLabels",
+                                            label = "Extend x-axis labels to lower and upper limits",
+                                            value = FALSE)
                               ),
                        column(2,
                               numericInput("ymin", "Lower y limit",

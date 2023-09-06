@@ -24,6 +24,7 @@ plotTime(
   secAxis = FALSE,
   xAxisLabel = "Time",
   yAxisLabel = "Estimate",
+  extendLabels = FALSE,
   ...
 )
 }

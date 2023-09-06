@@ -22,7 +22,7 @@
 #' @param sizeAxisX size text x axis label
 #' @param sizeAxisY size text y axis label
 #' @param secAxis boolean secondary axis on right side?
-#' @param extendLabels (logical) if TRUE, extend the labels of the x-axis to the x-axis limits. 
+#' @param extendLabels boolean if TRUE, extend the labels of the x-axis to the x-axis limits. 
 #'  If FALSE, the range of the data defines the range of x-axis labels.
 #' @param ... arguments handed to \code{\link{getShiftTime}}
 #' 

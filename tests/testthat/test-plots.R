@@ -200,8 +200,8 @@ testthat::test_that("addXScale", {
   x <- getPlotData(testObjectDefault1, prop = 0.8, time = NULL, deriv = "1")
   x$time <- adjustTimeColumn(objectTime = testObjectDefault1@time, deriv = "1")
   
-  p <- ggplot(x, aes_string(x = "time")) + 
-    geom_line(aes_string(y = "median"), alpha = 0.9)
+  p <- ggplot(x, aes(x = .data[["time"]])) + 
+    geom_line(aes(y = .data[["median"]]), alpha = 0.9)
   
   oldXAxisData <- structure(list(
     time = c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5), 
@@ -210,6 +210,10 @@ testthat::test_that("addXScale", {
     class = "data.frame", 
     row.names = c(NA,  -6L))
   
-  p %>%
-    addXScale(object = testObjectDefault1, oldXAxisData = oldXAxisData, deriv = "1")
+  pTest <- p %>%
+    addXScale(xAxisData = getXAxisData(object = testObjectDefault1, oldXAxisData = oldXAxisData),
+              deriv = "1", 
+              xLim = c(-1, 8))
+  
+  expect_true(inherits(pTest$data, "data.frame"))
 })

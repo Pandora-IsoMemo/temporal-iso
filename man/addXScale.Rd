@@ -4,16 +4,17 @@
 \alias{addXScale}
 \title{Add X Scale}
 \usage{
-addXScale(p, object, oldXAxisData, deriv)
+addXScale(p, xAxisData, deriv, xLim)
 }
 \arguments{
 \item{p}{(ggplot) ggplot object}
 
-\item{object}{model of class \code{\link{TemporalIso}}}
-
-\item{oldXAxisData}{data.frame of time data from object}
+\item{xAxisData}{(data.frame) data.frame containing "time", "lower" and "upper" columns used for
+the x axis.}
 
 \item{deriv}{character "1" for absolute values, "2" for first differences}
+
+\item{xLim}{numeric vector of length 2: range of x axis}
 }
 \description{
 Add breaks and labels for x axis

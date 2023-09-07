@@ -91,8 +91,7 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   
   xAxisData <- getXAxisData(object = object, oldXAxisData = oldXAxisData)
   xAxisData <- xAxisData %>%
-    extendXAxis(deriv = deriv, 
-                xLim = ifelse(extendLabels, xLim, range(xAxisData)))
+    extendXAxis(xLim = ifelse(extendLabels, xLim, range(xAxisData)))
   
   breaks <- getBreaks(time = xAxisData$time, deriv = deriv)
   labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
@@ -183,7 +182,7 @@ getXAxisData <- function(object, oldXAxisData = data.frame()){
 #' @param xAxisData (data.frame) data.frame containing "time", "lower" and "upper" columns used for
 #'  the x axis.
 #' @inheritParams plotTime
-extendXAxis <- function(xAxisData, deriv, xLim) {
+extendXAxis <- function(xAxisData, xLim) {
   if (min(xLim) < min(xAxisData)) {
     # add new row at the beginning
     newFirstRow <- data.frame(
@@ -193,7 +192,7 @@ extendXAxis <- function(xAxisData, deriv, xLim) {
     )
     
     xAxisData <- rbind(newFirstRow, 
-                          xAxisData)
+                       xAxisData)
   }
   
   if (max(xLim) > max(xAxisData)) {
@@ -205,7 +204,7 @@ extendXAxis <- function(xAxisData, deriv, xLim) {
     )
     
     xAxisData <- rbind(xAxisData,
-                          newLastRow)
+                       newLastRow)
   }
   
   xAxisData

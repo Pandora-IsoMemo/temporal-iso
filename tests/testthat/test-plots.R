@@ -207,8 +207,7 @@ testthat::test_that("extendXAxis", {
   xAxisData <- getXAxisData(object = testObjectDefault1, oldXAxisData = oldXAxisData)
   
   testXAxisData <- xAxisData %>%
-    extendXAxis(deriv = "1", 
-                xLim = c(-1, 8))
+    extendXAxis(xLim = c(-1, 8))
   
   expect_equal(nrow(xAxisData) + 2, nrow(testXAxisData))
 })

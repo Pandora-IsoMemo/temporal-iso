@@ -4,13 +4,11 @@
 \alias{extendXAxis}
 \title{Extend X Axis}
 \usage{
-extendXAxis(xAxisData, deriv, xLim)
+extendXAxis(xAxisData, xLim)
 }
 \arguments{
 \item{xAxisData}{(data.frame) data.frame containing "time", "lower" and "upper" columns used for
 the x axis.}
-
-\item{deriv}{character "1" for absolute values, "2" for first differences}
 
 \item{xLim}{numeric vector of length 2: range of x axis}
 }

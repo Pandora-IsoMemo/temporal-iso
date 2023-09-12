@@ -49,8 +49,7 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
       lineFct(aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL) +
       geom_point(aes(x = .data[["time"]], y = .data[["median"]]), colour = colorL, alpha = alphaL) +
       coord_cartesian(ylim = yLim, xlim = xLim) +
-      labs(title = paste0(prop * 100, "%-Credibility-Interval for isotopic values over time"),
-           x = xAxisLabel, y = yAxisLabel) + theme(panel.grid.major.x = element_line(size = 0.1)) + 
+      theme(panel.grid.major.x = element_line(size = 0.1)) + 
       theme(axis.title.x = element_text(size = sizeTextX),
             axis.title.y = element_text(size = sizeTextY),
             axis.text.x = element_text(size = sizeAxisX),
@@ -74,9 +73,7 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
       geom_line(data = x, aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
       geom_line(data = x, aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL) +
       geom_ribbon(data = x, aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), linetype = 2, alpha = alphaU, fill = colorU) +
-      geom_point(data = x, aes(x = .data[["time"]], y = .data[["median"]]), colour = colorL, alpha = alphaL) +
-      labs(title = paste0(prop * 100, "%-Credibility-Interval for isotopic values over time"),
-           x = "Time", y = "Estimation")
+      geom_point(data = x, aes(x = .data[["time"]], y = .data[["median"]]), colour = colorL, alpha = alphaL)
     
     if(secAxis){
       p <- p + 
@@ -97,7 +94,9 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
   
   p <- p + 
-    scale_x_continuous(breaks = breaks, labels = labels)
+    scale_x_continuous(breaks = breaks, labels = labels) +
+    labs(title = paste0(prop * 100, "%-Credibility-Interval for isotopic values over time"),
+         x = xAxisLabel, y = yAxisLabel)
 
   if (plotShifts){
     index <- getShiftIndex(object, ...)

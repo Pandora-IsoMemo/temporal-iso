@@ -209,5 +209,11 @@ testthat::test_that("extendXAxis", {
   testXAxisData <- xAxisData %>%
     extendXAxis(xLim = c(-1, 8))
   
-  expect_equal(nrow(xAxisData) + 2, nrow(testXAxisData))
+  testthat::expect_equal(nrow(xAxisData) + 2, nrow(testXAxisData))
+  
+  breaks <- getBreaks(time = testXAxisData$time, deriv = "1")
+  labels <- getLabel(xAxisData = testXAxisData, deriv = "1")
+  
+  testthat::expect_equal(breaks, c(-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 7))
+  testthat::expect_equal(labels, c("[-1-0]", "[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]", "[6-8]"))
 })

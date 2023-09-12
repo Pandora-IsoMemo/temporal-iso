@@ -183,23 +183,23 @@ getXAxisData <- function(object, oldXAxisData = data.frame()){
 #'  the x axis.
 #' @inheritParams plotTime
 extendXAxis <- function(xAxisData, xLim) {
-  if (min(xLim) < min(xAxisData)) {
+  if (min(xLim) < min(xAxisData[["lower"]])) {
     # add new row at the beginning
     newFirstRow <- data.frame(
-      "time" = mean(c(min(xLim), min(xAxisData))),
+      "time" = mean(c(min(xLim), min(xAxisData[["lower"]]))),
       "lower" = min(xLim),
-      "upper" = min(xAxisData)
+      "upper" = min(xAxisData[["lower"]])
     )
     
     xAxisData <- rbind(newFirstRow, 
                        xAxisData)
   }
   
-  if (max(xLim) > max(xAxisData)) {
+  if (max(xLim) > max(xAxisData[["upper"]])) {
     # add new row at the end
     newLastRow <- data.frame(
-      "time" = mean(c(max(xAxisData), max(xLim))),
-      "lower" = max(xAxisData),
+      "time" = mean(c(max(xAxisData[["upper"]]), max(xLim))),
+      "lower" = max(xAxisData[["upper"]]),
       "upper" = max(xLim)
     )
     

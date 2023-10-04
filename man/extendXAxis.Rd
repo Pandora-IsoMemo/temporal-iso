@@ -4,13 +4,13 @@
 \alias{extendXAxis}
 \title{Extend X Axis}
 \usage{
-extendXAxis(xAxisData, xLim)
+extendXAxis(xAxisData, xLabelLim)
 }
 \arguments{
 \item{xAxisData}{(data.frame) data.frame containing "time", "lower" and "upper" columns used for
 the x axis.}
 
-\item{xLim}{numeric vector of length 2: range of x axis}
+\item{xLabelLim}{numeric vector of length 2: range of labels of x axis}
 }
 \description{
 Add breaks and labels for x axis

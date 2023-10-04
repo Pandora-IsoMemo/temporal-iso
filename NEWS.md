@@ -1,5 +1,11 @@
 # OsteoBioR
 
+## Version 23.10.0
+
+### New Features
+- _Import of models_:
+  - option to import models from Pandora platform
+
 ## Version 23.09.1
 
 ### New Features

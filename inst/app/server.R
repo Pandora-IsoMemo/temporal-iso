@@ -7,8 +7,13 @@ library(dplyr)
 library(ggplot2)
 library(xlsx)
 library(rstan)
+library(yaml)
 
 options(shiny.maxRequestSize = 200*1024^2)
+
+# load config variables
+configFile <- system.file("config.yaml", package = "OsteoBioR")
+appConfig <- yaml::read_yaml(configFile)
 
 shinyServer(function(input, output, session) {
   # DATA -------------------------------------------------
@@ -21,8 +26,9 @@ shinyServer(function(input, output, session) {
   ## Upload Renewal rates ----
   importedData <- DataTools::importDataServer(
     "fileData",
-    defaultSource = "file",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    defaultSource = appConfig$defaultSourceData,
+    rPackageName = appConfig$rPackageName
   )
   
   observe({
@@ -35,8 +41,9 @@ shinyServer(function(input, output, session) {
   ## Upload Renewal rates uncertainty (optional) ----
   importedDataSD <- DataTools::importDataServer(
     "fileDataSD",
-    defaultSource = "file",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    defaultSource = appConfig$defaultSourceData,
+    rPackageName = appConfig$rPackageName
   )
 
   observe({
@@ -49,8 +56,9 @@ shinyServer(function(input, output, session) {
   ## Upload Measurements ----
   importedIso <- DataTools::importDataServer(
     "fileIso",
-    defaultSource = "file",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    defaultSource = appConfig$defaultSourceData,
+    rPackageName = appConfig$rPackageName
   )
   
   observe({
@@ -381,16 +389,53 @@ shinyServer(function(input, output, session) {
   })
   
   ## Down- / Upload Models ----
+  observe({
+    updateSelectInput(session, "selectedModels", choices = names(savedModels()),
+                      selected = names(savedModels())[length(savedModels())])
+  })
+  
   uploadedNotes <- reactiveVal(NULL)
-  callModule(downloadModel, "modelDownload", 
-             savedModels = savedModels, uploadedNotes = uploadedNotes)
-  callModule(uploadModel, "modelUpload", 
-             savedModels = savedModels, uploadedNotes = uploadedNotes, 
-             fit = fit, uploadedModelSpecInputs = uploadedModelSpecInputs,
-             uploadedDataMatrix = uploadedDataMatrix,
-             uploadedDataMatrixSD = uploadedDataMatrixSD,
-             uploadedIsotope = uploadedIsotope
-             )
+  downloadModelServer("modelDownload",
+                      dat = reactive(savedModels()[input$selectedModels] %>%
+                                       removeModelOutputs()),
+                      inputs = reactiveValues(),
+                      model = reactive(savedModels()[input$selectedModels] %>%
+                                         extractModelOutputs()),
+                      rPackageName = appConfig$rPackageName,
+                      fileExtension = appConfig$fileExtension,
+                      modelNotes = uploadedNotes,
+                      triggerUpdate = reactive(TRUE))
+  
+  uploadedValues <- importDataServer("modelUpload",
+                                     title = "Import Model",
+                                     defaultSource = appConfig$defaultSourceModel,
+                                     importType = "model",
+                                     rPackageName = appConfig$rPackageName,
+                                     fileExtension = appConfig$fileExtension,
+                                     ignoreWarnings = TRUE)
+  
+  observe({
+    req(length(uploadedValues()) > 0)
+    # update notes in tab down-/upload ----
+    uploadedNotes(uploadedValues()[[1]][["notes"]])
+    
+    # prepare model object(s)
+    uploadedData <- extractSavedModels(upload = uploadedValues()[[1]])
+    
+    # ... ----
+  })
+  
+  # callModule(downloadModel, "modelDownload", 
+  #            savedModels = savedModels, uploadedNotes = uploadedNotes)
+  # callModule(uploadModel, "modelUpload", 
+  #            savedModels = savedModels, uploadedNotes = uploadedNotes, 
+  #            fit = fit, uploadedModelSpecInputs = uploadedModelSpecInputs,
+  #            uploadedDataMatrix = uploadedDataMatrix,
+  #            uploadedDataMatrixSD = uploadedDataMatrixSD,
+  #            uploadedIsotope = uploadedIsotope
+  #            )
+  
+  
   
   ## Export Summary ----
   observeEvent(input$exportSummary, {
@@ -807,8 +852,9 @@ shinyServer(function(input, output, session) {
   
   importedStayTime <- DataTools::importDataServer(
     "stayTimeData",
-    defaultSource = "file",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    defaultSource = appConfig$defaultSourceData,
+    rPackageName = appConfig$rPackageName
   )
   
   observe({
@@ -908,8 +954,9 @@ shinyServer(function(input, output, session) {
   
   importedHistData <- DataTools::importDataServer(
     "fileHistData",
-    defaultSource = "file",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    defaultSource = appConfig$defaultSourceData,
+    rPackageName = appConfig$rPackageName
   )
   
   observe({

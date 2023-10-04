@@ -314,8 +314,16 @@ tagList(
                sidebarPanel(
                  width = 2,
                  style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
-                 uploadModelUI("modelUpload", "Upload Model"),
-                 downloadModelUI("modelDownload", "Download Model")
+                 # uploadModelUI("modelUpload", "Upload Model"),
+                 # downloadModelUI("modelDownload", "Download Model")
+                 
+                 # Export saved models ####
+                 importDataUI(ns("modelUpload"), label = "Import Model"),
+                 tags$hr(),
+                 selectInput(ns("selectedModels"), label = "Download model object(s)",
+                             choices = c("Save or upload models ..." = ""),
+                             multiple = T),
+                 downloadModelUI(ns("modelDownload"), label = "Download")
                )
              )
              ),

@@ -422,8 +422,22 @@ shinyServer(function(input, output, session) {
     # prepare model object(s)
     uploadedData <- extractSavedModels(upload = uploadedValues()[[1]])
     
-    # ... ----
-  })
+    # ToDo: check naming conflicts  ----
+    
+    # load model object(s)
+    savedModels(c(savedModels(), uploadedData))
+    
+    currentModel <- savedModels()[[length(savedModels())]]
+    
+    fit(currentModel$fit)
+    uploadedModelSpecInputs(currentModel$modelSpecifications)
+    uploadedDataMatrix(currentModel$inputDataMatrix)
+    uploadedDataMatrixSD(currentModel$inputDataMatrixSD)
+    uploadedIsotope(currentModel$inputIsotope)
+    
+    alert("Model loaded")
+  }) %>%
+    bindEvent(uploadedValues())
   
   # callModule(downloadModel, "modelDownload", 
   #            savedModels = savedModels, uploadedNotes = uploadedNotes)

@@ -419,7 +419,7 @@ shinyServer(function(input, output, session) {
     # update notes in tab down-/upload ----
     uploadedNotes(uploadedValues()[[1]][["notes"]])
     
-    # prepare model object(s)
+    # extract model object(s)
     uploadedData <- extractSavedModels(upload = uploadedValues()[[1]])
     
     # rename model if name already exists
@@ -431,16 +431,6 @@ shinyServer(function(input, output, session) {
     
     currentModel <- savedModels()[[length(savedModels())]]
     
-    fit(currentModel$fit)
-    
-    if (!is.null(uploadedModelSpecInputs())) {
-      showNotification("Updating model input values under 'Model' ...", 
-                       duration = 10,
-                       closeButton = TRUE,
-                       type = "message")
-    }
-    uploadedModelSpecInputs(currentModel$modelSpecifications)
-    
     if (!is.null(uploadedDataMatrix())) {
       showNotification("Updating input data under 'Data' ...",
                        duration = 10,
@@ -451,10 +441,16 @@ shinyServer(function(input, output, session) {
     uploadedDataMatrixSD(currentModel$inputDataMatrixSD)
     uploadedIsotope(currentModel$inputIsotope)
     
-    showNotification("Model loaded", 
-                     duration = 10,
-                     closeButton = TRUE,
-                     type = "message")
+    if (!is.null(uploadedModelSpecInputs())) {
+      showNotification("Updating model input values under 'Model' ...", 
+                       duration = 10,
+                       closeButton = TRUE,
+                       type = "message")
+    }
+    uploadedModelSpecInputs(currentModel$modelSpecifications)
+    
+    fit(currentModel$fit)
+    showNotification("Model loaded", duration = 10, closeButton = TRUE, type = "message")
   }) %>%
     bindEvent(uploadedValues())
   

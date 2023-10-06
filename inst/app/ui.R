@@ -127,7 +127,7 @@ tagList(
                sidebarPanel(
                  width = 2,
                  style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
-                 importDataUI("modelUpload", label = "Import Model"),
+                 DataTools::importDataUI("modelUpload", label = "Import Model"),
                  tags$hr(),
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
                  actionButton("fitModel", "Fit Model"),
@@ -135,7 +135,7 @@ tagList(
                  selectInput("selectedModels", label = "Download model object(s)",
                              choices = c("Save or upload models ..." = ""),
                              multiple = T),
-                 downloadModelUI("modelDownload", label = "Download")
+                 DataTools::downloadModelUI("modelDownload", label = "Download")
                ),
                ## main panel ----
                mainPanel(

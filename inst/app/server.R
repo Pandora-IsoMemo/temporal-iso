@@ -395,24 +395,24 @@ shinyServer(function(input, output, session) {
   })
   
   uploadedNotes <- reactiveVal(NULL)
-  downloadModelServer("modelDownload",
-                      dat = reactive(savedModels()[input$selectedModels] %>%
-                                       removeModelOutputs()),
-                      inputs = reactiveValues(),
-                      model = reactive(savedModels()[input$selectedModels] %>%
-                                         extractModelOutputs()),
-                      rPackageName = appConfig$rPackageName,
-                      fileExtension = appConfig$fileExtension,
-                      modelNotes = uploadedNotes,
-                      triggerUpdate = reactive(TRUE))
+  DataTools::downloadModelServer("modelDownload",
+                                 dat = reactive(savedModels()[input$selectedModels] %>%
+                                                  removeModelOutputs()),
+                                 inputs = reactiveValues(),
+                                 model = reactive(savedModels()[input$selectedModels] %>%
+                                                    extractModelOutputs()),
+                                 rPackageName = appConfig$rPackageName,
+                                 fileExtension = appConfig$fileExtension,
+                                 modelNotes = uploadedNotes,
+                                 triggerUpdate = reactive(TRUE))
   
-  uploadedValues <- importDataServer("modelUpload",
-                                     title = "Import Model",
-                                     defaultSource = appConfig$defaultSourceModel,
-                                     importType = "model",
-                                     rPackageName = appConfig$rPackageName,
-                                     fileExtension = appConfig$fileExtension,
-                                     ignoreWarnings = TRUE)
+  uploadedValues <- DataTools::importDataServer("modelUpload",
+                                                title = "Import Model",
+                                                defaultSource = appConfig$defaultSourceModel,
+                                                importType = "model",
+                                                rPackageName = appConfig$rPackageName,
+                                                fileExtension = appConfig$fileExtension,
+                                                ignoreWarnings = TRUE)
   
   observe({
     req(length(uploadedValues()) > 0)

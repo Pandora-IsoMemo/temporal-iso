@@ -13,8 +13,7 @@
 #' @import shinythemes
 #' @importFrom colourpicker colourInput 
 #' @importFrom DataTools checkAnyNonNumericColumns downloadModelUI downloadModelServer importDataUI
-#'  importDataServer remoteModelsUI remoteModelsServer renameExistingNames 
-#'  tryCatchWithWarningsAndErrors
+#'  importDataServer renameExistingNames tryCatchWithWarningsAndErrors
 #' @importFrom dplyr arrange bind_rows distinct slice
 #' @importFrom ggplot2 aes element_line element_text ggplot geom_line geom_point geom_ribbon 
 #' labs scale_x_continuous theme ggtitle scale_y_continuous geom_vline coord_cartesian sec_axis

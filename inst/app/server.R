@@ -458,18 +458,6 @@ shinyServer(function(input, output, session) {
   }) %>%
     bindEvent(uploadedValues())
   
-  # callModule(downloadModel, "modelDownload", 
-  #            savedModels = savedModels, uploadedNotes = uploadedNotes)
-  # callModule(uploadModel, "modelUpload", 
-  #            savedModels = savedModels, uploadedNotes = uploadedNotes, 
-  #            fit = fit, uploadedModelSpecInputs = uploadedModelSpecInputs,
-  #            uploadedDataMatrix = uploadedDataMatrix,
-  #            uploadedDataMatrixSD = uploadedDataMatrixSD,
-  #            uploadedIsotope = uploadedIsotope
-  #            )
-  
-  
-  
   ## Export Summary ----
   observeEvent(input$exportSummary, {
     showModal(modalDialog(

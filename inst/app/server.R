@@ -423,7 +423,8 @@ shinyServer(function(input, output, session) {
     uploadedData <- extractSavedModels(upload = uploadedValues()[[1]])
     
     # rename model if name already exists
-    # ... ----
+    uploadedData <- uploadedData %>%
+      DataTools::renameExistingNames(oldList = savedModels())
     
     # load model object(s)
     savedModels(c(savedModels(), uploadedData))
@@ -431,12 +432,29 @@ shinyServer(function(input, output, session) {
     currentModel <- savedModels()[[length(savedModels())]]
     
     fit(currentModel$fit)
+    
+    if (!is.null(uploadedModelSpecInputs())) {
+      showNotification("Updating model input values under 'Model' ...", 
+                       duration = 10,
+                       closeButton = TRUE,
+                       type = "message")
+    }
     uploadedModelSpecInputs(currentModel$modelSpecifications)
+    
+    if (!is.null(uploadedDataMatrix())) {
+      showNotification("Updating input data under 'Data' ...",
+                       duration = 10,
+                       closeButton = TRUE,
+                       type = "message")
+    }
     uploadedDataMatrix(currentModel$inputDataMatrix)
     uploadedDataMatrixSD(currentModel$inputDataMatrixSD)
     uploadedIsotope(currentModel$inputIsotope)
     
-    alert("Model loaded")
+    showNotification("Model loaded", 
+                     duration = 10,
+                     closeButton = TRUE,
+                     type = "message")
   }) %>%
     bindEvent(uploadedValues())
   

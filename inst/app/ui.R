@@ -127,8 +127,15 @@ tagList(
                sidebarPanel(
                  width = 2,
                  style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+                 importDataUI("modelUpload", label = "Import Model"),
+                 tags$hr(),
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
-                 actionButton("fitModel", "Fit Model")
+                 actionButton("fitModel", "Fit Model"),
+                 tags$hr(),
+                 selectInput("selectedModels", label = "Download model object(s)",
+                             choices = c("Save or upload models ..." = ""),
+                             multiple = T),
+                 downloadModelUI("modelDownload", label = "Download")
                ),
                ## main panel ----
                mainPanel(
@@ -309,21 +316,6 @@ tagList(
                      verbatimTextOutput("userDefined") %>% withSpinner(color ="#20c997")
                    )
                  )
-               ),
-               ## right sidebar ----
-               sidebarPanel(
-                 width = 2,
-                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
-                 # uploadModelUI("modelUpload", "Upload Model"),
-                 # downloadModelUI("modelDownload", "Download Model")
-                 
-                 # Export saved models ####
-                 importDataUI("modelUpload", label = "Import Model"),
-                 tags$hr(),
-                 selectInput("selectedModels", label = "Download model object(s)",
-                             choices = c("Save or upload models ..." = ""),
-                             multiple = T),
-                 downloadModelUI("modelDownload", label = "Download")
                )
              )
              ),

@@ -7,8 +7,13 @@ library(dplyr)
 library(ggplot2)
 library(xlsx)
 library(rstan)
+library(yaml)
 
 options(shiny.maxRequestSize = 200*1024^2)
+
+# load config variables
+configFile <- system.file("config.yaml", package = "OsteoBioR")
+appConfig <- yaml::read_yaml(configFile)
 
 shinyServer(function(input, output, session) {
   # DATA -------------------------------------------------
@@ -21,8 +26,9 @@ shinyServer(function(input, output, session) {
   ## Upload Renewal rates ----
   importedData <- DataTools::importDataServer(
     "fileData",
-    defaultSource = "file",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    defaultSource = appConfig$defaultSourceData,
+    rPackageName = appConfig$rPackageName
   )
   
   observe({
@@ -35,8 +41,9 @@ shinyServer(function(input, output, session) {
   ## Upload Renewal rates uncertainty (optional) ----
   importedDataSD <- DataTools::importDataServer(
     "fileDataSD",
-    defaultSource = "file",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    defaultSource = appConfig$defaultSourceData,
+    rPackageName = appConfig$rPackageName
   )
 
   observe({
@@ -49,8 +56,9 @@ shinyServer(function(input, output, session) {
   ## Upload Measurements ----
   importedIso <- DataTools::importDataServer(
     "fileIso",
-    defaultSource = "file",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    defaultSource = appConfig$defaultSourceData,
+    rPackageName = appConfig$rPackageName
   )
   
   observe({
@@ -381,16 +389,70 @@ shinyServer(function(input, output, session) {
   })
   
   ## Down- / Upload Models ----
+  observe({
+    updateSelectInput(session, "selectedModels", choices = names(savedModels()),
+                      selected = names(savedModels())[length(savedModels())])
+  })
+  
   uploadedNotes <- reactiveVal(NULL)
-  callModule(downloadModel, "modelDownload", 
-             savedModels = savedModels, uploadedNotes = uploadedNotes)
-  callModule(uploadModel, "modelUpload", 
-             savedModels = savedModels, uploadedNotes = uploadedNotes, 
-             fit = fit, uploadedModelSpecInputs = uploadedModelSpecInputs,
-             uploadedDataMatrix = uploadedDataMatrix,
-             uploadedDataMatrixSD = uploadedDataMatrixSD,
-             uploadedIsotope = uploadedIsotope
-             )
+  DataTools::downloadModelServer("modelDownload",
+                                 dat = reactive(savedModels()[input$selectedModels] %>%
+                                                  removeModelOutputs()),
+                                 inputs = reactiveValues(),
+                                 model = reactive(savedModels()[input$selectedModels] %>%
+                                                    extractModelOutputs()),
+                                 rPackageName = appConfig$rPackageName,
+                                 fileExtension = appConfig$fileExtension,
+                                 modelNotes = uploadedNotes,
+                                 triggerUpdate = reactive(TRUE))
+  
+  uploadedValues <- DataTools::importDataServer("modelUpload",
+                                                title = "Import Model",
+                                                defaultSource = appConfig$defaultSourceModel,
+                                                importType = "model",
+                                                rPackageName = appConfig$rPackageName,
+                                                fileExtension = appConfig$fileExtension,
+                                                ignoreWarnings = TRUE)
+  
+  observe({
+    req(length(uploadedValues()) > 0)
+    # update notes in tab down-/upload ----
+    uploadedNotes(uploadedValues()[[1]][["notes"]])
+    
+    # extract model object(s)
+    uploadedData <- extractSavedModels(upload = uploadedValues()[[1]])
+    
+    # rename model if name already exists
+    uploadedData <- uploadedData %>%
+      DataTools::renameExistingNames(oldList = savedModels())
+    
+    # load model object(s)
+    savedModels(c(savedModels(), uploadedData))
+    
+    currentModel <- savedModels()[[length(savedModels())]]
+    
+    if (!is.null(uploadedDataMatrix())) {
+      showNotification("Updating input data under 'Data' ...",
+                       duration = 10,
+                       closeButton = TRUE,
+                       type = "message")
+    }
+    uploadedDataMatrix(currentModel$inputDataMatrix)
+    uploadedDataMatrixSD(currentModel$inputDataMatrixSD)
+    uploadedIsotope(currentModel$inputIsotope)
+    
+    if (!is.null(uploadedModelSpecInputs())) {
+      showNotification("Updating model input values under 'Model' ...", 
+                       duration = 10,
+                       closeButton = TRUE,
+                       type = "message")
+    }
+    uploadedModelSpecInputs(currentModel$modelSpecifications)
+    
+    fit(currentModel$fit)
+    showNotification("Model loaded", duration = 10, closeButton = TRUE, type = "message")
+  }) %>%
+    bindEvent(uploadedValues())
   
   ## Export Summary ----
   observeEvent(input$exportSummary, {
@@ -807,8 +869,9 @@ shinyServer(function(input, output, session) {
   
   importedStayTime <- DataTools::importDataServer(
     "stayTimeData",
-    defaultSource = "file",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    defaultSource = appConfig$defaultSourceData,
+    rPackageName = appConfig$rPackageName
   )
   
   observe({
@@ -908,8 +971,9 @@ shinyServer(function(input, output, session) {
   
   importedHistData <- DataTools::importDataServer(
     "fileHistData",
-    defaultSource = "file",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns))
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    defaultSource = appConfig$defaultSourceData,
+    rPackageName = appConfig$rPackageName
   )
   
   observe({

@@ -44,6 +44,7 @@ combineDataAndModelOutputs <- function(modelData, modelOutput) {
 removeModelOutputs <- function(models) {
   lapply(models, function(model) {
     model$fit <- NULL
+    model
   })
 }
 

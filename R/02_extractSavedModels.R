@@ -1,6 +1,7 @@
 #' Extract Saved Models
 #' 
 #' @param upload (list) list of saved model objects with entries "data", "inputs" and "model"
+#' @export
 extractSavedModels <- function(upload) {
   # old format < 23.10.0
   if (length(upload[["data"]]) == 0) {
@@ -41,6 +42,7 @@ combineDataAndModelOutputs <- function(modelData, modelOutput) {
 #' Remove Model Outputs
 #'
 #' @param models list of model objects
+#' @export
 removeModelOutputs <- function(models) {
   lapply(models, function(model) {
     model$fit <- NULL
@@ -51,6 +53,7 @@ removeModelOutputs <- function(models) {
 #' Extract Model Outputs
 #'
 #' @param models list of model objects
+#' @export
 extractModelOutputs <- function(models) {
   lapply(models, function(model) {
     model$modelSpecifications <- NULL

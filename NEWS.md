@@ -1,5 +1,10 @@
 # OsteoBioR
 
+## Version 23.10.1
+
+### Bug Fixes
+- fix for model down- and upload: add missing export to package functions
+
 ## Version 23.10.0
 
 ### New Features

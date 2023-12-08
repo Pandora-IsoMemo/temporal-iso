@@ -107,7 +107,10 @@ updateMatrixNamesInput <- function(session, inputId, value, value2) {
 #' 
 #' @export
 setVarsForUncMatrix <- function(timeVars, indVar, renewalRates, renewalRatesUnc = NULL) {
-  if (is.null(renewalRatesUnc)) {
+  if (length(renewalRatesUnc) == 0 || nrow(renewalRates) != nrow(renewalRatesUnc)) {
+    if (length(renewalRatesUnc) > 0 && nrow(renewalRatesUnc) > 1) {
+      warning("The number of rows differs between renewal rates uncertainty and renewal rates. Uncertainty will be ignored!")
+    }
     notIndOrTime <- colnames(renewalRates)[!colnames(renewalRates) %in% c(timeVars, indVar)]
     renewalRatesUnc <- data.frame(renewalRates)
     renewalRatesUnc[notIndOrTime] <- 0

@@ -196,26 +196,34 @@ shinyServer(function(input, output, session) {
     
     req(modDat)
     fit(NULL)
-    fitted <- try({
-      lapply(1:length(modDat), function(x){
-        withProgress({
-          boneVars <- modelSpecInputs()$boneVars[
-            which(modelSpecInputs()$boneVars %in% colnames(modDat[[x]]))
-          ]
-          estimateIntervals(renewalRates = data.frame(modDat[[x]]),
-                            timeVars = modelSpecInputs()$timeVars,
-                            boneVars = boneVars,
-                            indVar = names(modDat)[x],
-                            isoMean = unlist(isoMean()[[x]]),
-                            isoSigma = unlist(isoSigma()[[x]]),
-                            renewalRatesSD = data.frame(modDatSD[[x]]),
-                            iter = modelSpecInputs()$iter,
-                            burnin = modelSpecInputs()$burnin,
-                            chains = modelSpecInputs()$chains)
-        }, value = x / length(modDat),
-        message = paste0("Calculate model for individual nr.", x))
-      })
-    }, silent = TRUE)
+    
+    elapsedTime <- system.time({
+      fitted <- try({
+        lapply(1:length(modDat), function(x){
+          withProgress({
+            boneVars <- modelSpecInputs()$boneVars[
+              which(modelSpecInputs()$boneVars %in% colnames(modDat[[x]]))
+            ]
+            estimateIntervals(renewalRates = data.frame(modDat[[x]]),
+                              timeVars = modelSpecInputs()$timeVars,
+                              boneVars = boneVars,
+                              indVar = names(modDat)[x],
+                              isoMean = unlist(isoMean()[[x]]),
+                              isoSigma = unlist(isoSigma()[[x]]),
+                              renewalRatesSD = data.frame(modDatSD[[x]]),
+                              iter = modelSpecInputs()$iter,
+                              burnin = modelSpecInputs()$burnin,
+                              chains = modelSpecInputs()$chains)
+          }, value = x / length(modDat),
+          message = paste0("Calculate model for individual nr.", x))
+        })
+      }, silent = TRUE)
+    })[3]
+    
+    cat(sprintf("Elapsed time of model fitting for %s individuals: %5.2f minutes\n", 
+                length(modDat),
+                elapsedTime / 60))
+    
     if (inherits(fitted, "try-error")) {
       shinyjs::alert(fitted[[1]])
     } else {

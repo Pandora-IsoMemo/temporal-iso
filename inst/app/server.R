@@ -172,6 +172,8 @@ shinyServer(function(input, output, session) {
   savedModels <- reactiveVal(list())
   intervalTimePlot <- reactiveVal()
   
+  modelFittingTimeTxt <- reactiveVal()
+  
   ## Fit Model ----
   observeEvent(input$fitModel, {
     if(!(all(length(nIndividuals1())==length(nIndividuals2())) && all(nIndividuals1()==nIndividuals2()))){
@@ -196,7 +198,7 @@ shinyServer(function(input, output, session) {
     
     req(modDat)
     fit(NULL)
-    
+    modelFittingTimeTxt(NULL)
     elapsedTime <- system.time({
       fitted <- try({
         lapply(1:length(modDat), function(x){
@@ -220,9 +222,11 @@ shinyServer(function(input, output, session) {
       }, silent = TRUE)
     })[3]
     
-    cat(sprintf("Elapsed time of model fitting for %s individuals: %5.2f minutes\n", 
-                length(modDat),
-                elapsedTime / 60))
+    fittingTime <- sprintf("Elapsed time of model fitting for all %s individuals:  %5.2f minutes\n", 
+                           length(modDat),
+                           elapsedTime / 60)
+    modelFittingTimeTxt(fittingTime)
+    cat(fittingTime)
     
     if (inherits(fitted, "try-error")) {
       shinyjs::alert(fitted[[1]])
@@ -246,6 +250,8 @@ shinyServer(function(input, output, session) {
       savedModels(allModels)
     }
   })
+  
+  output$fittingTimeTxt <- renderUI(HTML(modelFittingTimeTxt()))
   
   allXAxisData <- reactiveVal(data.frame())
   

@@ -54,9 +54,9 @@
 #' y_sigma <- c(2, 1.5, 2.5, 2.5)
 #'
 #'
-###############################
-#estimate values
-###############################
+#' ###############################
+#' #estimate values
+#' ###############################
 #' fit <- estimateIntervals(renewalRates = data,
 #'                         timeVars = "intStart",
 #'                         boneVars = c("bone1", "bone2", "tooth1", "tooth2"),
@@ -211,6 +211,25 @@ estimateIntervals <- function(renewalRates,
              time = time,
              timeLower = timeLower,
              timeUpper = timeUpper))
+}
+
+#' Get Seed
+#' 
+#' @param fixSeed (logical) if TRUE use fixed ssed, if FALSE use random seed when fitting the model
+#' @param seedValue (numeric) value for seed if \code{fixSeed == TRUE}
+#' 
+#' @export
+getSeed <- function(fixSeed, seedValue) {
+  notValidSeed <- is.null(seedValue) || is.na(seedValue) || seedValue == ""
+  
+  # random seed
+  if (!fixSeed || notValidSeed) {
+    if (fixSeed && notValidSeed) warning("Not valid input for seed! Using random seed.")
+    return(as.numeric(Sys.time()))
+  }
+  
+  # fixed seed if seed is valid
+  return(seedValue)
 }
 
 #' Function to estimate isotopic value for specific time point(s)

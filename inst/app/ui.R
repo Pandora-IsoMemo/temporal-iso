@@ -69,29 +69,29 @@ tagList(
           ),
           conditionalPanel(
             condition = "input.renewUnc == true",
-          HTML("<h5>Renewal rates uncertainty dataset (standard deviation, optional) </h5>"),
-          matrixInput(
-            inputId = "dataMatrixSD",
-            #inputClass = "matrix-input-rownames",
-            class = "numeric",
-            value = matrix(0, ncol = 6, dimnames = list(
-              c(""),  c("individual", "intStart", "intEnd", "bone1", "bone2", "tooth1")
-            )),
-            #copy = TRUE,
-            #paste = TRUE,
-            cols = list(
-              names = TRUE,
-              extend = FALSE,
-              delta = 1,
-              editableNames = FALSE
+            HTML("<h5>Renewal rates uncertainty dataset (standard deviation, optional) </h5>"),
+            matrixInput(
+              inputId = "dataMatrixSD",
+              #inputClass = "matrix-input-rownames",
+              class = "numeric",
+              value = matrix(0, ncol = 6, dimnames = list(
+                c(""),  c("individual", "intStart", "intEnd", "bone1", "bone2", "tooth1")
+              )),
+              #copy = TRUE,
+              #paste = TRUE,
+              cols = list(
+                names = TRUE,
+                extend = FALSE,
+                delta = 1,
+                editableNames = FALSE
+              ),
+              rows = list(
+                names = FALSE,
+                editableNames = FALSE,
+                extend = FALSE,
+                delta = 1
+              )
             ),
-            rows = list(
-              names = FALSE,
-              editableNames = FALSE,
-              extend = FALSE,
-              delta = 1
-            )
-          ),
           ),
           # To do: Add  time cuts: Split predictions into groups at the following points in time
           # for the selected individual
@@ -130,6 +130,12 @@ tagList(
                  DataTools::importDataUI("modelUpload", label = "Import Model"),
                  tags$hr(),
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
+                 checkboxInput("rndmSeed", label = "Random seed", value = TRUE),
+                 conditionalPanel(
+                   condition = "input.rndmSeed == false",
+                   numericInput("fixedSeed", label = "Fixed seed value", value = 12345),
+                   tags$br()
+                   ),
                  actionButton("fitModel", "Fit Model"),
                  tags$hr(),
                  selectInput("selectedModels", label = "Download model object(s)",

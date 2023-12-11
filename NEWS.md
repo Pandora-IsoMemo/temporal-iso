@@ -1,5 +1,10 @@
 # OsteoBioR
 
+## Version 23.12.0
+
+#### New Features
+- option to use a fixed seed when fitting the model (#37)
+
 ## Version 23.10.1
 
 ### Bug Fixes

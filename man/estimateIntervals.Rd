@@ -105,6 +105,9 @@ y_mean <- c(-10, -7, -12, -9)
 y_sigma <- c(2, 1.5, 2.5, 2.5)
 
 
+###############################
+#estimate values
+###############################
 fit <- estimateIntervals(renewalRates = data,
                         timeVars = "intStart",
                         boneVars = c("bone1", "bone2", "tooth1", "tooth2"),

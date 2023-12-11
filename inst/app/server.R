@@ -200,6 +200,8 @@ shinyServer(function(input, output, session) {
     fit(NULL)
     modelFittingTimeTxt(NULL)
     elapsedTime <- system.time({
+      set.seed(getSeed(fixSeed = !input$rndmSeed, seedValue = input$fixedSeed))
+      
       fitted <- try({
         lapply(1:length(modDat), function(x){
           withProgress({

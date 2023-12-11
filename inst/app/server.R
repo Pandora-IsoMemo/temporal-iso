@@ -199,8 +199,10 @@ shinyServer(function(input, output, session) {
     req(modDat)
     fit(NULL)
     modelFittingTimeTxt(NULL)
+    
     elapsedTime <- system.time({
-      set.seed(getSeed(fixSeed = !input$rndmSeed, seedValue = input$fixedSeed))
+      set.seed(getSeed(fixSeed = !input[["modelSpecification-rndmSeed"]],
+                       seedValue = input[["modelSpecification-fixedSeed"]]))
       
       fitted <- try({
         lapply(1:length(modDat), function(x){

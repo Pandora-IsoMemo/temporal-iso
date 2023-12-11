@@ -130,12 +130,6 @@ tagList(
                  DataTools::importDataUI("modelUpload", label = "Import Model"),
                  tags$hr(),
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
-                 checkboxInput("rndmSeed", label = "Random seed", value = TRUE),
-                 conditionalPanel(
-                   condition = "input.rndmSeed == false",
-                   numericInput("fixedSeed", label = "Fixed seed value", value = 12345),
-                   tags$br()
-                   ),
                  actionButton("fitModel", "Fit Model"),
                  tags$hr(),
                  selectInput("selectedModels", label = "Download model object(s)",

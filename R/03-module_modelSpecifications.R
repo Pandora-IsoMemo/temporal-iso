@@ -50,6 +50,13 @@ modelSpecificationsUI <- function(id, title) {
     sliderInput(inputId = ns("chains"),
                 label = "MCMC chains:",
                 min = 1, max = 12, step = 1, value = defaultModelSpecValues()$chains),
+    checkboxInput(ns("rndmSeed"), label = "Random seed", value = defaultModelSpecValues()$rndmSeed),
+    conditionalPanel(
+      condition = "input.rndmSeed == false",
+      ns = ns,
+      numericInput(ns("fixedSeed"), label = "Fixed seed value", value = defaultModelSpecValues()$fixedSeed),
+      tags$br()
+    ),
     tags$br()
   )
 }
@@ -84,6 +91,8 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
           updateSliderInput(session, "iter", value = defaultModelSpecValues()$iter)
           updateSliderInput(session, "burnin", value = defaultModelSpecValues()$burnin)
           updateSliderInput(session, "chains", value = defaultModelSpecValues()$chains)
+          updateCheckboxInput(session, "rndmSeed", value = defaultModelSpecValues()$rndmSeed)
+          updateNumericInput(session, "fixedSeed", value = defaultModelSpecValues()$fixedSeed)
         }
         
         req(uploadedModelSpecInputs())
@@ -96,6 +105,8 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
         updateSliderInput(session, "iter", value = uploadedModelSpecInputs()$iter)
         updateSliderInput(session, "burnin", value = uploadedModelSpecInputs()$burnin)
         updateSliderInput(session, "chains", value = uploadedModelSpecInputs()$chains)
+        updateCheckboxInput(session, "rndmSeed", value = uploadedModelSpecInputs()$rndmSeed)
+        updateNumericInput(session, "fixedSeed", value = uploadedModelSpecInputs()$fixedSeed)
       })
       
       observeEvent(input$timeVars, {
@@ -124,6 +135,14 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
         values$chains <- input$chains
       })
       
+      observeEvent(input$rndmSeed, {
+        values$rndmSeed <- input$rndmSeed
+      })
+      
+      observeEvent(input$fixedSeed, {
+        values$fixedSeed <- input$fixedSeed
+      })
+      
       reactive(values)
     })
   }
@@ -131,5 +150,7 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
 defaultModelSpecValues <- function() {
   list(iter = 2000,
        burnin = 500,
-       chains = 4)
+       chains = 4,
+       rndmSeed = TRUE,
+       fixedSeed = 12345)
 }

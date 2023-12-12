@@ -92,8 +92,8 @@ shinyServer(function(input, output, session) {
     if (!input$renewUnc) {
       zeroSD <- setVarsForUncMatrix(renewalRates = dat$dataFile,
                                     renewalRatesUnc = NULL,
-                                    timeVars = modelSpecInputs()$timeVars,
-                                    indVar = modelSpecInputs()$indVar)
+                                    timeVars = input[["modelSpecification-timeVars"]],
+                                    indVar = input[["modelSpecification-indVar"]])
       
       # use row- and column names from dataMatrix but content from dataMatrixSD
       updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = zeroSD)
@@ -184,13 +184,13 @@ shinyServer(function(input, output, session) {
       # update zero SD matrix regarding selected vars
       renewalRatesUnc <- setVarsForUncMatrix(renewalRates = input$dataMatrix,
                                              renewalRatesUnc = input$dataMatrixSD,
-                                             timeVars = modelSpecInputs()$timeVars,
-                                             indVar = modelSpecInputs()$indVar)
+                                             timeVars = input[["modelSpecification-timeVars"]],
+                                             indVar = input[["modelSpecification-indVar"]])
     } else {
       renewalRatesUnc <- input$dataMatrixSD
     }
     
-    splittedData <- cleanAndSplitData(indVar = modelSpecInputs()$indVar, 
+    splittedData <- cleanAndSplitData(indVar = input[["modelSpecification-indVar"]],
                                       renewalRates = input$dataMatrix,
                                       renewalRatesUnc = renewalRatesUnc)
     modDat <- splittedData$renewalRatesPerInd
@@ -207,19 +207,19 @@ shinyServer(function(input, output, session) {
       fitted <- try({
         lapply(1:length(modDat), function(x){
           withProgress({
-            boneVars <- modelSpecInputs()$boneVars[
-              which(modelSpecInputs()$boneVars %in% colnames(modDat[[x]]))
+            boneVars <- input[["modelSpecification-boneVars"]][
+              which(input[["modelSpecification-boneVars"]] %in% colnames(modDat[[x]]))
             ]
             estimateIntervals(renewalRates = data.frame(modDat[[x]]),
-                              timeVars = modelSpecInputs()$timeVars,
+                              timeVars = input[["modelSpecification-timeVars"]],
                               boneVars = boneVars,
                               indVar = names(modDat)[x],
                               isoMean = unlist(isoMean()[[x]]),
                               isoSigma = unlist(isoSigma()[[x]]),
                               renewalRatesSD = data.frame(modDatSD[[x]]),
-                              iter = modelSpecInputs()$iter,
-                              burnin = modelSpecInputs()$burnin,
-                              chains = modelSpecInputs()$chains)
+                              iter = input[["modelSpecification-iter"]],
+                              burnin = input[["modelSpecification-burnin"]],
+                              chains = input[["modelSpecification-chains"]])
           }, value = x / length(modDat),
           message = paste0("Calculate model for individual nr.", x))
         })
@@ -239,7 +239,7 @@ shinyServer(function(input, output, session) {
       allModels <- allModels[!grepl("Current", names(allModels))] # kept for the case if models 
       # from versions before 22.11.1 were uploaded
       for(i in 1:length(fitted)){
-        newName <- paste0(modelSpecInputs()$indVar, "_", names(modDat)[i])
+        newName <- paste0(input[["modelSpecification-indVar"]], "_", names(modDat)[i])
         allModels <- allModels[!grepl(newName, names(allModels))]
         newModel <- setNames(list(
           list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),

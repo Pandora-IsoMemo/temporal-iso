@@ -96,17 +96,28 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
         }
         
         req(uploadedModelSpecInputs())
+        
         updatePickerInput(session, "timeVars", choices = dataMatrix() %>% colnames(),
-                          selected = uploadedModelSpecInputs()$timeVars)
+                         selected = uploadedModelSpecInputs()$timeVars)
         updatePickerInput(session, "boneVars", choices = dataMatrix() %>% colnames(),
-                          selected = uploadedModelSpecInputs()$boneVars)
+                         selected = uploadedModelSpecInputs()$boneVars)
         updateSelectizeInput(session, "indVar", choices = dataMatrix() %>% colnames(),
-                             selected = uploadedModelSpecInputs()$indVar)
-        updateSliderInput(session, "iter", value = uploadedModelSpecInputs()$iter)
-        updateSliderInput(session, "burnin", value = uploadedModelSpecInputs()$burnin)
-        updateSliderInput(session, "chains", value = uploadedModelSpecInputs()$chains)
-        updateCheckboxInput(session, "rndmSeed", value = uploadedModelSpecInputs()$rndmSeed)
-        updateNumericInput(session, "fixedSeed", value = uploadedModelSpecInputs()$fixedSeed)
+                            selected = uploadedModelSpecInputs()$indVar)
+        #updateSliderInput(session, "iter", value = uploadedModelSpecInputs()$iter)
+        #updateSliderInput(session, "burnin", value = uploadedModelSpecInputs()$burnin)
+        #updateSliderInput(session, "chains", value = uploadedModelSpecInputs()$chains)
+        #updateCheckboxInput(session, "rndmSeed", value = uploadedModelSpecInputs()$rndmSeed)
+        #updateNumericInput(session, "fixedSeed", value = uploadedModelSpecInputs()$fixedSeed)
+        
+        uploadedInputs <- uploadedModelSpecInputs()
+        browser()
+        ## update inputs ----
+        inputIDs <- names(uploadedInputs)
+        inputIDs <- inputIDs[inputIDs %in% names(input)]
+        
+        for (i in 1:length(inputIDs)) {
+          session$sendInputMessage(inputIDs[i],  list(value = uploadedInputs[[inputIDs[i]]]) )
+        }
       })
       
       observeEvent(input$timeVars, {

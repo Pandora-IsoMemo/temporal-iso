@@ -1,4 +1,16 @@
 defaultSourceData: "file"           # for import of data
 defaultSourceModel: "file"           # for import of models
+# file types that are allowed for import from Pandora ("ckan")
+ckanFileTypes:
+  - "xls"
+  - "xlsx"
+  - "csv"
+  - "odt"
+  - "txt"
+ckanModelTypes:
+  - "zip"
+  - "osteobior"
+githubRepo: "osteobior"        # for import of models
+mainFolder: "predefinedModels"  # for import of models
 fileExtension: "osteobior"      # for download of models
 rPackageName: "OsteoBioR"       # for download and import of models

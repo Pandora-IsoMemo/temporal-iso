@@ -5,7 +5,6 @@ library(colourpicker)
 library(shinyMatrix)
 library(dplyr)
 library(ggplot2)
-library(xlsx)
 library(rstan)
 
 options(shiny.maxRequestSize = 200*1024^2)

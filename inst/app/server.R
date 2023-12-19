@@ -7,13 +7,8 @@ library(dplyr)
 library(ggplot2)
 library(xlsx)
 library(rstan)
-library(yaml)
 
 options(shiny.maxRequestSize = 200*1024^2)
-
-# load config variables
-configFile <- system.file("config.yaml", package = "OsteoBioR")
-appConfig <- yaml::read_yaml(configFile)
 
 shinyServer(function(input, output, session) {
   # DATA -------------------------------------------------
@@ -27,8 +22,9 @@ shinyServer(function(input, output, session) {
   importedData <- DataTools::importDataServer(
     "fileData",
     customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
-    defaultSource = appConfig$defaultSourceData,
-    rPackageName = appConfig$rPackageName
+    defaultSource = config()[["defaultSourceData"]],
+    ckanFileTypes = config()[["ckanFileTypes"]],
+    rPackageName = config()[["rPackageName"]]
   )
   
   observe({
@@ -42,8 +38,9 @@ shinyServer(function(input, output, session) {
   importedDataSD <- DataTools::importDataServer(
     "fileDataSD",
     customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
-    defaultSource = appConfig$defaultSourceData,
-    rPackageName = appConfig$rPackageName
+    defaultSource = config()[["defaultSourceData"]],
+    ckanFileTypes = config()[["ckanFileTypes"]],
+    rPackageName = config()[["rPackageName"]]
   )
 
   observe({
@@ -57,8 +54,9 @@ shinyServer(function(input, output, session) {
   importedIso <- DataTools::importDataServer(
     "fileIso",
     customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
-    defaultSource = appConfig$defaultSourceData,
-    rPackageName = appConfig$rPackageName
+    defaultSource = config()[["defaultSourceData"]],
+    ckanFileTypes = config()[["ckanFileTypes"]],
+    rPackageName = config()[["rPackageName"]]
   )
   
   observe({
@@ -301,11 +299,13 @@ shinyServer(function(input, output, session) {
     if(length(fits) == 0){
       return("Please select a model / individual")
     }
+    
     shiftTime <- lapply(fits, function(x) getShiftTime(x, 
                               type = ifelse(input$shiftTimeAbsOrRel == "absolute", TRUE, FALSE), 
                               slope = ifelse(input$slope == "slope", TRUE, FALSE),
                               threshold = input$shiftTimeThreshold, 
                               probability = input$shiftTimeProb))
+    
     shiftTime <- do.call("rbind", lapply(1:length(shiftTime),
                                          function(x){
                                            if(NROW(shiftTime[[x]]) > 0){
@@ -315,7 +315,7 @@ shinyServer(function(input, output, session) {
                                            }
                                          } ))
     
-    ifelse(nrow(shiftTime) == 0, stop("No shifts were found"), return(shiftTime))
+    ifelse(nrow(shiftTime) == 0, return("No shifts were found"), return(shiftTime))
   })
   
   observeEvent(input$savedModelsUserDefined, {
@@ -419,18 +419,20 @@ shinyServer(function(input, output, session) {
                                  inputs = reactiveValues(),
                                  model = reactive(savedModels()[input$selectedModels] %>%
                                                     extractModelOutputs()),
-                                 rPackageName = appConfig$rPackageName,
-                                 fileExtension = appConfig$fileExtension,
+                                 rPackageName = config()[["rPackageName"]],
+                                 fileExtension = config()[["fileExtension"]],
                                  modelNotes = uploadedNotes,
                                  triggerUpdate = reactive(TRUE))
   
   uploadedValues <- DataTools::importDataServer("modelUpload",
                                                 title = "Import Model",
-                                                defaultSource = appConfig$defaultSourceModel,
                                                 importType = "model",
-                                                rPackageName = appConfig$rPackageName,
-                                                fileExtension = appConfig$fileExtension,
-                                                ignoreWarnings = TRUE)
+                                                ckanFileTypes = config()[["ckanModelTypes"]],
+                                                ignoreWarnings = TRUE,
+                                                defaultSource = config()[["defaultSourceModel"]],
+                                                mainFolder = config()[["mainFolder"]],
+                                                fileExtension = config()[["fileExtension"]],
+                                                rPackageName = config()[["rPackageName"]])
   
   observe({
     req(length(uploadedValues()) > 0)
@@ -888,8 +890,9 @@ shinyServer(function(input, output, session) {
   importedStayTime <- DataTools::importDataServer(
     "stayTimeData",
     customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
-    defaultSource = appConfig$defaultSourceData,
-    rPackageName = appConfig$rPackageName
+    defaultSource = config()[["defaultSourceData"]],
+    ckanFileTypes = config()[["ckanFileTypes"]],
+    rPackageName = config()[["rPackageName"]]
   )
   
   observe({
@@ -990,8 +993,9 @@ shinyServer(function(input, output, session) {
   importedHistData <- DataTools::importDataServer(
     "fileHistData",
     customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
-    defaultSource = appConfig$defaultSourceData,
-    rPackageName = appConfig$rPackageName
+    defaultSource = config()[["defaultSourceData"]],
+    ckanFileTypes = config()[["ckanFileTypes"]],
+    rPackageName = config()[["rPackageName"]]
   )
   
   observe({

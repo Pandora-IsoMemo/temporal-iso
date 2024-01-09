@@ -7,7 +7,11 @@ library(dplyr)
 library(ggplot2)
 library(rstan)
 
-options(shiny.maxRequestSize = 200*1024^2)
+options(shiny.maxRequestSize = 200*1024^2,
+        # Set mc.cores option
+        mc.cores = parallel::detectCores())
+
+rstan_options(auto_write = TRUE)
 
 shinyServer(function(input, output, session) {
   # DATA -------------------------------------------------
@@ -20,7 +24,7 @@ shinyServer(function(input, output, session) {
   ## Upload Renewal rates ----
   importedData <- DataTools::importDataServer(
     "fileData",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     rPackageName = config()[["rPackageName"]]
@@ -36,7 +40,7 @@ shinyServer(function(input, output, session) {
   ## Upload Renewal rates uncertainty (optional) ----
   importedDataSD <- DataTools::importDataServer(
     "fileDataSD",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     rPackageName = config()[["rPackageName"]]
@@ -52,7 +56,7 @@ shinyServer(function(input, output, session) {
   ## Upload Measurements ----
   importedIso <- DataTools::importDataServer(
     "fileIso",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     rPackageName = config()[["rPackageName"]]
@@ -888,7 +892,7 @@ shinyServer(function(input, output, session) {
   
   importedStayTime <- DataTools::importDataServer(
     "stayTimeData",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     rPackageName = config()[["rPackageName"]]
@@ -991,7 +995,7 @@ shinyServer(function(input, output, session) {
   
   importedHistData <- DataTools::importDataServer(
     "fileHistData",
-    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
+    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     rPackageName = config()[["rPackageName"]]

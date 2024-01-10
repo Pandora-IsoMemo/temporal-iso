@@ -27,7 +27,10 @@ shinyServer(function(input, output, session) {
     customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
-    rPackageName = config()[["rPackageName"]]
+    options = DataTools::importOptions(
+      rPackageName = config()[["rPackageName"]],
+      customHelpText = helpText("The first column in your file should contain the IDs for individuals.")
+    )
   )
   
   observe({
@@ -43,7 +46,7 @@ shinyServer(function(input, output, session) {
     customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
-    rPackageName = config()[["rPackageName"]]
+    options = DataTools::importOptions(rPackageName = config()[["rPackageName"]])
   )
 
   observe({
@@ -59,7 +62,9 @@ shinyServer(function(input, output, session) {
     customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
-    rPackageName = config()[["rPackageName"]]
+    options = DataTools::importOptions(
+      rPackageName = config()[["rPackageName"]],
+      customHelpText = helpText("The first column in your file should contain the IDs for individuals."))
   )
   
   observe({
@@ -435,7 +440,7 @@ shinyServer(function(input, output, session) {
                                                 defaultSource = config()[["defaultSourceModel"]],
                                                 mainFolder = config()[["mainFolder"]],
                                                 fileExtension = config()[["fileExtension"]],
-                                                rPackageName = config()[["rPackageName"]])
+                                                options = DataTools::importOptions(rPackageName = config()[["rPackageName"]]))
   
   observe({
     req(length(uploadedValues()) > 0)
@@ -895,7 +900,7 @@ shinyServer(function(input, output, session) {
     customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
-    rPackageName = config()[["rPackageName"]]
+    options = DataTools::importOptions(rPackageName = config()[["rPackageName"]])
   )
   
   observe({
@@ -998,7 +1003,7 @@ shinyServer(function(input, output, session) {
     customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
-    rPackageName = config()[["rPackageName"]]
+    options = DataTools::importOptions(rPackageName = config()[["rPackageName"]])
   )
   
   observe({

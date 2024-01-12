@@ -1,5 +1,11 @@
 # OsteoBioR
 
+## Version 24.01.0
+
+### Bug Fixes
+- fix a bug that prevented the usage of multiple cores during model estimation. In essence only a
+ single core was used.
+
 ## Version 23.12.2
 
 ### New Features

@@ -186,7 +186,7 @@ estimateIntervals <- function(renewalRates,
   
   xsd <- (xhigh - xlow) / 2
   xsd[is.na(xsd)] <- 0
-  #cores <- getOption("mc.cores", if (mc) min(4, chains) else 1)
+  cores <- getOption("mc.cores", if (mc) min(4, chains) else 1)
   model <- suppressWarnings(sampling(stanmodels$linRegGP,
                      data = list(N = N,
                                  NT = NT,
@@ -198,7 +198,7 @@ estimateIntervals <- function(renewalRates,
                                      chains = chains,
                                      iter = iter,
                                      warmup = burnin,
-                                     cores = 1,
+                                     cores = cores,
                                      # verbose = FALSE,
                                      # refresh = 0,
                                      control = list(adapt_delta = adapt_delta,

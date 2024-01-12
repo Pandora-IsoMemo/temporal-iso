@@ -9,7 +9,8 @@ library(rstan)
 
 options(shiny.maxRequestSize = 200*1024^2,
         # Set mc.cores option
-        mc.cores = parallel::detectCores())
+        #mc.cores = parallel::detectCores() # the number of cores is set directly inside the estimation function
+        )
 
 rstan_options(auto_write = TRUE)
 

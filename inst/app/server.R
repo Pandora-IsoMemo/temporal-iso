@@ -190,7 +190,7 @@ shinyServer(function(input, output, session) {
     if (!input$renewUnc) {
       # update zero SD matrix regarding selected vars
       renewalRatesUnc <- setVarsForUncMatrix(renewalRates = input$dataMatrix,
-                                             renewalRatesUnc = input$dataMatrixSD,
+                                             renewalRatesUnc = NULL,
                                              timeVars = modelSpecInputs()$timeVars,
                                              indVar = modelSpecInputs()$indVar)
     } else {

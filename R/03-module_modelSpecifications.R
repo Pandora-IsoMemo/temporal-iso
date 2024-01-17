@@ -35,10 +35,15 @@ modelSpecificationsUI <- function(id, title) {
       multiple = TRUE
     ),
     tags$br(),
-    selectizeInput(
-      inputId = ns("indVar"),
-      label = "Individual variable",
-      choices = character(0)
+    checkboxInput(ns("rownamesAsIndVar"), label = "Use row names as individual variable", value = FALSE),
+    conditionalPanel(
+      ns = ns,
+      condition = "input.rownamesAsIndVar == false",
+      selectizeInput(
+        inputId = ns("indVar"),
+        label = "Individual variable:",
+        choices = character(0)
+      ),
     ),
     tags$br(),
     sliderInput(inputId = ns("iter"),
@@ -121,6 +126,16 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
       
       observeEvent(input$indVar, {
         values$indVar <- input$indVar
+      })
+      
+      observeEvent(input$rownamesAsIndVar, {
+        if (!input$rownamesAsIndVar) {
+          values$indVar <- input$indVar
+        } else {
+          emptyInd <- ""
+          attr(emptyInd, "useRownames") <- TRUE
+          values$indVar <- emptyInd
+        }
       })
       
       observeEvent(input$iter, {

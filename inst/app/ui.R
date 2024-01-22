@@ -61,7 +61,7 @@ tagList(
               editableNames = TRUE
             ),
             rows = list(
-              names = FALSE,
+              names = TRUE,
               editableNames = TRUE,
               extend = TRUE,
               delta = 1
@@ -86,7 +86,7 @@ tagList(
                 editableNames = FALSE
               ),
               rows = list(
-                names = FALSE,
+                names = TRUE,
                 editableNames = FALSE,
                 extend = FALSE,
                 delta = 1
@@ -110,7 +110,7 @@ tagList(
               delta = 0
             ),
             rows = list(
-              names = FALSE,
+              names = TRUE,
               editableNames = FALSE,
               extend = TRUE,
               delta = 1
@@ -357,7 +357,7 @@ tagList(
                      editableNames = TRUE
                    ),
                    rows = list(
-                     names = FALSE,
+                     names = TRUE,
                      editableNames = TRUE,
                      extend = TRUE
                    )
@@ -456,7 +456,7 @@ tagList(
                      editableNames = TRUE
                    ),
                    rows = list(
-                     names = FALSE,
+                     names = TRUE,
                      editableNames = TRUE,
                      extend = TRUE
                    )

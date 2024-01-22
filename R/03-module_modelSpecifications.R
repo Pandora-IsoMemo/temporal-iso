@@ -132,9 +132,10 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
         if (!input$rownamesAsIndVar) {
           values$indVar <- input$indVar
         } else {
-          emptyInd <- ""
+          emptyInd <- character(0)
           attr(emptyInd, "useRownames") <- TRUE
           values$indVar <- emptyInd
+          updateSelectizeInput(session = session, "indVar", selected = character(0))
         }
       })
       

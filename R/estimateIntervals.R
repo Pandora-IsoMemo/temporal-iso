@@ -176,10 +176,10 @@ estimateIntervals <- function(renewalRates,
   # must always have the same dimensions: renewalRates[boneVars] and renewalRatesSD[boneVars]
   if (ncol(renewalRates[boneVars]) != ncol(renewalRatesSD[boneVars]))
     stop(paste0("Error: Number of valid bone variables differ between renewal rates and renewal rates ",
-               "uncertainty for individual ", indVar, "."))
+               "uncertainty for individuals ", indVar, "."))
   if (nrow(renewalRates[boneVars]) != nrow(renewalRatesSD[boneVars]))
     stop(paste0("Error: Number of valid rows differ between renewal rates and renewal rates ",
-               "uncertainty for individual ", indVar, "."))
+               "uncertainty for individuals ", indVar, "."))
   
   xlow <- t(as.matrix(apply(pmax(as.matrix(renewalRates[boneVars]- renewalRatesSD[boneVars]), 0), 2, calcInfluence)))
   xhigh <- t(as.matrix(apply(pmin(as.matrix(renewalRates[boneVars]+ renewalRatesSD[boneVars]), 100), 2, calcInfluence)))

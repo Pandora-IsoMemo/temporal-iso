@@ -10,7 +10,7 @@ cleanAndSplitData <-
     if (is.null(indVar))
       return(NULL)
 
-    splitVar <- extractSplitVar(renewalRates = renewalRates, indVar = indVar)
+    splitVar <- extractIndividuals(matrix = renewalRates, indVar = indVar)
     
     # clean up renewalRates
     renewalRates <- renewalRates %>% 
@@ -33,7 +33,7 @@ cleanAndSplitData <-
                                  })
     names(renewalRatesPerInd) <- names(validColsPerInd)
     
-    splitVarUnc <- extractSplitVar(renewalRates = renewalRatesUnc, indVar = indVar)
+    splitVarUnc <- extractIndividuals(matrix = renewalRatesUnc, indVar = indVar)
     
     # clean up renewalRatesUnc respectively and set NA to zero
     renewalRatesUnc <- renewalRatesUnc %>% 
@@ -57,12 +57,12 @@ cleanAndSplitData <-
          renewalRatesUncPerInd = renewalRatesUncPerInd)
   }
 
-extractSplitVar <- function(renewalRates, indVar) {
-  if (!is.null(indVar) && indVar == "" && !is.null(attr(indVar, "useRownames")) && attr(indVar, "useRownames")) {
-    rownames(renewalRates) %>%
+extractIndividuals <- function(matrix, indVar) {
+  if (!(indVar %in% colnames(matrix)) && !is.null(rownames(matrix)) && all(sapply(rownames(matrix), function(x) x != ""))) {
+    rownames(matrix) %>%
       as.character()
   } else {
-    renewalRates[, indVar] %>%
+    matrix[, indVar] %>%
       unname() %>%
       as.character()
   }

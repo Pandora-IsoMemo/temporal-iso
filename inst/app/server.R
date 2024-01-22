@@ -25,7 +25,7 @@ shinyServer(function(input, output, session) {
   ## Upload Renewal rates ----
   importedData <- DataTools::importDataServer(
     "fileData",
-    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     options = DataTools::importOptions(
@@ -44,7 +44,7 @@ shinyServer(function(input, output, session) {
   ## Upload Renewal rates uncertainty (optional) ----
   importedDataSD <- DataTools::importDataServer(
     "fileDataSD",
-    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     options = DataTools::importOptions(rPackageName = config()[["rPackageName"]])
@@ -60,7 +60,7 @@ shinyServer(function(input, output, session) {
   ## Upload Measurements ----
   importedIso <- DataTools::importDataServer(
     "fileIso",
-    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     options = DataTools::importOptions(
@@ -154,21 +154,25 @@ shinyServer(function(input, output, session) {
                                                uploadedModelSpecInputs = uploadedModelSpecInputs)
   
   isoMean <- eventReactive(input$isotope, {
+    splitVar <- extractIndividuals(matrix = input$isotope, indVar = input[["modelSpecification-indVar"]])
     ret <- (input$isotope %>%
       data.frame() %>%
       .[colSums(!is.na(.)) > 0] #%>%
       #filter(complete.cases(.))
      )
-    lapply(split(ret[,2], ret[,1]), function(x) as.numeric(na.omit(x)))
+    # use pre-last columns to get mean, because ind column does not exists when rownames are used
+    lapply(split(ret[, length(ret)-1], splitVar), function(x) as.numeric(na.omit(x)))
   })
   
   isoSigma <- eventReactive(input$isotope, {
+    splitVar <- extractIndividuals(matrix = input$isotope, indVar = input[["modelSpecification-indVar"]])
     ret <- (input$isotope %>%
       data.frame() %>%
       .[colSums(!is.na(.)) > 0] #%>%
       #filter(complete.cases(.))
      )
-    lapply(split(ret[,3], ret[,1]), function(x) as.numeric(na.omit(x)))
+    # use last columns to get sigma, because ind column does not exists when rownames are used
+    lapply(split(ret[, length(ret)], splitVar), function(x) as.numeric(na.omit(x)))
   })
   
   fit <- reactiveVal(NULL)
@@ -246,7 +250,13 @@ shinyServer(function(input, output, session) {
       allModels <- allModels[!grepl("Current", names(allModels))] # kept for the case if models 
       # from versions before 22.11.1 were uploaded
       for(i in 1:length(fitted)){
-        newName <- paste0(modelSpecInputs()$indVar, "_", names(modDat)[i])
+        if (length(modelSpecInputs()$indVar) == 0 || modelSpecInputs()$indVar == "") {
+          prefix <- "individual"
+        } else {
+          prefix <- modelSpecInputs()$indVar
+        }
+        
+        newName <- paste0(prefix, "_", names(modDat)[i])
         allModels <- allModels[!grepl(newName, names(allModels))]
         newModel <- setNames(list(
           list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
@@ -898,7 +908,7 @@ shinyServer(function(input, output, session) {
   
   importedStayTime <- DataTools::importDataServer(
     "stayTimeData",
-    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     options = DataTools::importOptions(rPackageName = config()[["rPackageName"]])
@@ -1001,7 +1011,7 @@ shinyServer(function(input, output, session) {
   
   importedHistData <- DataTools::importDataServer(
     "fileHistData",
-    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     options = DataTools::importOptions(rPackageName = config()[["rPackageName"]])

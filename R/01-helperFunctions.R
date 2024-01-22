@@ -107,8 +107,6 @@ updateMatrixNamesInput <- function(session, inputId, value, value2) {
 #' 
 #' @export
 setVarsForUncMatrix <- function(timeVars, indVar, renewalRates, renewalRatesUnc = NULL) {
-  rownamesUnc <- extractRownames(renewalRates = renewalRates, indVar = indVar)
-  
   if (length(renewalRatesUnc) == 0 || nrow(renewalRates) != nrow(renewalRatesUnc)) {
     if (length(renewalRatesUnc) > 0 && nrow(renewalRatesUnc) > 1) {
       warning("The number of rows differs between renewal rates uncertainty and renewal rates. Uncertainty will be ignored!")
@@ -118,19 +116,11 @@ setVarsForUncMatrix <- function(timeVars, indVar, renewalRates, renewalRatesUnc 
     renewalRatesUnc[notIndOrTime] <- 0
   } else {
     renewalRatesUnc <- data.frame(renewalRatesUnc)
-    if ((!is.null(timeVars) && all(timeVars != "")) || (!is.null(indVar) && indVar != ""))
+    if ((!is.null(timeVars) && all(timeVars != "")) || (length(indVar) != 0 && indVar != ""))
     renewalRatesUnc[c(timeVars, indVar)] <- data.frame(renewalRates)[c(timeVars, indVar)]
   }
   
   renewalRatesUnc <- as.matrix(renewalRatesUnc)
-  rownames(renewalRatesUnc) <- rownamesUnc
+  rownames(renewalRatesUnc) <- rownames(renewalRates)
   renewalRatesUnc
-}
-
-extractRownames <- function(renewalRates, indVar) {
-  if (!is.null(indVar) && indVar == "" && !is.null(attr(indVar, "useRownames")) && attr(indVar, "useRownames")) {
-    rownames(renewalRates)
-  } else {
-    rep("", nrow(renewalRates))
-  }
 }

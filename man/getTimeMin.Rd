@@ -6,6 +6,13 @@
 \usage{
 getTimeMin(mtrx, timeVars, default = 0)
 }
+\arguments{
+\item{mtrx}{(matrix) data matrix}
+
+\item{timeVars}{(character) column names of time variables}
+
+\item{default}{(numeric) default result}
+}
 \value{
 (numeric) minimal time
 }

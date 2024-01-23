@@ -165,9 +165,9 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
 
 #' Get Time Minimum 
 #' 
-#' @mtrx (matrix) data matrix
-#' @timeVars (character) column names of time variables
-#' @default (numeric) default result
+#' @param mtrx (matrix) data matrix
+#' @param timeVars (character) column names of time variables
+#' @param default (numeric) default result
 #' 
 #' @return (numeric) minimal time
 #' @export
@@ -180,9 +180,9 @@ getTimeMin <- function(mtrx, timeVars, default = 0) {
 
 #' Get Time Maximum 
 #' 
-#' @mtrx (matrix) data matrix
-#' @timeVars (character) column names of time variables
-#' @default (numeric) default result
+#' @param mtrx (matrix) data matrix
+#' @param timeVars (character) column names of time variables
+#' @param default (numeric) default result
 #' 
 #' @return (numeric) maximal time
 #' @export

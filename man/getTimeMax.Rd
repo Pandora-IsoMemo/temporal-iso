@@ -6,6 +6,13 @@
 \usage{
 getTimeMax(mtrx, timeVars, default = 1)
 }
+\arguments{
+\item{mtrx}{(matrix) data matrix}
+
+\item{timeVars}{(character) column names of time variables}
+
+\item{default}{(numeric) default result}
+}
 \value{
 (numeric) maximal time
 }

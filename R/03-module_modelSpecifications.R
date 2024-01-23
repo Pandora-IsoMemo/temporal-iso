@@ -35,7 +35,7 @@ modelSpecificationsUI <- function(id, title) {
       multiple = TRUE
     ),
     tags$br(),
-    checkboxInput(ns("rownamesAsIndVar"), label = "Use row names as individual variable", value = FALSE),
+    checkboxInput(ns("rownamesAsIndVar"), label = "Use rownames as individual variable", value = FALSE),
     conditionalPanel(
       ns = ns,
       condition = "input.rownamesAsIndVar == false",

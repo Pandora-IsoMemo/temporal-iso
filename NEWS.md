@@ -1,5 +1,11 @@
 # OsteoBioR
 
+## Version 24.01.1
+
+### New Features
+- Option to use rownames of data as individual variable. This allows to use non-numeric values for 
+  individuals since rownames do not need to be numeric (#35)
+
 ## Version 24.01.0
 
 ### Bug Fixes

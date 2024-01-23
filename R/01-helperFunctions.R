@@ -114,13 +114,15 @@ setVarsForUncMatrix <- function(timeVars, indVar, renewalRates, renewalRatesUnc 
     notIndOrTime <- colnames(renewalRates)[!colnames(renewalRates) %in% c(timeVars, indVar)]
     renewalRatesUnc <- data.frame(renewalRates)
     renewalRatesUnc[notIndOrTime] <- 0
+    rownamesUnc <- rownames(renewalRates)
   } else {
+    rownamesUnc <- rownames(renewalRatesUnc)
     renewalRatesUnc <- data.frame(renewalRatesUnc)
     if ((!is.null(timeVars) && all(timeVars != "")) || (length(indVar) != 0 && indVar != ""))
     renewalRatesUnc[c(timeVars, indVar)] <- data.frame(renewalRates)[c(timeVars, indVar)]
   }
   
   renewalRatesUnc <- as.matrix(renewalRatesUnc)
-  rownames(renewalRatesUnc) <- rownames(renewalRates)
+  rownames(renewalRatesUnc) <- rownamesUnc
   renewalRatesUnc
 }

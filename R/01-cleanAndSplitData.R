@@ -57,6 +57,13 @@ cleanAndSplitData <-
          renewalRatesUncPerInd = renewalRatesUncPerInd)
   }
 
+#' Extract Individuals
+#' 
+#' @param matrix (matrix) matrix of data
+#' @param indVar (character) name if individuals column or empty if rownames
+#' @return (character) vector of individuals or row names with individuals
+#' 
+#' @export
 extractIndividuals <- function(matrix, indVar) {
   if (!(indVar %in% colnames(matrix)) && !is.null(rownames(matrix)) && all(sapply(rownames(matrix), function(x) x != ""))) {
     rownames(matrix) %>%

@@ -177,8 +177,18 @@ shinyServer(function(input, output, session) {
   
   fit <- reactiveVal(NULL)
   
-  nIndividuals1 <- reactive({(unique(na.omit(input$isotope[,1])))})
-  nIndividuals2 <- reactive({(unique(na.omit(input$dataMatrix[,1])))})
+  nIndividuals1 <- reactive({
+    extractIndividuals(matrix = input$isotope, 
+                       indVar = input[["modelSpecification-indVar"]]) %>%
+      na.omit() %>%
+      unique()
+    })
+  nIndividuals2 <- reactive({
+    extractIndividuals(matrix = input$dataMatrix, 
+                       indVar = input[["modelSpecification-indVar"]]) %>%
+      na.omit() %>%
+      unique()
+    })
   
   savedModels <- reactiveVal(list())
   intervalTimePlot <- reactiveVal()

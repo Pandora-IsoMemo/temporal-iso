@@ -9,15 +9,18 @@ cleanAndSplitData <-
   function(indVar, renewalRates, renewalRatesUnc) {
     if (is.null(indVar))
       return(NULL)
+
+    splitVar <- extractIndividuals(matrix = renewalRates, indVar = indVar)
     
     # clean up renewalRates
-    renewalRates <- renewalRates %>% data.frame()
+    renewalRates <- renewalRates %>% 
+      data.frame()
     validCols <- colSums(!is.na(renewalRates)) > 0
     renewalRates <- renewalRates %>%
       .[validCols] #%>%
     #filter(complete.cases(.))
     
-    renewalRatesPerInd <- split(renewalRates, renewalRates[, indVar])
+    renewalRatesPerInd <- split(renewalRates, splitVar)
     validColsPerInd <- lapply(renewalRatesPerInd,
                               function(x) {
                                 !apply(x, 2, function(y)
@@ -30,14 +33,16 @@ cleanAndSplitData <-
                                  })
     names(renewalRatesPerInd) <- names(validColsPerInd)
     
+    splitVarUnc <- extractIndividuals(matrix = renewalRatesUnc, indVar = indVar)
+    
     # clean up renewalRatesUnc respectively and set NA to zero
-    renewalRatesUnc <- renewalRatesUnc %>% data.frame()
+    renewalRatesUnc <- renewalRatesUnc %>% 
+      data.frame()
     renewalRatesUnc <- renewalRatesUnc %>%
       .[validCols] #%>%
     #filter(complete.cases(.))
     
-    renewalRatesUncPerInd <-
-      split(renewalRatesUnc, renewalRatesUnc[, indVar])
+    renewalRatesUncPerInd <- split(renewalRatesUnc, splitVarUnc)
     renewalRatesUncPerInd <- lapply(seq_along(renewalRatesUncPerInd),
                                     function(x) {
                                       # select valid columns
@@ -51,3 +56,21 @@ cleanAndSplitData <-
     list(renewalRatesPerInd = renewalRatesPerInd,
          renewalRatesUncPerInd = renewalRatesUncPerInd)
   }
+
+#' Extract Individuals
+#' 
+#' @param matrix (matrix) matrix of data
+#' @param indVar (character) name if individuals column or empty if rownames
+#' @return (character) vector of individuals or row names with individuals
+#' 
+#' @export
+extractIndividuals <- function(matrix, indVar) {
+  if (!(indVar %in% colnames(matrix)) && !is.null(rownames(matrix)) && all(sapply(rownames(matrix), function(x) x != ""))) {
+    rownames(matrix) %>%
+      as.character()
+  } else {
+    matrix[, indVar] %>%
+      unname() %>%
+      as.character()
+  }
+}

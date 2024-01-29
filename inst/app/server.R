@@ -25,7 +25,7 @@ shinyServer(function(input, output, session) {
   ## Upload Renewal rates ----
   importedData <- DataTools::importDataServer(
     "fileData",
-    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     options = DataTools::importOptions(
@@ -44,7 +44,7 @@ shinyServer(function(input, output, session) {
   ## Upload Renewal rates uncertainty (optional) ----
   importedDataSD <- DataTools::importDataServer(
     "fileDataSD",
-    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     options = DataTools::importOptions(rPackageName = config()[["rPackageName"]])
@@ -60,7 +60,7 @@ shinyServer(function(input, output, session) {
   ## Upload Measurements ----
   importedIso <- DataTools::importDataServer(
     "fileIso",
-    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     options = DataTools::importOptions(
@@ -99,8 +99,8 @@ shinyServer(function(input, output, session) {
     if (!input$renewUnc) {
       zeroSD <- setVarsForUncMatrix(renewalRates = dat$dataFile,
                                     renewalRatesUnc = NULL,
-                                    timeVars = modelSpecInputs()$timeVars,
-                                    indVar = modelSpecInputs()$indVar)
+                                    timeVars = input[["modelSpecification-timeVars"]],
+                                    indVar = input[["modelSpecification-indVar"]])
       
       # use row- and column names from dataMatrix but content from dataMatrixSD
       updateMatrixNamesInput(session, "dataMatrixSD", value = input$dataMatrix, value2 = zeroSD)
@@ -154,27 +154,41 @@ shinyServer(function(input, output, session) {
                                                uploadedModelSpecInputs = uploadedModelSpecInputs)
   
   isoMean <- eventReactive(input$isotope, {
+    splitVar <- extractIndividuals(matrix = input$isotope, indVar = input[["modelSpecification-indVar"]])
     ret <- (input$isotope %>%
       data.frame() %>%
       .[colSums(!is.na(.)) > 0] #%>%
       #filter(complete.cases(.))
      )
-    lapply(split(ret[,2], ret[,1]), function(x) as.numeric(na.omit(x)))
+    # use pre-last columns to get mean, because ind column does not exists when rownames are used
+    lapply(split(ret[, length(ret)-1], splitVar), function(x) as.numeric(na.omit(x)))
   })
   
   isoSigma <- eventReactive(input$isotope, {
+    splitVar <- extractIndividuals(matrix = input$isotope, indVar = input[["modelSpecification-indVar"]])
     ret <- (input$isotope %>%
       data.frame() %>%
       .[colSums(!is.na(.)) > 0] #%>%
       #filter(complete.cases(.))
      )
-    lapply(split(ret[,3], ret[,1]), function(x) as.numeric(na.omit(x)))
+    # use last columns to get sigma, because ind column does not exists when rownames are used
+    lapply(split(ret[, length(ret)], splitVar), function(x) as.numeric(na.omit(x)))
   })
   
   fit <- reactiveVal(NULL)
   
-  nIndividuals1 <- reactive({(unique(na.omit(input$isotope[,1])))})
-  nIndividuals2 <- reactive({(unique(na.omit(input$dataMatrix[,1])))})
+  nIndividuals1 <- reactive({
+    extractIndividuals(matrix = input$isotope, 
+                       indVar = input[["modelSpecification-indVar"]]) %>%
+      na.omit() %>%
+      unique()
+    })
+  nIndividuals2 <- reactive({
+    extractIndividuals(matrix = input$dataMatrix, 
+                       indVar = input[["modelSpecification-indVar"]]) %>%
+      na.omit() %>%
+      unique()
+    })
   
   savedModels <- reactiveVal(list())
   intervalTimePlot <- reactiveVal()
@@ -190,14 +204,14 @@ shinyServer(function(input, output, session) {
     if (!input$renewUnc) {
       # update zero SD matrix regarding selected vars
       renewalRatesUnc <- setVarsForUncMatrix(renewalRates = input$dataMatrix,
-                                             renewalRatesUnc = input$dataMatrixSD,
-                                             timeVars = modelSpecInputs()$timeVars,
-                                             indVar = modelSpecInputs()$indVar)
+                                             renewalRatesUnc = NULL,
+                                             timeVars = input[["modelSpecification-timeVars"]],
+                                             indVar = input[["modelSpecification-indVar"]])
     } else {
       renewalRatesUnc <- input$dataMatrixSD
     }
     
-    splittedData <- cleanAndSplitData(indVar = modelSpecInputs()$indVar, 
+    splittedData <- cleanAndSplitData(indVar = input[["modelSpecification-indVar"]], 
                                       renewalRates = input$dataMatrix,
                                       renewalRatesUnc = renewalRatesUnc)
     modDat <- splittedData$renewalRatesPerInd
@@ -214,19 +228,19 @@ shinyServer(function(input, output, session) {
       fitted <- try({
         lapply(1:length(modDat), function(x){
           withProgress({
-            boneVars <- modelSpecInputs()$boneVars[
-              which(modelSpecInputs()$boneVars %in% colnames(modDat[[x]]))
+            boneVars <- input[["modelSpecification-boneVars"]][
+              which(input[["modelSpecification-boneVars"]] %in% colnames(modDat[[x]]))
             ]
             estimateIntervals(renewalRates = data.frame(modDat[[x]]),
-                              timeVars = modelSpecInputs()$timeVars,
+                              timeVars = input[["modelSpecification-timeVars"]],
                               boneVars = boneVars,
                               indVar = names(modDat)[x],
                               isoMean = unlist(isoMean()[[x]]),
                               isoSigma = unlist(isoSigma()[[x]]),
                               renewalRatesSD = data.frame(modDatSD[[x]]),
-                              iter = modelSpecInputs()$iter,
-                              burnin = modelSpecInputs()$burnin,
-                              chains = modelSpecInputs()$chains)
+                              iter = input[["modelSpecification-iter"]],
+                              burnin = input[["modelSpecification-burnin"]],
+                              chains = input[["modelSpecification-chains"]])
           }, value = x / length(modDat),
           message = paste0("Calculate model for individual nr.", x))
         })
@@ -246,7 +260,13 @@ shinyServer(function(input, output, session) {
       allModels <- allModels[!grepl("Current", names(allModels))] # kept for the case if models 
       # from versions before 22.11.1 were uploaded
       for(i in 1:length(fitted)){
-        newName <- paste0(modelSpecInputs()$indVar, "_", names(modDat)[i])
+        if (length(input[["modelSpecification-indVar"]]) == 0 || input[["modelSpecification-indVar"]] == "") {
+          prefix <- "individual"
+        } else {
+          prefix <- input[["modelSpecification-indVar"]]
+        }
+        
+        newName <- paste0(prefix, "_", names(modDat)[i])
         allModels <- allModels[!grepl(newName, names(allModels))]
         newModel <- setNames(list(
           list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
@@ -640,18 +660,19 @@ shinyServer(function(input, output, session) {
   })
   
   observe({
-    if (is.null(modelSpecInputs()$timeMinimum) || is.null(modelSpecInputs()$timeMaximum)) {
-      updateNumericInput(session, "from", value = defaultInputsForUI()$from)
-      updateNumericInput(session, "to", value = defaultInputsForUI()$to)
-      updateNumericInput(session, "from2", value = defaultInputsForUI()$from2)
-      updateNumericInput(session, "to2", value = defaultInputsForUI()$to2)
-    }
-    
-    req(modelSpecInputs()$timeMinimum, modelSpecInputs()$timeMaximum)
-    updateNumericInput(session, "from", value = modelSpecInputs()$timeMinimum)
-    updateNumericInput(session, "to", value = modelSpecInputs()$timeMaximum)
-    updateNumericInput(session, "from2", value = modelSpecInputs()$timeMinimum)
-    updateNumericInput(session, "to2", value = modelSpecInputs()$timeMaximum)
+    updateNumericInput(session, "from", 
+                       value = getTimeMin(mtrx = input$dataMatrix, 
+                                          timeVars = input[["modelSpecification-timeVars"]]))
+    updateNumericInput(session, "to", 
+                       value = getTimeMax(mtrx = input$dataMatrix, 
+                                          timeVars = input[["modelSpecification-timeVars"]])
+      )
+    updateNumericInput(session, "from2", 
+                       value = getTimeMin(mtrx = input$dataMatrix, 
+                                          timeVars = input[["modelSpecification-timeVars"]]))
+    updateNumericInput(session, "to2", 
+                       value = getTimeMax(mtrx = input$dataMatrix, 
+                                          timeVars = input[["modelSpecification-timeVars"]]))
   })
   
   observeEvent(input$savedModelsTime, {
@@ -898,7 +919,7 @@ shinyServer(function(input, output, session) {
   
   importedStayTime <- DataTools::importDataServer(
     "stayTimeData",
-    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     options = DataTools::importOptions(rPackageName = config()[["rPackageName"]])
@@ -1001,7 +1022,7 @@ shinyServer(function(input, output, session) {
   
   importedHistData <- DataTools::importDataServer(
     "fileHistData",
-    customErrorChecks = list(reactive(DataTools::checkNonNumericColumnsExceptFirst)),
+    customErrorChecks = list(reactive(DataTools::checkAnyNonNumericColumns)),
     defaultSource = config()[["defaultSourceData"]],
     ckanFileTypes = config()[["ckanFileTypes"]],
     options = DataTools::importOptions(rPackageName = config()[["rPackageName"]])

@@ -35,10 +35,15 @@ modelSpecificationsUI <- function(id, title) {
       multiple = TRUE
     ),
     tags$br(),
-    selectizeInput(
-      inputId = ns("indVar"),
-      label = "Individual variable",
-      choices = character(0)
+    checkboxInput(ns("rownamesAsIndVar"), label = "Use rownames as individual variable", value = FALSE),
+    conditionalPanel(
+      ns = ns,
+      condition = "input.rownamesAsIndVar == false",
+      selectizeInput(
+        inputId = ns("indVar"),
+        label = "Individual variable:",
+        choices = character(0)
+      ),
     ),
     tags$br(),
     sliderInput(inputId = ns("iter"),
@@ -110,8 +115,10 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
       })
       
       observeEvent(input$timeVars, {
-        values$timeMinimum <- dataMatrix()[, input$timeVars[1]] %>% min
-        values$timeMaximum <- dataMatrix()[, input$timeVars[1]] %>% max
+        values$timeMinimum <- getTimeMin(mtrx = dataMatrix(),
+                                         timeVars = input$timeVars)
+        values$timeMaximum <- getTimeMax(mtrx = dataMatrix(),
+                                         timeVars = input$timeVars)
         values$timeVars <- input$timeVars
       })
       
@@ -121,6 +128,15 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
       
       observeEvent(input$indVar, {
         values$indVar <- input$indVar
+      })
+      
+      observeEvent(input$rownamesAsIndVar, {
+        if (!input$rownamesAsIndVar) {
+          values$indVar <- input$indVar
+        } else {
+          values$indVar <- character(0)
+          updateSelectizeInput(session = session, "indVar", selected = character(0))
+        }
       })
       
       observeEvent(input$iter, {
@@ -146,6 +162,36 @@ modelSpecificationsServer <- function(id, dataMatrix, uploadedModelSpecInputs = 
       reactive(values)
     })
   }
+
+#' Get Time Minimum 
+#' 
+#' @param mtrx (matrix) data matrix
+#' @param timeVars (character) column names of time variables
+#' @param default (numeric) default result
+#' 
+#' @return (numeric) minimal time
+#' @export
+getTimeMin <- function(mtrx, timeVars, default = 0) {
+  if (length(timeVars) == 0 || any(sapply(timeVars, function(x) x == ""))) {
+    return(default)
+  }
+  mtrx[, timeVars] %>% min()
+}
+
+#' Get Time Maximum 
+#' 
+#' @param mtrx (matrix) data matrix
+#' @param timeVars (character) column names of time variables
+#' @param default (numeric) default result
+#' 
+#' @return (numeric) maximal time
+#' @export
+getTimeMax <- function(mtrx, timeVars, default = 1) {
+  if (length(timeVars) == 0 || any(sapply(timeVars, function(x) x == ""))) {
+    return(default)
+  }
+  mtrx[, timeVars] %>% max()
+}
 
 defaultModelSpecValues <- function() {
   list(iter = 2000,

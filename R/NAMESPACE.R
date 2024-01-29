@@ -12,7 +12,7 @@
 #' @import shiny
 #' @import shinythemes
 #' @importFrom colourpicker colourInput 
-#' @importFrom DataTools checkNonNumericColumnsExceptFirst downloadModelUI downloadModelServer 
+#' @importFrom DataTools checkAnyNonNumericColumns downloadModelUI downloadModelServer 
 #'  importDataUI importDataServer importOptions renameExistingNames tryCatchWithWarningsAndErrors
 #' @importFrom dplyr arrange bind_rows distinct slice
 #' @importFrom ggplot2 aes element_line element_text ggplot geom_line geom_point geom_ribbon 

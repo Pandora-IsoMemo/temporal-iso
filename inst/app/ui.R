@@ -188,7 +188,7 @@ tagList(
                      tags$br(),
                      fluidRow(
                        column(2,
-                              tags$h4("X axis"),
+                              tags$h4("X-Axis"),
                               numericInput("xmin", "Lower x limit", 
                                            value = defaultInputsForUI()$xmin),
                               numericInput("xmax", "Upper x limit", 
@@ -201,7 +201,7 @@ tagList(
                                             value = FALSE)
                               ),
                        column(2,
-                              tags$h4("Y axis"),
+                              tags$h4("Y-Axis"),
                               numericInput("ymin", "Lower y limit",
                                            value = defaultInputsForUI()$ymin),
                               numericInput("ymax", "Upper y limit",

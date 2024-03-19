@@ -582,6 +582,8 @@ shinyServer(function(input, output, session) {
   savedPlot <- reactiveVal(list())
   #savedXAxisData <- reactiveVal(data.frame())
   
+  pointStyle <- shinyTools::plotPointsServer("pointStyle", type = "ggplot", initStyle = config()[["defaultPointStyle"]])
+  
   observeEvent(input$credIntTimePlot, {
     req(savedModels(), input$credIntTimePlot)
     fits <- getEntry(savedModels()[input$credIntTimePlot], "fit")
@@ -597,7 +599,8 @@ shinyServer(function(input, output, session) {
                   xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
                   sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
                   sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY,
-                  extendLabels = input$extendLabels)
+                  extendLabels = input$extendLabels,
+                  pointStyle = pointStyle)
     intervalTimePlot(p)
     savedPlot(p)
     #savedXAxisData(getXAxisData(fitForTimePlot()))
@@ -614,7 +617,8 @@ shinyServer(function(input, output, session) {
                   xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
                   sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
                   sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY,
-                  extendLabels = input$extendLabels)
+                  extendLabels = input$extendLabels,
+                  pointStyle = pointStyle)
     intervalTimePlot(p)
     savedPlot(p)
     #savedXAxisData(getXAxisData(fitForTimePlot()))
@@ -629,7 +633,8 @@ shinyServer(function(input, output, session) {
                   xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
                   sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
                   sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY,
-                  extendLabels = input$extendLabels)
+                  extendLabels = input$extendLabels,
+                  pointStyle = pointStyle)
     intervalTimePlot(p)
     savedPlot(p)
     #savedXAxisData(getXAxisData(fitForTimePlot()))
@@ -648,7 +653,8 @@ shinyServer(function(input, output, session) {
                   sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
                   xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
                   sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY, secAxis = input$secAxis,
-                  extendLabels = input$extendLabels)
+                  extendLabels = input$extendLabels,
+                  pointStyle = pointStyle)
     intervalTimePlot(p)
     savedPlot(p)
     #savedXAxisData(getXAxisData(object = fitForTimePlot(), oldXAxisData = oldXAxisData))

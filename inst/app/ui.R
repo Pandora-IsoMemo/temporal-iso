@@ -188,6 +188,7 @@ tagList(
                      tags$br(),
                      fluidRow(
                        column(2,
+                              tags$h4("X axis"),
                               numericInput("xmin", "Lower x limit", 
                                            value = defaultInputsForUI()$xmin),
                               numericInput("xmax", "Upper x limit", 
@@ -200,6 +201,7 @@ tagList(
                                             value = FALSE)
                               ),
                        column(2,
+                              tags$h4("Y axis"),
                               numericInput("ymin", "Lower y limit",
                                            value = defaultInputsForUI()$ymin),
                               numericInput("ymax", "Upper y limit",
@@ -208,7 +210,8 @@ tagList(
                               numericInput(inputId = "sizeTextY", label = "Font size y-axis title", value = 24),
                               numericInput(inputId = "sizeAxisY", label = "Font size y-axis", value = 18)
                               ),
-                       column(4,
+                       column(2,
+                              tags$h4("Lines"),
                               colourInput(inputId = "colorL",
                                           label = "Color line",
                                           value = rgb(0, 35 / 255, 80 / 255, alpha = 0.6)),
@@ -220,7 +223,11 @@ tagList(
                                           value = rgb(0, 35 / 255, 80 / 255, alpha = 0.6)),
                               sliderInput("alphaU", "Transparency uncertainty region", min = 0, max = 1, value = 0.1)
                               ),
+                       column(2,
+                              shinyTools::plotPointsUI(id = "pointStyle", initStyle = config()[["defaultPointStyle"]])
+                              ),
                        column(4,
+                              tags$h4("Plot"),
                               checkboxInput("secAxis", "Add new secondary axis to existing plot", value = F),
                               radioButtons("deriv", "Type", choices = c("Absolute values" = "1", "First derivate" = "2")), 
                               sliderInput("modCredInt",

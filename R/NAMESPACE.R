@@ -25,6 +25,7 @@
 #' @importFrom rlang .data
 #' @importFrom rstan sampling extract
 #' @importFrom shinyjs alert
+#' @importFrom shinyTools plotPointsUI plotPointsServer formatPointsOfGGplot
 #' @importFrom shinyWidgets pickerInput updatePickerInput
 #' @importFrom stats approx dnorm lm median quantile sd
 #' @importFrom utils write.csv write.table combn

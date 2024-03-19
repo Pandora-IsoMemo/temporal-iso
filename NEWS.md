@@ -3,6 +3,11 @@
 ## Version 24.01.1
 
 ### New Features
+- option to change symbol, color, size of points in timePlot (#43)
+
+## Version 24.01.1
+
+### New Features
 - Option to use rownames of data as individual variable. This allows to use non-numeric values for 
   individuals since rownames do not need to be numeric (#35)
 

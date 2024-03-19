@@ -25,6 +25,7 @@ plotTime(
   xAxisLabel = "Time",
   yAxisLabel = "Estimate",
   extendLabels = FALSE,
+  pointStyle = config()[["defaultPointStyle"]],
   ...
 )
 }
@@ -69,6 +70,8 @@ plotTime(
 
 \item{extendLabels}{boolean if TRUE, extend the labels of the x-axis to the x-axis limits. 
 If FALSE, the range of the data defines the range of x-axis labels.}
+
+\item{pointStyle}{(list) named list with style definitions, or output of \code{plotPointsServer}}
 
 \item{...}{arguments handed to \code{\link{getShiftTime}}}
 }

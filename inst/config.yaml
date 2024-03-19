@@ -14,3 +14,13 @@ githubRepo: "osteobior"        # for import of models
 mainFolder: "predefinedModels"  # for import of models
 fileExtension: "osteobior"      # for download of models
 rPackageName: "OsteoBioR"       # for download and import of models
+# default point style
+defaultPointStyle:
+  dataPoints:
+    symbol: 19
+    color: "#002350"
+    colorBg: "#002350"
+    size: 2
+    alpha: 1
+    lineWidthBg: 2
+    hide: false

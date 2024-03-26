@@ -60,8 +60,8 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   p %>%
     drawLinesAndRibbon(x = x, colorL = colorL, colorU = colorU, alphaL = alphaL, alphaU = alphaU) %>%
     formatPointsOfGGplot(data = x, aes(x = .data[["time"]], y = .data[["median"]]), pointStyle = pointStyle) %>%
-    setLabels(prop, xAxisLabel, yAxisLabel) %>%
-    formatXAxis(xAxisData = getXAxisData(object = object),
+    setTitles(prop, xAxisLabel, yAxisLabel) %>%
+    setXAxisLabels(xAxisData = getXAxisData(object = object),
                 extendLabels = extendLabels, 
                 xLim = xLim, 
                 deriv = deriv,
@@ -130,7 +130,7 @@ drawLinesAndRibbon <- function(plot, x, colorL, colorU, alphaL, alphaU) {
   plot
 }
 
-setLabels <- function(plot, prop, xAxisLabel, yAxisLabel) {
+setTitles <- function(plot, prop, xAxisLabel, yAxisLabel) {
   stopifnot(prop < 1)
   
   plot +
@@ -138,7 +138,7 @@ setLabels <- function(plot, prop, xAxisLabel, yAxisLabel) {
          x = xAxisLabel, y = yAxisLabel)
 }
 
-formatXAxis <- function(plot, xAxisData, extendLabels, xLim, deriv, plotShifts = FALSE, ...) {
+setXAxisLabels <- function(plot, xAxisData, extendLabels, xLim, deriv, plotShifts = FALSE, ...) {
   xLabelLim <- range(xAxisData)
   if (extendLabels) xLabelLim <- xLim
   xAxisData <- xAxisData %>%

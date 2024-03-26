@@ -34,8 +34,8 @@ testthat::test_that("basePlotTime",  {
     formatPointsOfGGplot(data = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%
-    setLabels(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
-    formatXAxis(xAxisData = getXAxisData(object = testObjectDefault1),
+    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
+    setXAxisLabels(xAxisData = getXAxisData(object = testObjectDefault1),
                 extendLabels = FALSE, 
                 xLim = c(0, 8), 
                 deriv = "1",
@@ -53,8 +53,8 @@ testthat::test_that("layerPlotTime",  {
     formatPointsOfGGplot(data = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%
-    setLabels(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
-    formatXAxis(xAxisData = getXAxisData(object = testObjectDefault1),
+    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
+    setXAxisLabels(xAxisData = getXAxisData(object = testObjectDefault1),
                 extendLabels = FALSE, 
                 xLim = c(0, 8), 
                 deriv = "1",
@@ -75,8 +75,8 @@ testthat::test_that("layerPlotTime",  {
     formatPointsOfGGplot(data = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%
-    setLabels(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
-    formatXAxis(xAxisData = getXAxisData(object = testObjectGap1,
+    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
+    setXAxisLabels(xAxisData = getXAxisData(object = testObjectGap1,
                                          oldXAxisData = oldXAxisData),
                 extendLabels = FALSE, 
                 xLim = c(0, 8), 
@@ -96,8 +96,8 @@ testthat::test_that("layerPlotTime",  {
     formatPointsOfGGplot(data = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%
-    setLabels(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
-    formatXAxis(xAxisData = getXAxisData(object = testObjectGap1,
+    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
+    setXAxisLabels(xAxisData = getXAxisData(object = testObjectGap1,
                                          oldXAxisData = oldXAxisData),
                 extendLabels = FALSE, 
                 xLim = c(0, 8), 

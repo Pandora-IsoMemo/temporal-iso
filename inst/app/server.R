@@ -298,6 +298,8 @@ shinyServer(function(input, output, session) {
     # inputs in tab "Credibility intervals over time"
     updateSelectizeInput(session, "credIntTimePlot", 
                          choices = modelChoices, selected = selectedModel)
+    updateSelectizeInput(session, "plotTimeModels", 
+                         choices = modelChoices, selected = selectedModel)
     
     updateNumericInput(session, "xmin", 
                        value = getDefaultPlotRange(savedModels(), deriv = "1")$xmin)
@@ -429,6 +431,7 @@ shinyServer(function(input, output, session) {
     fit(currentModel$fit)
     
     updateSelectizeInput(session, "credIntTimePlot", selected = input$savedModels)
+    updateSelectizeInput(session, "plotTimeModels", selected = input$savedModels)
     updatePickerInput(session, "savedModelsShift", selected = input$savedModels)
     updatePickerInput(session, "savedModelsTime", selected = input$savedModels)
     updatePickerInput(session, "savedModelsUserDefined", selected = input$savedModels)

@@ -1,24 +1,14 @@
 basePlotTime <- function(x,
                          yLim = c(0,1), xLim = c(0,1),
-                         colorL = NULL, colorU = NULL, alphaL = 0.9, alphaU = 0.1,
                          sizeTextY = 12, sizeTextX = 12, sizeAxisX = 12, sizeAxisY = 12) {
   ### if condition start:
-  if (nrow(x) > 1) lineFct <- geom_line else lineFct <- geom_point
-  
   p <- ggplot(x, aes(x = .data[["time"]])) + 
-    lineFct(aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
-    lineFct(aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
-    lineFct(aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL) +
     coord_cartesian(ylim = yLim, xlim = xLim) +
     theme(panel.grid.major.x = element_line(size = 0.1)) + 
     theme(axis.title.x = element_text(size = sizeTextX),
-          axis.title.y = element_text(size = sizeTextY),
           axis.text.x = element_text(size = sizeAxisX),
+          axis.title.y = element_text(size = sizeTextY),
           axis.text.y = element_text(size = sizeAxisY))
-  
-  if (nrow(x) > 1) p <- p + geom_ribbon(aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), 
-                                        linetype = 2, alpha = alphaU, fill = colorU) 
-  
   #### if condition end
   
   p
@@ -26,7 +16,6 @@ basePlotTime <- function(x,
 
 layerPlotTime <- function(oldPlot, x,
                           yLim = c(0,1),
-                          colorL = NULL, colorU = NULL, alphaL = 0.9, alphaU = 0.1,
                           secAxis = FALSE, sizeTextY = 12, sizeAxisY = 12, yAxisLabel = "Estimate") {
   ### if condition start:
   if(secAxis){
@@ -42,12 +31,7 @@ layerPlotTime <- function(oldPlot, x,
     x$upper <- (x$upper  - center ) / scale
   }
   
-  if (nrow(x) > 1) lineFct <- geom_line else lineFct <- geom_point
-  
-  p <- oldPlot  + lineFct(data = x, aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
-    lineFct(data = x, aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
-    lineFct(data = x, aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL) +
-    geom_ribbon(data = x, aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), linetype = 2, alpha = alphaU, fill = colorU)
+  p <- oldPlot
   
   if(secAxis){
     p <- p + 
@@ -107,22 +91,14 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
 
   x <- extractPlotData(object, prop = prop, deriv = deriv)
   
-  if (nrow(x) > 1) lineFct <- geom_line else lineFct <- geom_point
-  
   if(is.null(oldPlot)){
     p <- ggplot(x, aes(x = .data[["time"]])) + 
-      lineFct(aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
-      lineFct(aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
-      lineFct(aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL) +
       coord_cartesian(ylim = yLim, xlim = xLim) +
       theme(panel.grid.major.x = element_line(size = 0.1)) + 
       theme(axis.title.x = element_text(size = sizeTextX),
-            axis.title.y = element_text(size = sizeTextY),
             axis.text.x = element_text(size = sizeAxisX),
+            axis.title.y = element_text(size = sizeTextY),
             axis.text.y = element_text(size = sizeAxisY))
-    
-    if (nrow(x) > 1) p <- p + geom_ribbon(aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), 
-                                          linetype = 2, alpha = alphaU, fill = colorU) 
   } else {
     if(secAxis){
       oldCoord <- oldPlot$coordinates$limits$y
@@ -136,10 +112,8 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
       x$lower <- (x$lower - center ) / scale
       x$upper <- (x$upper  - center ) / scale
     }
-    p <- oldPlot  + geom_line(data = x, aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
-      geom_line(data = x, aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
-      geom_line(data = x, aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL) +
-      geom_ribbon(data = x, aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), linetype = 2, alpha = alphaU, fill = colorU)
+    
+    p <- oldPlot
     
     if(secAxis){
       p <- p + 
@@ -153,6 +127,7 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   }
   
   p %>%
+    drawLinesAndRibbon(x = x, colorL = colorL, colorU = colorU, alphaL = alphaL, alphaU = alphaU) %>%
     formatPointsOfGGplot(data = x, aes(x = .data[["time"]], y = .data[["median"]]), pointStyle = pointStyle) %>%
     setLabels(prop, xAxisLabel, yAxisLabel) %>%
     formatXAxis(xAxisData = getXAxisData(object = object),
@@ -161,6 +136,23 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
                 deriv = deriv,
                 plotShifts = plotShifts,
                 ...)
+}
+
+drawLinesAndRibbon <- function(plot, x, colorL, colorU, alphaL, alphaU) {
+  if (nrow(x) > 1) lineFct <- geom_line else lineFct <- geom_point
+  
+  plot <- plot +
+    lineFct(data = x, aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
+    lineFct(data = x, aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
+    lineFct(data = x, aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL)
+  
+  if (nrow(x) > 1) {
+    plot <- plot + 
+      geom_ribbon(data = x, aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), 
+                  linetype = 2, alpha = alphaU, fill = colorU)
+  }
+  
+  plot
 }
 
 setLabels <- function(plot, prop, xAxisLabel, yAxisLabel) {

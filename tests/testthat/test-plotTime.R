@@ -28,8 +28,9 @@ testthat::test_that("plotTime",  {
 
 testthat::test_that("basePlotTime",  {
   plot <- basePlotTime(x = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
-                 yLim = c(-10,-5), xLim = c(0, 8),
-                       colorL = "#002350", colorU = "#002350") %>%
+                       yLim = c(-10,-5), xLim = c(0, 8)) %>%
+    drawLinesAndRibbon(x = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
+                       colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
     formatPointsOfGGplot(data = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%
@@ -46,8 +47,9 @@ testthat::test_that("basePlotTime",  {
 
 testthat::test_that("layerPlotTime",  {
   plot1 <- basePlotTime(x = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
-                        yLim = c(-10,-5), xLim = c(0, 8),
-                        colorL = "#002350", colorU = "#002350") %>%
+                        yLim = c(-10,-5), xLim = c(0, 8)) %>%
+    drawLinesAndRibbon(x = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
+                       colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
     formatPointsOfGGplot(data = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%
@@ -67,8 +69,9 @@ testthat::test_that("layerPlotTime",  {
   
   plot <- plot1 %>%
     layerPlotTime(x = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
-                  yLim = c(-10,-5),
-                  colorL = "#002350", colorU = "#002350") %>%
+                  yLim = c(-10,-5)) %>%
+    drawLinesAndRibbon(x = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
+                       colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
     formatPointsOfGGplot(data = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%
@@ -87,8 +90,9 @@ testthat::test_that("layerPlotTime",  {
   plot <- plot1 %>%
     layerPlotTime(x = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
                   yLim = c(-10,-5),
-                  colorL = "#002350", colorU = "#002350",
                   secAxis = TRUE, yAxisLabel = "Estimate 2",) %>%
+    drawLinesAndRibbon(x = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
+                       colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
     formatPointsOfGGplot(data = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%

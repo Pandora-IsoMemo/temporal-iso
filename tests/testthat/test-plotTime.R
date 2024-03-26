@@ -27,11 +27,12 @@ testthat::test_that("plotTime",  {
 })
 
 testthat::test_that("basePlotTime",  {
-  plot <- basePlotTime(x = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
+  plotData <- extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1")
+  plot <- basePlotTime(x = plotData,
                        yLim = c(-10,-5), xLim = c(0, 8)) %>%
-    drawLinesAndRibbon(x = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
+    drawLinesAndRibbon(x = plotData,
                        colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
-    formatPointsOfGGplot(data = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
+    formatPointsOfGGplot(data = plotData,
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%
     setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
@@ -46,11 +47,12 @@ testthat::test_that("basePlotTime",  {
 })
 
 testthat::test_that("layerPlotTime",  {
-  plot1 <- basePlotTime(x = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
+  plotData1 <- extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1")
+  plot1 <- basePlotTime(x = plotData1,
                         yLim = c(-10,-5), xLim = c(0, 8)) %>%
-    drawLinesAndRibbon(x = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
+    drawLinesAndRibbon(x = plotData1,
                        colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
-    formatPointsOfGGplot(data = extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1"),
+    formatPointsOfGGplot(data = plotData1,
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%
     setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
@@ -67,42 +69,40 @@ testthat::test_that("layerPlotTime",  {
   xAxisData1 <- getXAxisData(object = testObjectDefault1)
   oldXAxisData <- getXAxisData(object = testObjectGap1, oldXAxisData = xAxisData1)
   
+  plotData2 <- extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1")
   plot <- plot1 %>%
-    layerPlotTime(x = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
+    layerPlotTime(x = plotData2,
                   yLim = c(-10,-5)) %>%
-    drawLinesAndRibbon(x = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
-                       colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
-    formatPointsOfGGplot(data = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
+    drawLinesAndRibbon(x = plotData2,
+                       colorL = "#000000", colorU = "#000000", alphaL = 0.9, alphaU = 0.1) %>%
+    formatPointsOfGGplot(data = plotData2,
                          aes(x = .data[["time"]], y = .data[["median"]]), 
-                         pointStyle = config()[["defaultPointStyle"]]) %>%
-    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
-    setXAxisLabels(xAxisData = getXAxisData(object = testObjectGap1,
-                                         oldXAxisData = oldXAxisData),
-                extendLabels = FALSE, 
-                xLim = c(0, 8), 
-                deriv = "1",
-                plotShifts = FALSE)
+                         pointStyle = list(dataPoints = list(symbol = 1, color = "#002350", colorBg = "#002350", 
+                                                             size = 5L, alpha = 1L, lineWidthBg = 2L, hide = FALSE))) %>%
+    setXAxisLabels(xAxisData = getXAxisData(object = testObjectDefault1, oldXAxisData = oldXAxisData),
+                   extendLabels = FALSE, 
+                   xLim = c(0, 8), 
+                   deriv = "1",
+                   plotShifts = FALSE)
   
   expect_equal(plot$labels, list(x = "Time", y = "Estimate", title = "80%-Credibility-Interval for isotopic values over time", 
                                  ymin = "lower", ymax = "upper"))
   
   # add second axis
   plot <- plot1 %>%
-    layerPlotTime(x = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
+    layerPlotTime(x = plotData2,
                   yLim = c(-10,-5),
                   secAxis = TRUE, yAxisLabel = "Estimate 2",) %>%
-    drawLinesAndRibbon(x = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
-                       colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
-    formatPointsOfGGplot(data = extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1"),
+    drawLinesAndRibbon(x = plotData2,
+                       colorL = "#000000", colorU = "#000000", alphaL = 0.9, alphaU = 0.1) %>%
+    formatPointsOfGGplot(data = plotData2,
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]]) %>%
-    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
-    setXAxisLabels(xAxisData = getXAxisData(object = testObjectGap1,
-                                         oldXAxisData = oldXAxisData),
-                extendLabels = FALSE, 
-                xLim = c(0, 8), 
-                deriv = "1",
-                plotShifts = FALSE)
+    setXAxisLabels(xAxisData = getXAxisData(object = testObjectDefault1, oldXAxisData = oldXAxisData),
+                   extendLabels = FALSE, 
+                   xLim = c(0, 8), 
+                   deriv = "1",
+                   plotShifts = FALSE)
   
   expect_equal(plot$labels, list(x = "Time", y = "Estimate", title = "80%-Credibility-Interval for isotopic values over time", 
                                  ymin = "lower", ymax = "upper"))

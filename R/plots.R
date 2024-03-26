@@ -61,12 +61,12 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
     drawLinesAndRibbon(x = x, colorL = colorL, colorU = colorU, alphaL = alphaL, alphaU = alphaU) %>%
     formatPointsOfGGplot(data = x, aes(x = .data[["time"]], y = .data[["median"]]), pointStyle = pointStyle) %>%
     setTitles(prop, xAxisLabel, yAxisLabel) %>%
-    setXAxisLabels(xAxisData = getXAxisData(object = object),
-                extendLabels = extendLabels, 
-                xLim = xLim, 
-                deriv = deriv,
-                plotShifts = plotShifts,
-                ...)
+    setXAxisLabels(xAxisData = getXAxisData(object = object, oldXAxisData = oldXAxisData),
+                   extendLabels = extendLabels, 
+                   xLim = xLim, 
+                   deriv = deriv,
+                   plotShifts = plotShifts,
+                   ...)
 }
 
 basePlotTime <- function(x,

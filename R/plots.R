@@ -1,52 +1,3 @@
-basePlotTime <- function(x,
-                         yLim = c(0,1), xLim = c(0,1),
-                         sizeTextY = 12, sizeTextX = 12, sizeAxisX = 12, sizeAxisY = 12) {
-  ### if condition start:
-  p <- ggplot(x, aes(x = .data[["time"]])) + 
-    coord_cartesian(ylim = yLim, xlim = xLim) +
-    theme(panel.grid.major.x = element_line(size = 0.1)) + 
-    theme(axis.title.x = element_text(size = sizeTextX),
-          axis.text.x = element_text(size = sizeAxisX),
-          axis.title.y = element_text(size = sizeTextY),
-          axis.text.y = element_text(size = sizeAxisY))
-  #### if condition end
-  
-  p
-}
-
-layerPlotTime <- function(oldPlot, x,
-                          yLim = c(0,1),
-                          secAxis = FALSE, sizeTextY = 12, sizeAxisY = 12, yAxisLabel = "Estimate") {
-  ### if condition start:
-  if(secAxis){
-    oldCoord <- oldPlot$coordinates$limits$y
-    b <- seq(min(yLim),max(yLim), length.out = 100)
-    a <- seq(min(oldCoord),max(oldCoord), length.out = 100)
-    res <- lm(b~a)
-    
-    scale <- res$coefficients[2]
-    center <- res$coefficients[1]
-    x$median <- (x$median  - center ) / scale
-    x$lower <- (x$lower - center ) / scale
-    x$upper <- (x$upper  - center ) / scale
-  }
-  
-  p <- oldPlot
-  
-  if(secAxis){
-    p <- p + 
-      theme(axis.title.y = element_text(size = sizeTextY),
-            axis.text.y = element_text(size = sizeAxisY)) +   scale_y_continuous(
-              # Features of the first axis
-              # Add a second axis and specify its features
-              sec.axis = sec_axis(~(.* scale) + center, name=yAxisLabel)
-            )
-  }
-  
-  #### if condition end
-  p
-}
-
 #' Plot of credibility intervals for each time interval, plotted as timeseries
 #' 
 #' @description The function plots the credibility intervals for each
@@ -92,38 +43,18 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   x <- extractPlotData(object, prop = prop, deriv = deriv)
   
   if(is.null(oldPlot)){
-    p <- ggplot(x, aes(x = .data[["time"]])) + 
-      coord_cartesian(ylim = yLim, xlim = xLim) +
-      theme(panel.grid.major.x = element_line(size = 0.1)) + 
-      theme(axis.title.x = element_text(size = sizeTextX),
-            axis.text.x = element_text(size = sizeAxisX),
-            axis.title.y = element_text(size = sizeTextY),
-            axis.text.y = element_text(size = sizeAxisY))
+    p <- basePlotTime(x = x,
+                      xLim = xLim, yLim = yLim,
+                      sizeTextX = sizeTextX, sizeTextY = sizeTextY,
+                      sizeAxisX = sizeAxisX, sizeAxisY = sizeAxisY)
   } else {
-    if(secAxis){
-      oldCoord <- oldPlot$coordinates$limits$y
-      b <- seq(min(yLim),max(yLim), length.out = 100)
-      a <- seq(min(oldCoord),max(oldCoord), length.out = 100)
-      res <- lm(b~a)
-      
-      scale <- res$coefficients[2]
-      center <- res$coefficients[1]
-      x$median <- (x$median  - center ) / scale
-      x$lower <- (x$lower - center ) / scale
-      x$upper <- (x$upper  - center ) / scale
-    }
-    
-    p <- oldPlot
-    
-    if(secAxis){
-      p <- p + 
-      theme(axis.title.y = element_text(size = sizeTextY),
-            axis.text.y = element_text(size = sizeAxisY)) +   scale_y_continuous(
-             # Features of the first axis
-             # Add a second axis and specify its features
-             sec.axis = sec_axis(~(.* scale) + center, name=yAxisLabel)
-           )
-    }
+    p <- oldPlot %>%
+      layerPlotTime(x = x,
+                    secAxis = secAxis,
+                    yLim = yLim,
+                    sizeTextY = sizeTextY,
+                    sizeAxisY = sizeAxisY,
+                    yAxisLabel = yAxisLabel)
   }
   
   p %>%
@@ -136,6 +67,50 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
                 deriv = deriv,
                 plotShifts = plotShifts,
                 ...)
+}
+
+basePlotTime <- function(x,
+                         xLim = c(0,1), yLim = c(0,1), 
+                         sizeTextX = 12, sizeTextY = 12, 
+                         sizeAxisX = 12, sizeAxisY = 12) {
+  p <- ggplot(x, aes(x = .data[["time"]])) + 
+    coord_cartesian(ylim = yLim, xlim = xLim) +
+    theme(panel.grid.major.x = element_line(size = 0.1)) + 
+    theme(axis.title.x = element_text(size = sizeTextX),
+          axis.text.x = element_text(size = sizeAxisX),
+          axis.title.y = element_text(size = sizeTextY),
+          axis.text.y = element_text(size = sizeAxisY))
+  
+  p
+}
+
+layerPlotTime <- function(oldPlot, x,
+                          yLim = c(0,1),
+                          secAxis = FALSE, sizeTextY = 12, sizeAxisY = 12, yAxisLabel = "Estimate") {
+  p <- oldPlot
+  
+  if(secAxis){
+    oldCoord <- oldPlot$coordinates$limits$y
+    b <- seq(min(yLim),max(yLim), length.out = 100)
+    a <- seq(min(oldCoord),max(oldCoord), length.out = 100)
+    res <- lm(b~a)
+    
+    scale <- res$coefficients[2]
+    center <- res$coefficients[1]
+    x$median <- (x$median  - center ) / scale
+    x$lower <- (x$lower - center ) / scale
+    x$upper <- (x$upper  - center ) / scale
+    
+    p <- p + 
+      theme(axis.title.y = element_text(size = sizeTextY),
+            axis.text.y = element_text(size = sizeAxisY)) +   scale_y_continuous(
+              # Features of the first axis
+              # Add a second axis and specify its features
+              sec.axis = sec_axis(~(.* scale) + center, name=yAxisLabel)
+            )
+  }
+  
+  p
 }
 
 drawLinesAndRibbon <- function(plot, x, colorL, colorU, alphaL, alphaU) {

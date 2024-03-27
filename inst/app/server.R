@@ -310,10 +310,7 @@ shinyServer(function(input, output, session) {
     updateNumericInput(session, "ymax",
                        value = getDefaultPlotRange(savedModels(), deriv = "1")$ymax)
     
-    # to draw x axis ticks and labels at all possible points in time present in savedModls()
-    for (i in 1:length(savedModels())) {
-      allXAxisData(getXAxisData(savedModels()[[i]]$fit, oldXAxisData = allXAxisData()))
-    }
+    allXAxisData(extractAllXAxisData(models = savedModels(), allXAxisData = allXAxisData()))
     
     # other tabs
     updatePickerInput(session, "savedModelsShift", 

@@ -46,7 +46,8 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
     p <- basePlotTime(x = x,
                       xLim = xLim, yLim = yLim,
                       sizeTextX = sizeTextX, sizeTextY = sizeTextY,
-                      sizeAxisX = sizeAxisX, sizeAxisY = sizeAxisY)
+                      sizeAxisX = sizeAxisX, sizeAxisY = sizeAxisY) %>%
+      setTitles(prop, xAxisLabel, yAxisLabel)
   } else {
     p <- oldPlot %>%
       layerPlotTime(x = x,
@@ -60,7 +61,6 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   p %>%
     drawLinesAndRibbon(x = x, colorL = colorL, colorU = colorU, alphaL = alphaL, alphaU = alphaU) %>%
     formatPointsOfGGplot(data = x, aes(x = .data[["time"]], y = .data[["median"]]), pointStyle = pointStyle) %>%
-    setTitles(prop, xAxisLabel, yAxisLabel) %>%
     setXAxisLabels(xAxisData = getXAxisData(object = object, oldXAxisData = oldXAxisData),
                    extendLabels = extendLabels, 
                    xLim = xLim, 
@@ -211,6 +211,24 @@ adjustTimeColumn <- function(objectTime, deriv){
   }
   
   res
+}
+
+#' Extract All X-Axis Data
+#' 
+#' Extract all x-axis data to draw x axis ticks and labels at all possible points in time present 
+#'  in models
+#' 
+#' @param models (list) list of models
+#' @param allXAxisData (data.frame) empty data.frame, or a data.frame containing xAxisData, output
+#'  of \code{getXAxisData}
+#' 
+#' @export
+extractAllXAxisData <- function(models, allXAxisData = data.frame()) {
+  for (i in 1:length(models)) {
+    allXAxisData <- getXAxisData(models[[i]]$fit, oldXAxisData = allXAxisData)
+  }
+  
+  allXAxisData
 }
 
 #' Get X-Axis Data

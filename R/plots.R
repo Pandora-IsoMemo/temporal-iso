@@ -130,7 +130,7 @@ drawLinesAndRibbon <- function(plot, x, colorL, colorU, alphaL, alphaU) {
   plot
 }
 
-setTitles <- function(plot, prop, xAxisLabel, yAxisLabel) {
+setTitles <- function(plot, prop, xAxisLabel = "Time", yAxisLabel = "Estimate") {
   stopifnot(prop < 1)
   
   plot +

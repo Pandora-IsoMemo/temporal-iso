@@ -194,7 +194,6 @@ tagList(
                                              choices = NULL,
                                              multiple = TRUE),
                               #selectizeInput("formatTimePlot", "Format Model / Individual", choices = NULL),
-                              checkboxInput("secAxis", "Add new secondary axis to existing plot", value = F),
                               radioButtons("deriv", "Type", choices = c("Absolute values" = "1", "First derivate" = "2")), 
                               sliderInput("modCredInt",
                                           "Credibility interval:",
@@ -202,9 +201,15 @@ tagList(
                                           max = .99,
                                           value = .8,
                                           step = .05),
+                              checkboxInput("secAxis", "Add new secondary axis to existing plot", value = F),
                               tags$br(),
                               tags$br(),
                               actionButton("exportCredIntTimePlot", "Export Plot")
+                       ),
+                       column(2,
+                              plotTitlesUI(id = "plotLabels",
+                                           type = "ggplot",
+                                           initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]]))
                        ),
                        column(2,
                               tags$h4("Lines"),
@@ -222,16 +227,6 @@ tagList(
                        column(2,
                               shinyTools::plotPointsUI(id = "pointStyle", initStyle = config()[["defaultPointStyle"]])
                        ),
-                       column(2,
-                              tags$h4("Plot Labels"),
-                              # use/extend module from shinyTools
-                              textInput("xAxisLabel", label = "X-Axis title", value = "Time"),
-                              numericInput(inputId = "sizeTextX", label = "Font size x-axis title", value = 24),
-                              numericInput(inputId = "sizeAxisX", label = "Font size x-axis", value = 18),
-                              textInput("yAxisLabel", label = "Y-Axis title", value = "Estimate"),
-                              numericInput(inputId = "sizeTextY", label = "Font size y-axis title", value = 24),
-                              numericInput(inputId = "sizeAxisY", label = "Font size y-axis", value = 18)
-                              ),
                        column(2,
                               tags$h4("Axes Ranges"),
                               # use module from shinyTools instead

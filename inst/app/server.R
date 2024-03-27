@@ -579,6 +579,15 @@ shinyServer(function(input, output, session) {
   savedPlot <- reactiveVal(list())
   #savedXAxisData <- reactiveVal(data.frame())
   
+  activePlotTexts <- shinyTools::plotTitlesServer(
+    "plotLabels",
+    type = "ggplot", 
+    initText = list(plotTitle  = config()[["defaultIntervalTimePlotTitle"]],
+                    xAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
+                    yAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
+                    xAxisText  = config()[["defaultIntervalTimePlotText"]],
+                    yAxisText  = config()[["defaultIntervalTimePlotText"]])
+    )
   pointStyle <- shinyTools::plotPointsServer("pointStyle", type = "ggplot", initStyle = config()[["defaultPointStyle"]])
   
   observe({
@@ -591,8 +600,8 @@ shinyServer(function(input, output, session) {
     p <- basePlotTime(x = basePlotData,
                       xLim = c(input$xmin, input$xmax),
                       yLim = c(input$ymin, input$ymax)) %>%
-      setTitles(prop = input$modCredInt,
-                xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel) %>%
+      setTitles(prop = input$modCredInt) %>%
+      formatTitlesOfGGplot(text = activePlotTexts) %>%
       setXAxisLabels(xAxisData = allXAxisData(),
                      extendLabels = input$extendLabels, 
                      xLim = c(input$xmin, input$xmax), 
@@ -632,11 +641,10 @@ shinyServer(function(input, output, session) {
                   xLim = c(input$xmin, input$xmax), deriv = input$deriv,
                   oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
                   colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
-                  xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
-                  sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
-                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY,
                   extendLabels = input$extendLabels,
-                  pointStyle = pointStyle)
+                  pointStyle = pointStyle) %>%
+      setTitles(prop = input$modCredInt) %>%
+      formatTitlesOfGGplot(text = activePlotTexts)
     intervalTimePlot(p)
     savedPlot(p)
     #savedXAxisData(getXAxisData(fitForTimePlot()))

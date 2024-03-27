@@ -5,13 +5,15 @@ testthat::test_that("plotTime",  {
   plot1 <- plotTime(object = testObjectDefault1, prop = 0.8, yLim = c(-10,-5), xLim = c(0, 8),
                     colorL = "#002350", colorU = "#002350")
   
-  expect_equal(plot1$labels, list(x = "Time", y = "Estimate", title = "80%-Credibility-Interval for isotopic values over time", 
+  expect_equal(plot1$labels, list(x = "Time", y = "Estimate", 
+                                  title = "80%-Credibility-Interval for isotopic values over time", 
                                   ymin = "lower", ymax = "upper"))
   
   plot2 <- plotTime(object = testObjectGap1, prop = 0.8, yLim = c(-10,-5), xLim = c(0, 4),
                     colorL = "#002350", colorU = "#002350")
   
-  expect_equal(plot2$labels, list(x = "Time", y = "Estimate", title = "80%-Credibility-Interval for isotopic values over time", 
+  expect_equal(plot2$labels, list(x = "Time", y = "Estimate", 
+                                  title = "80%-Credibility-Interval for isotopic values over time", 
                                   ymin = "lower", ymax = "upper"))
   
   
@@ -22,7 +24,8 @@ testthat::test_that("plotTime",  {
                    oldPlot = plot1, oldXAxisData = oldXAxisData,
                    colorL = "#002350", colorU = "#002350")
   
-  expect_equal(plot$labels, list(x = "Time", y = "Estimate", title = "80%-Credibility-Interval for isotopic values over time", 
+  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
+                                 title = "80%-Credibility-Interval for isotopic values over time", 
                                  ymin = "lower", ymax = "upper"))
 })
 
@@ -42,8 +45,9 @@ testthat::test_that("basePlotTime",  {
                 deriv = "1",
                 plotShifts = FALSE)
   
-  expect_equal(plot1$labels, list(x = "Time", y = "Estimate", title = "80%-Credibility-Interval for isotopic values over time", 
-                                  ymin = "lower", ymax = "upper"))
+  expect_equal(plot$labels, list(x = "Time", y = "Estimate",
+                                 title = "80%-Credibility-Interval for isotopic values over time", 
+                                 ymin = "lower", ymax = "upper"))
 })
 
 testthat::test_that("layerPlotTime",  {
@@ -69,7 +73,8 @@ testthat::test_that("layerPlotTime",  {
                    deriv = "1",
                    plotShifts = FALSE)
   
-  expect_equal(plot1$labels, list(x = "Time", y = "Estimate", title = "80%-Credibility-Interval for isotopic values over time", 
+  expect_equal(plot1$labels, list(x = "Time", y = "Estimate", 
+                                  title = "80%-Credibility-Interval for isotopic values over time", 
                                   ymin = "lower", ymax = "upper"))
   
   # add another plot
@@ -81,10 +86,13 @@ testthat::test_that("layerPlotTime",  {
                        colorL = "#000000", colorU = "#000000", alphaL = 0.9, alphaU = 0.1) %>%
     formatPointsOfGGplot(data = plotData2,
                          aes(x = .data[["time"]], y = .data[["median"]]), 
-                         pointStyle = list(dataPoints = list(symbol = 1, color = "#002350", colorBg = "#002350", 
-                                                             size = 5L, alpha = 1L, lineWidthBg = 2L, hide = FALSE)))
+                         pointStyle = list(dataPoints = list(symbol = 1, color = "#002350", 
+                                                             colorBg = "#002350",  size = 5L,
+                                                             alpha = 1L, lineWidthBg = 2L, 
+                                                             hide = FALSE)))
   
-  expect_equal(plot$labels, list(x = "Time", y = "Estimate", title = "80%-Credibility-Interval for isotopic values over time", 
+  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
+                                 title = "80%-Credibility-Interval for isotopic values over time", 
                                  ymin = "lower", ymax = "upper"))
   
   # add second axis
@@ -98,6 +106,7 @@ testthat::test_that("layerPlotTime",  {
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]])
   
-  expect_equal(plot$labels, list(x = "Time", y = "Estimate", title = "80%-Credibility-Interval for isotopic values over time", 
+  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
+                                 title = "80%-Credibility-Interval for isotopic values over time", 
                                  ymin = "lower", ymax = "upper"))
 })

@@ -74,7 +74,7 @@ basePlotTime <- function(x,
                          sizeTextX = 12, sizeTextY = 12, 
                          sizeAxisX = 12, sizeAxisY = 12) {
   p <- ggplot(x, aes(x = .data[["time"]])) + 
-    theme(panel.grid.major.x = element_line(size = 0.1)) + 
+    theme(panel.grid.major.x = element_line(linewidth = 0.1)) + 
     theme(axis.title.x = element_text(size = sizeTextX),
           axis.text.x = element_text(size = sizeAxisX),
           axis.title.y = element_text(size = sizeTextY),
@@ -118,12 +118,17 @@ layerPlotTime <- function(oldPlot, x,
 }
 
 drawLinesAndRibbon <- function(plot, x, colorL, colorU, alphaL, alphaU) {
-  if (nrow(x) > 1) lineFct <- geom_line else lineFct <- geom_point
-  
-  plot <- plot +
-    lineFct(data = x, aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
-    lineFct(data = x, aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
-    lineFct(data = x, aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL)
+  if (nrow(x) > 1) {
+    plot <- plot +
+      geom_line(data = x, aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
+      geom_line(data = x, aes(y = .data[["lower"]]), linewidth = 0.05, colour = colorL, alpha = alphaL) +
+      geom_line(data = x, aes(y = .data[["upper"]]), linewidth = 0.05, colour = colorL, alpha = alphaL)
+  } else {
+    plot <- plot +
+      geom_point(data = x, aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
+      geom_point(data = x, aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
+      geom_point(data = x, aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL)
+  }
   
   if (nrow(x) > 1) {
     plot <- plot + 

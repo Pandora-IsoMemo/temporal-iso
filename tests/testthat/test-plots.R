@@ -218,7 +218,7 @@ testthat::test_that("extendXAxis", {
   testthat::expect_equal(labels, c("[-1-0]", "[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]", "[6-8]"))
 })
 
-testthat::test_that("extendXAxis", {
+testthat::test_that("getLim", {
   testRanges <- list(xAxis = list(min = 0L, max = 1L, fromData = TRUE), 
                      yAxis = list(min = 0L, max = 1L, fromData = FALSE))
   

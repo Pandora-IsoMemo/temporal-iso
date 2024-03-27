@@ -299,14 +299,6 @@ shinyServer(function(input, output, session) {
     updateSelectizeInput(session, "plotTimeModels", 
                          choices = modelChoices, selected = selectedModel)
     updateSelectizeInput(session, "formatTimePlot", choices = modelChoices)
-    updateNumericInput(session, "xmin", 
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$xmin)
-    updateNumericInput(session, "xmax", 
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$xmax)
-    updateNumericInput(session, "ymin",
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$ymin)
-    updateNumericInput(session, "ymax",
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$ymax)
     
     allXAxisData(extractAllXAxisData(models = savedModels(), allXAxisData = allXAxisData()))
     
@@ -542,33 +534,6 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  observeEvent(input$deriv,{
-    req(input$savedModels, input$deriv)
-    req((savedModels()[[input$savedModels]])$fit)
-    
-    updateNumericInput(session, "xmin", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$xmin)
-    updateNumericInput(session, "xmax", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$xmax)
-    updateNumericInput(session, "ymin", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$ymin)
-    updateNumericInput(session, "ymax", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$ymax)
-  })
-  
-  # observeEvent(input$ymin,
-  #              {
-  #   ymin <- input$ymin
-  #   if(!exists("ymax") || ymax == c()){
-  #     ymax <- input$ymax
-  #   } 
-  #   yLim <- c(ymin, ymax)
-  # })
-  # observeEvent(input$ymax,
-  #              {
-  #                if(!exists("ymin") || ymin == c()){
-  #                  ymin <- input$ymin
-  #                } 
-  #                ymax <- input$ymax
-  #                yLim <- c(ymin, ymax)
-  #              })
-  
   output$plot <- renderPlot({ 
     req(fit())
     #OsteoBioR::plot(fit(), prop = input$modCredInt) 
@@ -579,7 +544,7 @@ shinyServer(function(input, output, session) {
   savedPlot <- reactiveVal(list())
   #savedXAxisData <- reactiveVal(data.frame())
   
-  activePlotTexts <- shinyTools::plotTitlesServer(
+  plotTexts <- shinyTools::plotTitlesServer(
     "plotLabels",
     type = "ggplot", 
     initText = list(plotTitle  = config()[["defaultIntervalTimePlotTitle"]],
@@ -588,6 +553,12 @@ shinyServer(function(input, output, session) {
                     xAxisText  = config()[["defaultIntervalTimePlotText"]],
                     yAxisText  = config()[["defaultIntervalTimePlotText"]])
     )
+  plotRanges <- shinyTools::plotRangesServer(
+    "plotRanges",
+    type = "ggplot",
+    initRanges = list(xAxis = config()[["plotRange"]],
+                      yAxis = config()[["plotRange"]])
+  )
   pointStyle <- shinyTools::plotPointsServer("pointStyle", type = "ggplot", initStyle = config()[["defaultPointStyle"]])
   
   observe({
@@ -597,22 +568,21 @@ shinyServer(function(input, output, session) {
     
     # draw basePlot (first element of input[["plotTimeModels"]])
     basePlotData <- extractPlotData(object = fits[[1]], prop = input$modCredInt, deriv = input$deriv)
-    p <- basePlotTime(x = basePlotData,
-                      xLim = c(input$xmin, input$xmax),
-                      yLim = c(input$ymin, input$ymax)) %>%
+    p <- basePlotTime(x = basePlotData) %>%
       setTitles(prop = input$modCredInt) %>%
-      formatTitlesOfGGplot(text = activePlotTexts) %>%
+      shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
+      shinyTools::formatRangesOfGGplot(ranges = plotRanges) %>%
       setXAxisLabels(xAxisData = allXAxisData(),
                      extendLabels = input$extendLabels, 
-                     xLim = c(input$xmin, input$xmax), 
+                     xLim = getLim(plotRanges, axis = "xAxis"), 
                      deriv = input$deriv,
                      plotShifts = FALSE) %>%
       drawLinesAndRibbon(x = basePlotData,
                          colorL = input$colorL, colorU = input$colorU,
                          alphaL = input$alphaL, alphaU = input$alphaU) %>%
-      formatPointsOfGGplot(data = basePlotData,
-                           aes(x = .data[["time"]], y = .data[["median"]]), 
-                           pointStyle = pointStyle)
+      shinyTools::formatPointsOfGGplot(data = basePlotData,
+                                       aes(x = .data[["time"]], y = .data[["median"]]), 
+                                       pointStyle = pointStyle)
     
     # loop over multiple elements of input[["plotTimeModels"]]
     if (length(fits) > 1) {
@@ -620,12 +590,12 @@ shinyServer(function(input, output, session) {
         layerPlotData <- extractPlotData(object = fits[[i]], prop = input$modCredInt, deriv = input$deriv)
         p <- p %>%
           layerPlotTime(x = layerPlotData,
-                        yLim = c(input$ymin, input$ymax)) %>%
+                        yLim = getLim(plotRanges, axis = "yAxis")) %>%
           drawLinesAndRibbon(x = layerPlotData,
                              colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU = input$alphaU) %>%
-          formatPointsOfGGplot(data = layerPlotData,
-                               aes(x = .data[["time"]], y = .data[["median"]]), 
-                               pointStyle = pointStyle)
+          shinyTools::formatPointsOfGGplot(data = layerPlotData,
+                                           aes(x = .data[["time"]], y = .data[["median"]]), 
+                                           pointStyle = pointStyle)
       }
     }
     
@@ -637,14 +607,17 @@ shinyServer(function(input, output, session) {
     # not as default plot, when fit() is ready, xLim & yLim are not
     req(fit(), intervalTimePlot())
 
-    p <- plotTime(fit(), prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
-                  xLim = c(input$xmin, input$xmax), deriv = input$deriv,
+    p <- plotTime(fit(), prop = input$modCredInt, 
+                  xLim = getLim(plotRanges, axis = "xAxis"), 
+                  yLim = getLim(plotRanges, axis = "yAxis"),
+                  deriv = input$deriv,
                   oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
-                  colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
+                  colorL = input$colorL, colorU = input$colorU,
+                  alphaL = input$alphaL, alphaU =  input$alphaU,
                   extendLabels = input$extendLabels,
                   pointStyle = pointStyle) %>%
       setTitles(prop = input$modCredInt) %>%
-      formatTitlesOfGGplot(text = activePlotTexts)
+      shinyTools::formatTitlesOfGGplot(text = plotTexts)
     intervalTimePlot(p)
     savedPlot(p)
     #savedXAxisData(getXAxisData(fitForTimePlot()))

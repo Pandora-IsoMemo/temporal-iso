@@ -70,23 +70,26 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
 }
 
 basePlotTime <- function(x,
-                         xLim = c(0,1), yLim = c(0,1), 
+                         xLim = NULL, yLim = NULL, 
                          sizeTextX = 12, sizeTextY = 12, 
                          sizeAxisX = 12, sizeAxisY = 12) {
   p <- ggplot(x, aes(x = .data[["time"]])) + 
-    coord_cartesian(ylim = yLim, xlim = xLim) +
     theme(panel.grid.major.x = element_line(size = 0.1)) + 
     theme(axis.title.x = element_text(size = sizeTextX),
           axis.text.x = element_text(size = sizeAxisX),
           axis.title.y = element_text(size = sizeTextY),
           axis.text.y = element_text(size = sizeAxisY))
   
+  if (!is.null(xLim) && !is.null(yLim)) {
+    p <- p + coord_cartesian(ylim = yLim, xlim = xLim)
+  }
+  
   p
 }
 
 layerPlotTime <- function(oldPlot, x,
-                          yLim = c(0,1),
-                          secAxis = FALSE, sizeTextY = 12, sizeAxisY = 12, yAxisLabel = "Estimate") {
+                          secAxis = FALSE, yLim = c(0,1),
+                          sizeTextY = 12, sizeAxisY = 12, yAxisLabel = "Estimate") {
   p <- oldPlot
   
   if(secAxis){
@@ -103,10 +106,11 @@ layerPlotTime <- function(oldPlot, x,
     
     p <- p + 
       theme(axis.title.y = element_text(size = sizeTextY),
-            axis.text.y = element_text(size = sizeAxisY)) +   scale_y_continuous(
+            axis.text.y = element_text(size = sizeAxisY)) +
+      scale_y_continuous(
               # Features of the first axis
               # Add a second axis and specify its features
-              sec.axis = sec_axis(~(.* scale) + center, name=yAxisLabel)
+              sec.axis = sec_axis(~(.* scale) + center, name = yAxisLabel)
             )
   }
   
@@ -139,16 +143,21 @@ setTitles <- function(plot, prop, xAxisLabel = "Time", yAxisLabel = "Estimate") 
 }
 
 setXAxisLabels <- function(plot, xAxisData, extendLabels, xLim, deriv, plotShifts = FALSE, ...) {
-  xLabelLim <- range(xAxisData)
-  if (extendLabels) xLabelLim <- xLim
-  xAxisData <- xAxisData %>%
-    extendXAxis(xLabelLim = xLabelLim)
+  xPlotLim <- xLabelLim <- range(xAxisData)
+  
+  if (length(xLim) == 2) xPlotLim <- xLim
+  
+  if (extendLabels && length(xLim) == 2) {
+    xLabelLim <- xLim
+    xAxisData <- xAxisData %>%
+      extendXAxis(xLabelLim = xLabelLim)
+  }
   
   breaks <- getBreaks(time = xAxisData$time, deriv = deriv)
   labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
   
   plot <- plot + 
-    scale_x_continuous(breaks = breaks, labels = labels) 
+    scale_x_continuous(breaks = breaks, labels = labels, limits = xPlotLim) 
   
   if (plotShifts){
     index <- getShiftIndex(object, ...)
@@ -156,6 +165,14 @@ setXAxisLabels <- function(plot, xAxisData, extendLabels, xLim, deriv, plotShift
   }
   
   plot
+}
+
+getLim <- function(plotRanges, axis = c("xAxis", "yAxis")) {
+  axis <- match.arg(axis)
+  
+  if (plotRanges[[axis]][["fromData"]]) return(numeric(0))
+  
+  c(plotRanges[[axis]][["min"]], plotRanges[[axis]][["max"]])
 }
 
 #' Extract Plot Data

@@ -39,3 +39,9 @@ defaultPointStyle:
     alpha: 1
     lineWidthBg: 2
     hide: false
+
+# default range of axis
+plotRange:
+  min: 0
+  max: 1
+  fromData: true

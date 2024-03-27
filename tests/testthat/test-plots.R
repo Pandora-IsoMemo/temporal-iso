@@ -217,3 +217,11 @@ testthat::test_that("extendXAxis", {
   testthat::expect_equal(breaks, c(-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 7))
   testthat::expect_equal(labels, c("[-1-0]", "[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]", "[6-8]"))
 })
+
+testthat::test_that("extendXAxis", {
+  testRanges <- list(xAxis = list(min = 0L, max = 1L, fromData = TRUE), 
+                     yAxis = list(min = 0L, max = 1L, fromData = FALSE))
+  
+  expect_equal(getLim(testRanges, axis = "xAxis"), numeric(0))
+  expect_equal(getLim(testRanges, axis = "yAxis"), 0:1)
+})

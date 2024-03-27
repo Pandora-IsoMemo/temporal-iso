@@ -207,9 +207,19 @@ tagList(
                               actionButton("exportCredIntTimePlot", "Export Plot")
                        ),
                        column(2,
-                              plotTitlesUI(id = "plotLabels",
+                              shinyTools::plotTitlesUI(id = "plotLabels",
                                            type = "ggplot",
                                            initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]]))
+                       ),
+                       column(2,
+                              shinyTools::plotRangesUI(
+                                id = "plotRanges", 
+                                initRanges = list(xAxis = config()[["plotRange"]],
+                                                  yAxis = config()[["plotRange"]])
+                              ),
+                              checkboxInput(inputId = "extendLabels",
+                                            label = "Extend x-axis labels to lower and upper limits",
+                                            value = FALSE)
                        ),
                        column(2,
                               tags$h4("Lines"),
@@ -226,22 +236,7 @@ tagList(
                        ),
                        column(2,
                               shinyTools::plotPointsUI(id = "pointStyle", initStyle = config()[["defaultPointStyle"]])
-                       ),
-                       column(2,
-                              tags$h4("Axes Ranges"),
-                              # use module from shinyTools instead
-                              numericInput("xmin", "Lower x limit", 
-                                           value = defaultInputsForUI()$xmin),
-                              numericInput("xmax", "Upper x limit", 
-                                           value = defaultInputsForUI()$xmax),
-                              numericInput("ymin", "Lower y limit",
-                                           value = defaultInputsForUI()$ymin),
-                              numericInput("ymax", "Upper y limit",
-                                           value = defaultInputsForUI()$ymax),
-                              checkboxInput(inputId = "extendLabels",
-                                            label = "Extend x-axis labels to lower and upper limits",
-                                            value = FALSE)
-                              )
+                       )
                      )
                    ),
                    tabPanel(

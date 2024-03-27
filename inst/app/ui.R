@@ -193,7 +193,7 @@ tagList(
                               selectizeInput("plotTimeModels", "Display Models / Individuals", 
                                              choices = NULL,
                                              multiple = TRUE),
-                              
+                              #selectizeInput("formatTimePlot", "Format Model / Individual", choices = NULL),
                               checkboxInput("secAxis", "Add new secondary axis to existing plot", value = F),
                               radioButtons("deriv", "Type", choices = c("Absolute values" = "1", "First derivate" = "2")), 
                               sliderInput("modCredInt",
@@ -202,11 +202,8 @@ tagList(
                                           max = .99,
                                           value = .8,
                                           step = .05),
-                              selectizeInput("credIntTimePlot", "Format Model / Individual", choices = NULL),
                               tags$br(),
                               tags$br(),
-                              actionButton("newPlot", "New Plot"),
-                              actionButton("addPlot", "Add Plot"),
                               actionButton("exportCredIntTimePlot", "Export Plot")
                        ),
                        column(2,

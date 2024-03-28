@@ -27,10 +27,12 @@ testthat::test_that("plotTime",  {
   expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
                                  title = "80%-Credibility-Interval for isotopic values over time", 
                                  ymin = "lower", ymax = "upper"))
+  expect_equal(plot$coordinates$limits, list(x = c(0, 8), y = c(-10, -5)))
 })
 
 testthat::test_that("basePlotTime",  {
   plotData <- extractPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1")
+  # specify x, y limits
   plot <- basePlotTime(x = plotData,
                        yLim = c(-10,-5), xLim = c(0, 8)) %>%
     drawLinesAndRibbon(x = plotData,
@@ -48,9 +50,31 @@ testthat::test_that("basePlotTime",  {
   expect_equal(plot$labels, list(x = "Time", y = "Estimate",
                                  title = "80%-Credibility-Interval for isotopic values over time", 
                                  ymin = "lower", ymax = "upper"))
+  expect_equal(plot$coordinates$limits, list(x = c(0, 8), y = c(-10, -5)))
+  
+  # default x, y limits
+  plot <- basePlotTime(x = plotData) %>%
+    drawLinesAndRibbon(x = plotData,
+                       colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
+    formatPointsOfGGplot(data = plotData,
+                         aes(x = .data[["time"]], y = .data[["median"]]), 
+                         pointStyle = config()[["defaultPointStyle"]]) %>%
+    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
+    setXAxisLabels(xAxisData = getXAxisData(object = testObjectDefault1),
+                   extendLabels = FALSE, 
+                   xLim = c(0, 8), 
+                   deriv = "1",
+                   plotShifts = FALSE)
+  
+  expect_equal(plot$labels, list(x = "Time", y = "Estimate",
+                                 title = "80%-Credibility-Interval for isotopic values over time", 
+                                 ymin = "lower", ymax = "upper"))
+  expect_equal(plot$coordinates$limits, 
+               list(x = c(xmin = 0.5, xmax = 5.5), 
+                    y = c(ymin = -12.7512327337153, ymax = -4.60003088235379)))
 })
 
-testthat::test_that("layerPlotTime",  {
+testthat::test_that("setSecondYAxis",  {
   allModels <- list(
     list(fit = testObjectDefault1),
     list(fit = testObjectGap1),
@@ -76,12 +100,13 @@ testthat::test_that("layerPlotTime",  {
   expect_equal(plot1$labels, list(x = "Time", y = "Estimate", 
                                   title = "80%-Credibility-Interval for isotopic values over time", 
                                   ymin = "lower", ymax = "upper"))
+  expect_equal(plot1$coordinates$limits, list(x = c(0, 8), y = c(-10, -5)))
   
   # add another plot
   plotData2 <- extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1")
   plot <- plot1 %>%
-    layerPlotTime(x = plotData2,
-                  yLim = c(-10,-5)) %>%
+    setSecondYAxis(x = plotData2) %>%
+    setPlotLimits(newData = plotData2) %>%
     drawLinesAndRibbon(x = plotData2,
                        colorL = "#000000", colorU = "#000000", alphaL = 0.9, alphaU = 0.1) %>%
     formatPointsOfGGplot(data = plotData2,
@@ -94,19 +119,32 @@ testthat::test_that("layerPlotTime",  {
   expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
                                  title = "80%-Credibility-Interval for isotopic values over time", 
                                  ymin = "lower", ymax = "upper"))
+  expect_equal(plot$coordinates$limits, 
+               list(x = c(xmin = 0.5, xmax = 5.5), 
+                    y = c(ymin = -12.7512327337153, ymax = -4.60003088235379)))
   
   # add second axis
+  ## use always data-based new y limits! We now only set global limits not(!) per model
+  rescaling <- getRescaleParams(oldLimits = plot1$coordinates$limits$y,
+                                newLimits = getYRange(plotData2) %>% unlist())
+  plotData2Re <- plotData2 %>%
+    rescaleLayerData(rescaling = rescaling, 
+                     secAxis = TRUE)
   plot <- plot1 %>%
-    layerPlotTime(x = plotData2,
-                  yLim = c(-10,-5),
-                  secAxis = TRUE, yAxisLabel = "Estimate 2",) %>%
-    drawLinesAndRibbon(x = plotData2,
+    setSecondYAxis(secAxis = TRUE, 
+                   rescaling = rescaling,
+                   yAxisLabel = "Estimate 2") %>%
+    setPlotLimits(newData = plotData2Re) %>%
+    drawLinesAndRibbon(x = plotData2Re,
                        colorL = "#000000", colorU = "#000000", alphaL = 0.9, alphaU = 0.1) %>%
-    formatPointsOfGGplot(data = plotData2,
+    formatPointsOfGGplot(data = plotData2Re,
                          aes(x = .data[["time"]], y = .data[["median"]]), 
                          pointStyle = config()[["defaultPointStyle"]])
   
   expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
                                  title = "80%-Credibility-Interval for isotopic values over time", 
                                  ymin = "lower", ymax = "upper"))
+  expect_equal(plot$coordinates$limits, 
+               list(x = c(xmin = 0.5, xmax = 5.5), 
+                    y = c(ymin = -12.7512327337153, ymax = -4.60003088235379)))
 })

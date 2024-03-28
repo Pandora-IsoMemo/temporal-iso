@@ -285,11 +285,20 @@ shinyServer(function(input, output, session) {
   output$fittingTimeTxt <- renderUI(HTML(modelFittingTimeTxt()))
   
   allXAxisData <- reactiveVal(data.frame())
+  pointStyleList <- reactiveValues()
+  lineStyleList <- reactiveValues()
   
   observeEvent(savedModels(), {
     req(length(savedModels()) > 0)
     
     modelChoices <- names(savedModels())
+    
+    # setup lists with default values for style specs
+    for (i in modelChoices) {
+      if (is.null(pointStyleList[[i]])) pointStyleList[[i]] <- config()[["defaultPointStyle"]]
+      if (is.null(lineStyleList[[i]])) lineStyleList[[i]] <- config()[["defaultLineStyle"]]
+    }
+    
     selectedModel <- names(savedModels())[length(savedModels())]
     updateSelectInput(session, "savedModels", choices = modelChoices, selected = selectedModel)
     
@@ -540,6 +549,8 @@ shinyServer(function(input, output, session) {
     plot(fit(), prop = input$modCredInt) 
     })
     
+  # create plotTime ----
+  
   fitForTimePlot <- reactiveVal()
   savedPlot <- reactiveVal(list())
   #savedXAxisData <- reactiveVal(data.frame())
@@ -562,40 +573,78 @@ shinyServer(function(input, output, session) {
   pointStyle <- shinyTools::plotPointsServer("pointStyle", type = "ggplot", initStyle = config()[["defaultPointStyle"]])
   
   observe({
+    req(input[["formatTimePlot"]])
+    # observe point style
+    pointStyleList[[input[["formatTimePlot"]]]] <- pointStyle
+    # observe line style
+    lineStyleList[[input[["formatTimePlot"]]]][["colorL"]] <- input[["colorL"]]
+    lineStyleList[[input[["formatTimePlot"]]]][["colorU"]] <- input[["colorU"]]
+    lineStyleList[[input[["formatTimePlot"]]]][["alphaL"]] <- input[["alphaL"]]
+    lineStyleList[[input[["formatTimePlot"]]]][["alphaU"]] <- input[["alphaU"]]
+    lineStyleList[[input[["formatTimePlot"]]]][["secAxis"]] <- input[["secAxis"]]
+  }) %>%
+    bindEvent(input[["applyFormatToTimePlot"]])
+  
+  observe({
     req(savedModels(), input[["plotTimeModels"]])
-    fits <- getEntry(savedModels()[input[["plotTimeModels"]]], "fit")
-    req(length(fits) > 0)
-    
+    selectedFits <- getEntry(savedModels()[input[["plotTimeModels"]]], "fit")
+    req(length(selectedFits) > 0)
+     
     # draw basePlot (first element of input[["plotTimeModels"]])
-    basePlotData <- extractPlotData(object = fits[[1]], prop = input$modCredInt, deriv = input$deriv)
+    firstModel <- names(selectedFits)[1]
+    # extract plot data from model object
+    basePlotData <- extractPlotData(object = selectedFits[[firstModel]], 
+                                    prop = input$modCredInt, 
+                                    deriv = input$deriv)
+    
     p <- basePlotTime(x = basePlotData) %>%
       setTitles(prop = input$modCredInt) %>%
       shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
       shinyTools::formatRangesOfGGplot(ranges = plotRanges) %>%
       setXAxisLabels(xAxisData = allXAxisData(),
                      extendLabels = input$extendLabels, 
-                     xLim = getLim(plotRanges, axis = "xAxis"), 
+                     xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
                      deriv = input$deriv,
                      plotShifts = FALSE) %>%
       drawLinesAndRibbon(x = basePlotData,
-                         colorL = input$colorL, colorU = input$colorU,
-                         alphaL = input$alphaL, alphaU = input$alphaU) %>%
+                         colorL = lineStyleList[[firstModel]]$colorL,
+                         colorU = lineStyleList[[firstModel]]$colorU,
+                         alphaL = lineStyleList[[firstModel]]$alphaL, 
+                         alphaU = lineStyleList[[firstModel]]$alphaU) %>%
       shinyTools::formatPointsOfGGplot(data = basePlotData,
                                        aes(x = .data[["time"]], y = .data[["median"]]), 
-                                       pointStyle = pointStyle)
+                                       pointStyle = pointStyleList[[firstModel]])
     
     # loop over multiple elements of input[["plotTimeModels"]]
-    if (length(fits) > 1) {
-      for (i in 2:length(fits)) {
-        layerPlotData <- extractPlotData(object = fits[[i]], prop = input$modCredInt, deriv = input$deriv)
+    if (length(selectedFits) > 1) {
+      for (i in names(selectedFits)[2:length(selectedFits)]) {
+        # extract plot data from model object
+        layerPlotData <- extractPlotData(object = selectedFits[[i]], 
+                                         prop = input$modCredInt, 
+                                         deriv = input$deriv)
+        # rescale data if secAxis == TRUE
+        ## use always data based newYLimits, we only set global limits not(!) per model
+        rescaling <- getRescaleParams(oldLimits = p$coordinates$limits$y,
+                                      newLimits = getYRange(layerPlotData) %>% unlist())
+        layerPlotData <- layerPlotData %>%
+          rescaleLayerData(rescaling = rescaling,
+                           secAxis = lineStyleList[[i]]$secAxis)
+        
         p <- p %>%
-          layerPlotTime(x = layerPlotData,
-                        yLim = getLim(plotRanges, axis = "yAxis")) %>%
+          setSecondYAxis(secAxis = lineStyleList[[i]]$secAxis,
+                         rescaling = rescaling,
+                         sizeTextY = plotTexts[["yAxisTitle"]][["size"]], 
+                         sizeAxisY = plotTexts[["yAxisText"]][["size"]],
+                         yAxisLabel = "Estimate") %>%
+          setPlotLimits(newData = layerPlotData) %>%
           drawLinesAndRibbon(x = layerPlotData,
-                             colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU = input$alphaU) %>%
+                             colorL = lineStyleList[[i]]$colorL,
+                             colorU = lineStyleList[[i]]$colorU,
+                             alphaL = lineStyleList[[i]]$alphaL,
+                             alphaU = lineStyleList[[i]]$alphaU) %>%
           shinyTools::formatPointsOfGGplot(data = layerPlotData,
                                            aes(x = .data[["time"]], y = .data[["median"]]), 
-                                           pointStyle = pointStyle)
+                                           pointStyle = pointStyleList[[i]])
       }
     }
     

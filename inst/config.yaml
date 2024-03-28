@@ -15,7 +15,8 @@ mainFolder: "predefinedModels"  # for import of models
 fileExtension: "osteobior"      # for download of models
 rPackageName: "OsteoBioR"       # for download and import of models
 
-# default format of graph and axis titles of intervalTimePlot
+# parameters for plot styles
+# default format of graph and axis titles of intervalTimePlot for all models
 defaultIntervalTimePlotTitle:
   text: ""
   fontType: "plain"
@@ -29,7 +30,7 @@ defaultIntervalTimePlotText:
   size: 18
   hide: false
 
-# default point style
+# default point style for each model
 defaultPointStyle:
   dataPoints:
     symbol: 19
@@ -40,8 +41,16 @@ defaultPointStyle:
     lineWidthBg: 2
     hide: false
 
-# default range of axis
+# default range of axis for all models
 plotRange:
   min: 0
   max: 1
   fromData: true
+
+# default line style for each model
+defaultLineStyle:
+  colorL: "#002350"
+  colorU: "#002350"
+  alphaL: 0.9
+  alphaU: 0.1
+  secAxis: false

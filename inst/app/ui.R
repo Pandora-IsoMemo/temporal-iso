@@ -185,15 +185,24 @@ tagList(
                      HTML("<br>"),
                      plotOutput("plotTime") %>% withSpinner(color = "#20c997"),
                      tags$br(),
-                     
+                     fluidRow(
+                       column(8,
+                              selectizeInput("plotTimeModels", "Display Models / Individuals", 
+                                             choices = NULL,
+                                             multiple = TRUE,
+                                             width = "100%")),
+                       column(2,
+                              selectizeInput("formatTimePlot", "Format Model / Individual",
+                                             choices = NULL)),
+                       column(2,
+                              align = "right",
+                              style = "margin-top: 1.2em;",
+                              actionButton("applyFormatToTimePlot", "Apply"))
+                     ),
                      tags$br(),
                      fluidRow(
                        column(4,
                               tags$h4("Plot"),
-                              selectizeInput("plotTimeModels", "Display Models / Individuals", 
-                                             choices = NULL,
-                                             multiple = TRUE),
-                              #selectizeInput("formatTimePlot", "Format Model / Individual", choices = NULL),
                               radioButtons("deriv", "Type", choices = c("Absolute values" = "1", "First derivate" = "2")), 
                               sliderInput("modCredInt",
                                           "Credibility interval:",
@@ -201,10 +210,8 @@ tagList(
                                           max = .99,
                                           value = .8,
                                           step = .05),
-                              checkboxInput("secAxis", "Add new secondary axis to existing plot", value = F),
-                              tags$br(),
-                              tags$br(),
-                              actionButton("exportCredIntTimePlot", "Export Plot")
+                              checkboxInput("secAxis", "Add new secondary axis to existing plot", value = F)
+                              
                        ),
                        column(2,
                               shinyTools::plotTitlesUI(id = "plotLabels",
@@ -237,7 +244,9 @@ tagList(
                        column(2,
                               shinyTools::plotPointsUI(id = "pointStyle", initStyle = config()[["defaultPointStyle"]])
                        )
-                     )
+                     ),
+                     actionButton("exportCredIntTimePlot", "Export Plot"),
+                     tags$br()
                    ),
                    tabPanel(
                      "Shift detection",

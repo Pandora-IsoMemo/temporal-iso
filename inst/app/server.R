@@ -284,38 +284,18 @@ shinyServer(function(input, output, session) {
   
   output$fittingTimeTxt <- renderUI(HTML(modelFittingTimeTxt()))
   
-  allXAxisData <- reactiveVal(data.frame())
-  pointStyleList <- reactiveValues()
-  lineStyleList <- reactiveValues()
-  
   observeEvent(savedModels(), {
     req(length(savedModels()) > 0)
     
     modelChoices <- names(savedModels())
-    
-    # setup lists with default values for style specs
-    for (i in modelChoices) {
-      if (is.null(pointStyleList[[i]])) pointStyleList[[i]] <- config()[["defaultPointStyle"]]
-      if (is.null(lineStyleList[[i]])) lineStyleList[[i]] <- config()[["defaultLineStyle"]]
-    }
     
     selectedModel <- names(savedModels())[length(savedModels())]
     updateSelectInput(session, "savedModels", choices = modelChoices, selected = selectedModel)
     
     fit(savedModels()[[selectedModel]]$fit)
     
-    # inputs in tab "Credibility intervals over time"
-    updateSelectizeInput(session, "plotTimeModels", 
-                         choices = modelChoices, selected = selectedModel)
-    updateSelectizeInput(session, "formatTimePlot", choices = modelChoices)
-    
-    allXAxisData(extractAllXAxisData(models = savedModels(), allXAxisData = allXAxisData()))
-    
-    # other tabs
-    updatePickerInput(session, "savedModelsShift", 
-                      choices = modelChoices, selected = selectedModel)
-    updatePickerInput(session, "savedModelsTime", 
-                      choices = modelChoices, selected = selectedModel)
+    updatePickerInput(session, "savedModelsShift", choices = modelChoices, selected = selectedModel)
+    updatePickerInput(session, "savedModelsTime", choices = modelChoices, selected = selectedModel)
     updatePickerInput(session, "savedModelsUserDefined", 
                       choices = modelChoices, selected = selectedModel)
   })
@@ -404,6 +384,8 @@ shinyServer(function(input, output, session) {
     } else {
       fitToSave <- fit()
     }
+    # plot format cannot be saved, this would require refactoring of select inputs to save/load a
+    # single model, or download a list of models, selecting models for the timePlot
     newModel <- setNames(list(
       list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
            inputDataMatrix = input$dataMatrix,
@@ -555,122 +537,16 @@ shinyServer(function(input, output, session) {
   savedPlot <- reactiveVal(list())
   #savedXAxisData <- reactiveVal(data.frame())
   
-  plotTexts <- shinyTools::plotTitlesServer(
-    "plotLabels",
-    type = "ggplot", 
-    initText = list(plotTitle  = config()[["defaultIntervalTimePlotTitle"]],
-                    xAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
-                    yAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
-                    xAxisText  = config()[["defaultIntervalTimePlotText"]],
-                    yAxisText  = config()[["defaultIntervalTimePlotText"]])
-    )
-  plotRanges <- shinyTools::plotRangesServer(
-    "plotRanges",
-    type = "ggplot",
-    initRanges = list(xAxis = config()[["plotRange"]],
-                      yAxis = config()[["plotRange"]])
-  )
-  pointStyle <- shinyTools::plotPointsServer("pointStyle", type = "ggplot", initStyle = config()[["defaultPointStyle"]])
+  # timePlot formatting ----
+  formattedTimePlot <- timePlotFormattingServer(id = "timePlotFormat", 
+                                                fit = fit,
+                                                savedModels = savedModels)
   
   observe({
-    req(input[["formatTimePlot"]])
-    # observe point style
-    pointStyleList[[input[["formatTimePlot"]]]] <- pointStyle
-    # observe line style
-    lineStyleList[[input[["formatTimePlot"]]]][["colorL"]] <- input[["colorL"]]
-    lineStyleList[[input[["formatTimePlot"]]]][["colorU"]] <- input[["colorU"]]
-    lineStyleList[[input[["formatTimePlot"]]]][["alphaL"]] <- input[["alphaL"]]
-    lineStyleList[[input[["formatTimePlot"]]]][["alphaU"]] <- input[["alphaU"]]
-    lineStyleList[[input[["formatTimePlot"]]]][["secAxis"]] <- input[["secAxis"]]
+      intervalTimePlot(formattedTimePlot())
+      savedPlot(formattedTimePlot())
   }) %>%
-    bindEvent(input[["applyFormatToTimePlot"]])
-  
-  observe({
-    req(savedModels(), input[["plotTimeModels"]])
-    selectedFits <- getEntry(savedModels()[input[["plotTimeModels"]]], "fit")
-    req(length(selectedFits) > 0)
-     
-    # draw basePlot (first element of input[["plotTimeModels"]])
-    firstModel <- names(selectedFits)[1]
-    # extract plot data from model object
-    basePlotData <- extractPlotData(object = selectedFits[[firstModel]], 
-                                    prop = input$modCredInt, 
-                                    deriv = input$deriv)
-    
-    p <- basePlotTime(x = basePlotData) %>%
-      setTitles(prop = input$modCredInt) %>%
-      shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
-      shinyTools::formatRangesOfGGplot(ranges = plotRanges) %>%
-      setXAxisLabels(xAxisData = allXAxisData(),
-                     extendLabels = input$extendLabels, 
-                     xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
-                     deriv = input$deriv,
-                     plotShifts = FALSE) %>%
-      drawLinesAndRibbon(x = basePlotData,
-                         colorL = lineStyleList[[firstModel]]$colorL,
-                         colorU = lineStyleList[[firstModel]]$colorU,
-                         alphaL = lineStyleList[[firstModel]]$alphaL, 
-                         alphaU = lineStyleList[[firstModel]]$alphaU) %>%
-      shinyTools::formatPointsOfGGplot(data = basePlotData,
-                                       aes(x = .data[["time"]], y = .data[["median"]]), 
-                                       pointStyle = pointStyleList[[firstModel]])
-    
-    # loop over multiple elements of input[["plotTimeModels"]]
-    if (length(selectedFits) > 1) {
-      for (i in names(selectedFits)[2:length(selectedFits)]) {
-        # extract plot data from model object
-        layerPlotData <- extractPlotData(object = selectedFits[[i]], 
-                                         prop = input$modCredInt, 
-                                         deriv = input$deriv)
-        # rescale data if secAxis == TRUE
-        ## use always data based newYLimits, we only set global limits not(!) per model
-        rescaling <- getRescaleParams(oldLimits = p$coordinates$limits$y,
-                                      newLimits = getYRange(layerPlotData) %>% unlist())
-        layerPlotData <- layerPlotData %>%
-          rescaleLayerData(rescaling = rescaling,
-                           secAxis = lineStyleList[[i]]$secAxis)
-        
-        p <- p %>%
-          setSecondYAxis(secAxis = lineStyleList[[i]]$secAxis,
-                         rescaling = rescaling,
-                         sizeTextY = plotTexts[["yAxisTitle"]][["size"]], 
-                         sizeAxisY = plotTexts[["yAxisText"]][["size"]],
-                         yAxisLabel = "Estimate") %>%
-          setPlotLimits(newData = layerPlotData) %>%
-          drawLinesAndRibbon(x = layerPlotData,
-                             colorL = lineStyleList[[i]]$colorL,
-                             colorU = lineStyleList[[i]]$colorU,
-                             alphaL = lineStyleList[[i]]$alphaL,
-                             alphaU = lineStyleList[[i]]$alphaU) %>%
-          shinyTools::formatPointsOfGGplot(data = layerPlotData,
-                                           aes(x = .data[["time"]], y = .data[["median"]]), 
-                                           pointStyle = pointStyleList[[i]])
-      }
-    }
-    
-    intervalTimePlot(p)
-    savedPlot(p)
-  }) #%>% bindEvent(input[["plotTimeModels"]])
-  
-  observeEvent(fit(), {
-    # not as default plot, when fit() is ready, xLim & yLim are not
-    req(fit(), intervalTimePlot())
-
-    p <- plotTime(fit(), prop = input$modCredInt, 
-                  xLim = getLim(plotRanges, axis = "xAxis"), 
-                  yLim = getLim(plotRanges, axis = "yAxis"),
-                  deriv = input$deriv,
-                  oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
-                  colorL = input$colorL, colorU = input$colorU,
-                  alphaL = input$alphaL, alphaU =  input$alphaU,
-                  extendLabels = input$extendLabels,
-                  pointStyle = pointStyle) %>%
-      setTitles(prop = input$modCredInt) %>%
-      shinyTools::formatTitlesOfGGplot(text = plotTexts)
-    intervalTimePlot(p)
-    savedPlot(p)
-    #savedXAxisData(getXAxisData(fitForTimePlot()))
-  })
+    bindEvent(formattedTimePlot())
   
   output$plotTime <- renderPlot({
     req(intervalTimePlot())

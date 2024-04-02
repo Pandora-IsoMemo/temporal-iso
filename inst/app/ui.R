@@ -135,6 +135,7 @@ tagList(
                  selectInput("selectedModels", label = "Download model object(s)",
                              choices = c("Save or upload models ..." = ""),
                              multiple = T),
+                 helpText("Model inputs and outputs are stored, any custom formatting of plots is not included."),
                  DataTools::downloadModelUI("modelDownload", label = "Download")
                ),
                ## main panel ----
@@ -185,66 +186,8 @@ tagList(
                      HTML("<br>"),
                      plotOutput("plotTime") %>% withSpinner(color = "#20c997"),
                      tags$br(),
-                     fluidRow(
-                       column(8,
-                              selectizeInput("plotTimeModels", "Display Models / Individuals", 
-                                             choices = NULL,
-                                             multiple = TRUE,
-                                             width = "100%")),
-                       column(2,
-                              selectizeInput("formatTimePlot", "Format Model / Individual",
-                                             choices = NULL)),
-                       column(2,
-                              align = "right",
-                              style = "margin-top: 1.2em;",
-                              actionButton("applyFormatToTimePlot", "Apply"))
-                     ),
+                     timePlotFormattingUI(id = "timePlotFormat"),
                      tags$br(),
-                     fluidRow(
-                       column(4,
-                              tags$h4("Plot"),
-                              radioButtons("deriv", "Type", choices = c("Absolute values" = "1", "First derivate" = "2")), 
-                              sliderInput("modCredInt",
-                                          "Credibility interval:",
-                                          min = 0,
-                                          max = .99,
-                                          value = .8,
-                                          step = .05),
-                              checkboxInput("secAxis", "Add new secondary axis to existing plot", value = F)
-                              
-                       ),
-                       column(2,
-                              shinyTools::plotTitlesUI(id = "plotLabels",
-                                           type = "ggplot",
-                                           initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]]))
-                       ),
-                       column(2,
-                              shinyTools::plotRangesUI(
-                                id = "plotRanges", 
-                                initRanges = list(xAxis = config()[["plotRange"]],
-                                                  yAxis = config()[["plotRange"]])
-                              ),
-                              checkboxInput(inputId = "extendLabels",
-                                            label = "Extend x-axis labels to lower and upper limits",
-                                            value = FALSE)
-                       ),
-                       column(2,
-                              tags$h4("Lines"),
-                              colourInput(inputId = "colorL",
-                                          label = "Color line",
-                                          value = rgb(0, 35 / 255, 80 / 255, alpha = 0.6)),
-                              sliderInput("alphaL", "Transparency lines", min = 0, max = 1, value = 0.9),
-                              tags$br(),
-                              tags$br(),
-                              colourInput(inputId = "colorU",
-                                          label = "Color uncertainty region",
-                                          value = rgb(0, 35 / 255, 80 / 255, alpha = 0.6)),
-                              sliderInput("alphaU", "Transparency uncertainty region", min = 0, max = 1, value = 0.1)
-                       ),
-                       column(2,
-                              shinyTools::plotPointsUI(id = "pointStyle", initStyle = config()[["defaultPointStyle"]])
-                       )
-                     ),
                      actionButton("exportCredIntTimePlot", "Export Plot"),
                      tags$br()
                    ),

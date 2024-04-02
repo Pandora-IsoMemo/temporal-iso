@@ -104,8 +104,13 @@ testthat::test_that("setSecondYAxis",  {
   
   # add another plot
   plotData2 <- extractPlotData(object = testObjectGap1, prop = 0.8, deriv = "1")
+  rescaling <- getRescaleParams(oldLimits = plot1$coordinates$limits$y,
+                                newLimits = getYRange(plotData2) %>% unlist(),
+                                secAxis = FALSE)
+  plotData2Re <- plotData2 %>%
+    rescaleLayerData(rescaling = rescaling)
   plot <- plot1 %>%
-    setSecondYAxis(x = plotData2) %>%
+    setSecondYAxis(rescaling = rescaling) %>%
     setPlotLimits(newData = plotData2) %>%
     drawLinesAndRibbon(x = plotData2,
                        colorL = "#000000", colorU = "#000000", alphaL = 0.9, alphaU = 0.1) %>%
@@ -123,16 +128,15 @@ testthat::test_that("setSecondYAxis",  {
                list(x = c(xmin = 0.5, xmax = 5.5), 
                     y = c(ymin = -12.7512327337153, ymax = -4.60003088235379)))
   
-  # add second axis
+  # add rescaling for second axis
   ## use always data-based new y limits! We now only set global limits not(!) per model
   rescaling <- getRescaleParams(oldLimits = plot1$coordinates$limits$y,
-                                newLimits = getYRange(plotData2) %>% unlist())
+                                newLimits = getYRange(plotData2) %>% unlist(),
+                                secAxis = TRUE)
   plotData2Re <- plotData2 %>%
-    rescaleLayerData(rescaling = rescaling, 
-                     secAxis = TRUE)
+    rescaleLayerData(rescaling = rescaling)
   plot <- plot1 %>%
-    setSecondYAxis(secAxis = TRUE, 
-                   rescaling = rescaling,
+    setSecondYAxis(rescaling = rescaling,
                    yAxisLabel = "Estimate 2") %>%
     setPlotLimits(newData = plotData2Re) %>%
     drawLinesAndRibbon(x = plotData2Re,

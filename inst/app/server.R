@@ -532,14 +532,8 @@ shinyServer(function(input, output, session) {
     })
     
   # create plotTime ----
-  
-  fitForTimePlot <- reactiveVal()
   savedPlot <- reactiveVal(list())
-  #savedXAxisData <- reactiveVal(data.frame())
-  
-  # timePlot formatting ----
   formattedTimePlot <- timePlotFormattingServer(id = "timePlotFormat", 
-                                                fit = fit,
                                                 savedModels = savedModels)
   
   observe({
@@ -549,7 +543,7 @@ shinyServer(function(input, output, session) {
     bindEvent(formattedTimePlot())
   
   output$plotTime <- renderPlot({
-    req(intervalTimePlot())
+    validate(need(intervalTimePlot(), "Choose at least one element from 'Display Models / Individuals' and press 'Apply' ..."))
     intervalTimePlot()
   })
   

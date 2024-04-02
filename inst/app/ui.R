@@ -187,7 +187,6 @@ tagList(
                      plotOutput("plotTime") %>% withSpinner(color = "#20c997"),
                      tags$br(),
                      timePlotFormattingUI(id = "timePlotFormat"),
-                     tags$br(),
                      actionButton("exportCredIntTimePlot", "Export Plot"),
                      tags$br()
                    ),

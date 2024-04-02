@@ -4,10 +4,12 @@
 \alias{timePlotFormattingServer}
 \title{Server function of time plot formatting}
 \usage{
-timePlotFormattingServer(id, fit, savedModels)
+timePlotFormattingServer(id, savedModels)
 }
 \arguments{
 \item{id}{namespace id}
+
+\item{savedModels}{list of models of class \code{\link{TemporalIso}}}
 }
 \description{
 Backend for plot formatting module

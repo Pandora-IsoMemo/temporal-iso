@@ -11,48 +11,58 @@ timePlotFormattingUI <- function(id) {
   ns <- NS(id)
   tagList(
     fluidRow(
-      column(8,
+      column(7,
              selectizeInput(ns("plotTimeModels"), "Display Models / Individuals", 
                             choices = NULL,
                             multiple = TRUE,
                             width = "100%")),
-      column(2,
-             selectizeInput(ns("formatTimePlot"), "Format Model / Individual",
-                            choices = NULL)),
-      column(2,
+      column(1,
              align = "right",
              style = "margin-top: 1.2em;",
-             actionButton(ns("applyFormatToTimePlot"), "Apply"))
+             actionButton(ns("applyFormatToTimePlot"), "Apply")),
+      column(3,
+             selectizeInput(ns("formatTimePlot"), "Format Model / Individual",
+                            choices = NULL)),
+      column(1,
+             align = "right",
+             style = "margin-top: 1.2em;",
+             actionButton(ns("applyFormatToTimePlotModel"), "Apply"))
     ),
     tags$br(),
     fluidRow(
       column(4,
-             tags$h4("Plot"),
+             tags$h4("Data"),
              radioButtons(ns("deriv"), 
                           "Type", 
-                          choices = c("Absolute values" = "1", "First derivate" = "2")), 
+                          choices = c("Absolute values" = "1", "First derivate" = "2"),
+                          inline = TRUE,
+                          width = "100%"), 
              sliderInput(ns("modCredInt"),
                          "Credibility interval:",
                          min = 0,
                          max = .99,
                          value = .8,
-                         step = .05),
+                         step = .05,
+                         width = "100%"),
+             tags$h4("Secondary Axis"),
              selectizeInput(ns("secAxisModel"), "Add a new secondary axis",
                             choices = c("Choose one Model / Individual ..." = "")),
              helpText("The first element from 'Display Models / Individuals' is always used for the first (left) axis."),
              conditionalPanel(
                ns = ns,
                condition = "input.secAxisModel != ''",
-               textInput(ns("secAxisText"), label = "Title of secondary axis",
-                         value = "Estimate"),
-               colourInput(ns("secAxisColor"),
-                           label = "Title color of secondary axis",
-                           value = config()[["defaultIntervalTimePlotTitle"]][["color"]])
-             )
+               fluidRow(
+                 column(6, textInput(ns("secAxisText"), label = "Title",
+                                     value = "Estimate")),
+                 column(6, colourInput(ns("secAxisColor"),
+                                       label = "Title color",
+                                       value = config()[["defaultIntervalTimePlotTitle"]][["color"]]))
+               ))
       ),
       column(2,
              shinyTools::plotTitlesUI(
                id = ns("plotLabels"),
+               title = "Texts",
                type = "ggplot",
                initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]])
                )
@@ -86,6 +96,7 @@ timePlotFormattingUI <- function(id) {
       ),
       column(2,
              shinyTools::plotPointsUI(id = ns("pointStyle"),
+                                      title = "Points",
                                       initStyle = config()[["defaultPointStyle"]])
       )
     )
@@ -97,14 +108,12 @@ timePlotFormattingUI <- function(id) {
 #' Backend for plot formatting module
 #'
 #' @param id namespace id
+#' @param savedModels list of models of class \code{\link{TemporalIso}}
 #'
 #' @export
-timePlotFormattingServer <- function(id, fit, savedModels) {
+timePlotFormattingServer <- function(id, savedModels) {
   moduleServer(id,
                function(input, output, session) {
-                 # shift all observers calling inputs from above UI into this server
-                 # remove the code from server.R
-                 
                  formattedPlot <- reactiveVal()
                  
                  plotTexts <- shinyTools::plotTitlesServer(
@@ -150,13 +159,18 @@ timePlotFormattingServer <- function(id, fit, savedModels) {
                    # inputs in tab "Credibility intervals over time"
                    updateSelectizeInput(session, "plotTimeModels", 
                                         choices = modelChoices, selected = selectedModel)
-                   updateSelectizeInput(session, "formatTimePlot", choices = modelChoices)
                    
-                   allXAxisData(extractAllXAxisData(models = savedModels(), allXAxisData = allXAxisData()))
+                   allXAxisData(extractAllXAxisData(models = savedModels(), 
+                                                    allXAxisData = allXAxisData()))
                  }) %>%
                    bindEvent(savedModels())
                  
                  observe({
+                   # choices for formatting of lines and points
+                   updateSelectizeInput(session, "formatTimePlot", 
+                                        choices = input[["plotTimeModels"]])
+                   
+                   # choices for secondary axis
                    nDisplayedModels <- length(input[["plotTimeModels"]])
                    if (nDisplayedModels > 1) {
                      # remove first element that always gives the first axis
@@ -180,9 +194,8 @@ timePlotFormattingServer <- function(id, fit, savedModels) {
                    lineStyleList[[input[["formatTimePlot"]]]][["colorU"]] <- input[["colorU"]]
                    lineStyleList[[input[["formatTimePlot"]]]][["alphaL"]] <- input[["alphaL"]]
                    lineStyleList[[input[["formatTimePlot"]]]][["alphaU"]] <- input[["alphaU"]]
-                   #lineStyleList[[input[["formatTimePlot"]]]][["secAxis"]] <- input[["secAxis"]]
                  }) %>%
-                   bindEvent(input[["applyFormatToTimePlot"]])
+                   bindEvent(input[["applyFormatToTimePlotModel"]])
                  
                  allFits <- reactive({
                    getEntry(savedModels(), "fit")
@@ -252,25 +265,9 @@ timePlotFormattingServer <- function(id, fit, savedModels) {
                    }
                    
                    formattedPlot(p)
-                 }) #%>% bindEvent(input[["plotTimeModels"]])
-                 
-                 observeEvent(fit(), { # when do we need this??
-                   # not as default plot, when fit() is ready, xLim & yLim are not: DO WE NEED THIS?
-                   req(fit(), formattedPlot())
-                   browser()
-                   p <- plotTime(fit(), prop = input$modCredInt, 
-                                 xLim = getLim(plotRanges, axis = "xAxis"), 
-                                 yLim = getLim(plotRanges, axis = "yAxis"),
-                                 deriv = input$deriv,
-                                 oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
-                                 colorL = input$colorL, colorU = input$colorU,
-                                 alphaL = input$alphaL, alphaU =  input$alphaU,
-                                 extendLabels = input$extendLabels,
-                                 pointStyle = pointStyle) %>%
-                     setTitles(prop = input$modCredInt) %>%
-                     shinyTools::formatTitlesOfGGplot(text = plotTexts)
-                   formattedPlot(p)
-                 })
+                 }) %>%
+                   bindEvent(list(input[["applyFormatToTimePlot"]], 
+                                  input[["applyFormatToTimePlotModel"]]))
                  
                  return(reactive(formattedPlot()))
                })

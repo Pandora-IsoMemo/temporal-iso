@@ -416,40 +416,6 @@ joinTimeForDerivation <- function(time){
     diff(as.numeric(time)) / 2
 }
 
-#' Get Default Plot Range
-#' 
-#' Min/max values in x/y directions
-#' 
-#' @param savedModels list of models of class \code{\link{TemporalIso}}
-#' @inheritParams plotTime
-#' 
-#' @export
-getDefaultPlotRange <- function(savedModels, deriv = "1"){
-
-  dat <- lapply(savedModels, function(model){
-    if (is.null(model$fit)) return(NULL)
-    extractPlotData(object = model$fit, prop = 0.8, deriv = deriv)
-    })
-  
-  dat <- dat %>% bind_rows()
-  
-  if (nrow(dat) == 0) return(list(xmin = defaultInputsForUI()$xmin,
-                                  xmax = defaultInputsForUI()$xmax,
-                                  ymin = defaultInputsForUI()$ymin,
-                                  ymax = defaultInputsForUI()$ymax))
-  
-  xmin <- min(dat$time, na.rm = TRUE)
-  xmax <- max(dat$time, na.rm = TRUE)
-  
-  ymin <- min(dat$lower, na.rm = TRUE)
-  ymax <- max(dat$upper, na.rm = TRUE)
-  rangeY <- ymax - ymin
-  
-  list(xmin = xmin,
-       xmax = xmax,
-       ymin = ymin - 0.1*rangeY,
-       ymax = ymax + 0.1*rangeY)
-}
 
 getXRange <- function(dat) {
   if (nrow(dat) == 0) return(list(xmin = defaultInputsForUI()$xmin,

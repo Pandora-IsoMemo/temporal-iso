@@ -177,25 +177,6 @@ testthat::test_that("getBreaks, deriv = 2",  {
   testthat::expect_equal(breaks3, c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5))
 })
 
-
-testthat::test_that("getDefaultPlotRange, deriv = 2",  {
-  savedModels <- list(
-    list(fit = testObjectDefault1),
-    list(fit = testObjectDefault2),
-    list(fit = testObjectGap1),
-    list(fit = testObjectGap11)
-  )
-  testRange1 <- getDefaultPlotRange(savedModels, deriv = "1")
-  testRange2 <- getDefaultPlotRange(savedModels, deriv = "2")
-  
-  testthat::expect_equal(testRange1 %>% unlist(),
-                         c(xmin = 0.5, xmax = 6, 
-                           ymin = -12.9045490738921, ymax = -4.58609303324681))
-  testthat::expect_equal(testRange2 %>% unlist(),
-                         c(xmin = 1, xmax = 5.5,
-                           ymin = -4.2100298618177, ymax = 3.69646935224212))
-})
-
 testthat::test_that("extendXAxis", {
   oldXAxisData <- structure(list(
     time = c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5), 

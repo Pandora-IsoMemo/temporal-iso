@@ -2,6 +2,7 @@
 % Please edit documentation in R/NAMESPACE.R
 \docType{package}
 \name{OsteoBioR-package}
+\alias{-package}
 \alias{OsteoBioR-package}
 \alias{OsteoBioR}
 \title{The 'OsteoBioR' package.}

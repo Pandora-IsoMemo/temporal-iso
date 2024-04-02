@@ -1,6 +1,6 @@
 # OsteoBioR
 
-## Version 24.03.0
+## Version 24.04.0
 
 ### New Features
 - option to change symbol, color, size of points in timePlot (#43)

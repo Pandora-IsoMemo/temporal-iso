@@ -1,9 +1,9 @@
 # OsteoBioR
 
-## Version 24.03.0
+## Version 24.04.0
 
 ### New Features
-- option to change symbol, color, size of points in timePlot (#43)
+- option to change symbol, color, size of points in "Model: Credibility intervals over time" (#43)
 
 ## Version 24.01.1
 

@@ -1,6 +1,6 @@
 # OsteoBioR (temporal-iso)
 
-R Package to estimate isotopic values in the past and their change over time.
+R Package to estimate isotopic values in the past and their change over time. 
 
 ### Access to online version:
 - MAIN version: https://isomemoapp.com/app/osteo-bio-r

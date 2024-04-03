@@ -12,22 +12,23 @@
 #' @import shiny
 #' @import shinythemes
 #' @importFrom colourpicker colourInput 
-#' @importFrom DataTools checkAnyNonNumericColumns importDataUI importDataServer remoteModelsUI
-#'  remoteModelsServer tryCatchWithWarningsAndErrors
+#' @importFrom DataTools checkAnyNonNumericColumns downloadModelUI downloadModelServer 
+#'  importDataUI importDataServer importOptions renameExistingNames tryCatchWithWarningsAndErrors
 #' @importFrom dplyr arrange bind_rows distinct slice
-#' @importFrom ggplot2 aes_string element_line element_text ggplot geom_line geom_point geom_ribbon 
+#' @importFrom ggplot2 aes element_line element_text ggplot geom_line geom_point geom_ribbon 
 #' labs scale_x_continuous theme ggtitle scale_y_continuous geom_vline coord_cartesian sec_axis
 #' @importFrom htmltools save_html
 #' @importFrom jsonlite toJSON
 #' @importFrom magrittr %>%
 #' @importFrom openxlsx write.xlsx
+#' @importFrom parallel detectCores
 #' @importFrom rlang .data
 #' @importFrom rstan sampling extract
 #' @importFrom shinyjs alert
 #' @importFrom shinyWidgets pickerInput updatePickerInput
 #' @importFrom stats approx dnorm lm median quantile sd
-#' @importFrom utils write.csv write.table combn packageVersion
-#' @importFrom zip zipr
+#' @importFrom utils write.csv write.table combn
+#' @importFrom yaml read_yaml
 #' @references
 #' Stan Development Team (NA). RStan: the R interface to Stan. R package version NA. http://mc-stan.org
 #' 

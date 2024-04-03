@@ -54,9 +54,9 @@
 #' y_sigma <- c(2, 1.5, 2.5, 2.5)
 #'
 #'
-###############################
-#estimate values
-###############################
+#' ###############################
+#' #estimate values
+#' ###############################
 #' fit <- estimateIntervals(renewalRates = data,
 #'                         timeVars = "intStart",
 #'                         boneVars = c("bone1", "bone2", "tooth1", "tooth2"),
@@ -176,17 +176,17 @@ estimateIntervals <- function(renewalRates,
   # must always have the same dimensions: renewalRates[boneVars] and renewalRatesSD[boneVars]
   if (ncol(renewalRates[boneVars]) != ncol(renewalRatesSD[boneVars]))
     stop(paste0("Error: Number of valid bone variables differ between renewal rates and renewal rates ",
-               "uncertainty for individual ", indVar, "."))
+               "uncertainty for individuals ", indVar, "."))
   if (nrow(renewalRates[boneVars]) != nrow(renewalRatesSD[boneVars]))
     stop(paste0("Error: Number of valid rows differ between renewal rates and renewal rates ",
-               "uncertainty for individual ", indVar, "."))
+               "uncertainty for individuals ", indVar, "."))
   
   xlow <- t(as.matrix(apply(pmax(as.matrix(renewalRates[boneVars]- renewalRatesSD[boneVars]), 0), 2, calcInfluence)))
   xhigh <- t(as.matrix(apply(pmin(as.matrix(renewalRates[boneVars]+ renewalRatesSD[boneVars]), 100), 2, calcInfluence)))
   
   xsd <- (xhigh - xlow) / 2
   xsd[is.na(xsd)] <- 0
-  #cores <- getOption("mc.cores", if (mc) min(4, chains) else 1)
+  cores <- getOption("mc.cores", if (mc) min(4, chains) else 1)
   model <- suppressWarnings(sampling(stanmodels$linRegGP,
                      data = list(N = N,
                                  NT = NT,
@@ -198,7 +198,7 @@ estimateIntervals <- function(renewalRates,
                                      chains = chains,
                                      iter = iter,
                                      warmup = burnin,
-                                     cores = 1,
+                                     cores = cores,
                                      # verbose = FALSE,
                                      # refresh = 0,
                                      control = list(adapt_delta = adapt_delta,
@@ -211,6 +211,25 @@ estimateIntervals <- function(renewalRates,
              time = time,
              timeLower = timeLower,
              timeUpper = timeUpper))
+}
+
+#' Get Seed
+#' 
+#' @param fixSeed (logical) if TRUE use fixed ssed, if FALSE use random seed when fitting the model
+#' @param seedValue (numeric) value for seed if \code{fixSeed == TRUE}
+#' 
+#' @export
+getSeed <- function(fixSeed, seedValue) {
+  notValidSeed <- is.null(seedValue) || is.na(seedValue) || seedValue == ""
+  
+  # random seed
+  if (!fixSeed || notValidSeed) {
+    if (fixSeed && notValidSeed) warning("Not valid input for seed! Using random seed.")
+    return(as.numeric(Sys.time()))
+  }
+  
+  # fixed seed if seed is valid
+  return(seedValue)
 }
 
 #' Function to estimate isotopic value for specific time point(s)

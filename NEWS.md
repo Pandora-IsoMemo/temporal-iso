@@ -1,5 +1,50 @@
 # OsteoBioR
 
+## Version 24.01.1
+
+### New Features
+- Option to use rownames of data as individual variable. This allows to use non-numeric values for 
+  individuals since rownames do not need to be numeric (#35)
+
+## Version 24.01.0
+
+### Bug Fixes
+- fix a bug that prevented the usage of multiple cores during model estimation. In essence only a
+ single core was used.
+
+## Version 23.12.2
+
+### New Features
+- _Import of models from Pandora_: 
+  - display of "About" information that is associated to a selected Pandora Repository
+
+### Bug Fixes
+- _Import of models from Pandora_: 
+  - an error message occurred when trying to load a model from pandora.
+  - fix: adding the missing download of the zip file from the url before unpacking the zip
+
+## Version 23.12.0
+
+#### New Features
+- option to use a fixed seed when fitting the model (#37)
+
+## Version 23.10.1
+
+### Bug Fixes
+- fix for model down- and upload: add missing export to package functions
+
+## Version 23.10.0
+
+### New Features
+- _Import of models_:
+  - option to import models from Pandora platform
+
+## Version 23.09.1
+
+### New Features
+- tab _Model_, section _Credibility intervals over time_: new checkbox to extend the x-axis labels
+to the _lower_ and _upper x limit_ (#26)
+
 ## Version 23.04.1
 
 ### Bug Fixes

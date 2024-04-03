@@ -195,3 +195,25 @@ testthat::test_that("getDefaultPlotRange, deriv = 2",  {
                          c(xmin = 1, xmax = 5.5,
                            ymin = -4.2100298618177, ymax = 3.69646935224212))
 })
+
+testthat::test_that("extendXAxis", {
+  oldXAxisData <- structure(list(
+    time = c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5), 
+    lower = c(0, 1, 2, 3, 4, 5), 
+    upper = c(1, 2, 3, 4, 5, 6)),
+    class = "data.frame", 
+    row.names = c(NA,  -6L))
+  
+  xAxisData <- getXAxisData(object = testObjectDefault1, oldXAxisData = oldXAxisData)
+  
+  testXAxisData <- xAxisData %>%
+    extendXAxis(xLabelLim = c(-1, 8))
+  
+  testthat::expect_equal(nrow(xAxisData) + 2, nrow(testXAxisData))
+  
+  breaks <- getBreaks(time = testXAxisData$time, deriv = "1")
+  labels <- getLabel(xAxisData = testXAxisData, deriv = "1")
+  
+  testthat::expect_equal(breaks, c(-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 7))
+  testthat::expect_equal(labels, c("[-1-0]", "[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]", "[6-8]"))
+})

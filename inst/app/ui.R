@@ -61,7 +61,7 @@ tagList(
               editableNames = TRUE
             ),
             rows = list(
-              names = FALSE,
+              names = TRUE,
               editableNames = TRUE,
               extend = TRUE,
               delta = 1
@@ -69,29 +69,29 @@ tagList(
           ),
           conditionalPanel(
             condition = "input.renewUnc == true",
-          HTML("<h5>Renewal rates uncertainty dataset (standard deviation, optional) </h5>"),
-          matrixInput(
-            inputId = "dataMatrixSD",
-            #inputClass = "matrix-input-rownames",
-            class = "numeric",
-            value = matrix(0, ncol = 6, dimnames = list(
-              c(""),  c("individual", "intStart", "intEnd", "bone1", "bone2", "tooth1")
-            )),
-            #copy = TRUE,
-            #paste = TRUE,
-            cols = list(
-              names = TRUE,
-              extend = FALSE,
-              delta = 1,
-              editableNames = FALSE
+            HTML("<h5>Renewal rates uncertainty dataset (standard deviation, optional) </h5>"),
+            matrixInput(
+              inputId = "dataMatrixSD",
+              #inputClass = "matrix-input-rownames",
+              class = "numeric",
+              value = matrix(0, ncol = 6, dimnames = list(
+                c(""),  c("individual", "intStart", "intEnd", "bone1", "bone2", "tooth1")
+              )),
+              #copy = TRUE,
+              #paste = TRUE,
+              cols = list(
+                names = TRUE,
+                extend = FALSE,
+                delta = 1,
+                editableNames = FALSE
+              ),
+              rows = list(
+                names = TRUE,
+                editableNames = FALSE,
+                extend = FALSE,
+                delta = 1
+              )
             ),
-            rows = list(
-              names = FALSE,
-              editableNames = FALSE,
-              extend = FALSE,
-              delta = 1
-            )
-          ),
           ),
           # To do: Add  time cuts: Split predictions into groups at the following points in time
           # for the selected individual
@@ -110,7 +110,7 @@ tagList(
               delta = 0
             ),
             rows = list(
-              names = FALSE,
+              names = TRUE,
               editableNames = FALSE,
               extend = TRUE,
               delta = 1
@@ -127,8 +127,15 @@ tagList(
                sidebarPanel(
                  width = 2,
                  style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+                 DataTools::importDataUI("modelUpload", label = "Import Model"),
+                 tags$hr(),
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
-                 actionButton("fitModel", "Fit Model")
+                 actionButton("fitModel", "Fit Model"),
+                 tags$hr(),
+                 selectInput("selectedModels", label = "Download model object(s)",
+                             choices = c("Save or upload models ..." = ""),
+                             multiple = T),
+                 DataTools::downloadModelUI("modelDownload", label = "Download")
                ),
                ## main panel ----
                mainPanel(
@@ -138,18 +145,22 @@ tagList(
                      tags$br(),
                      tags$br(),
                      fluidRow(
-                       column(width = 3, 
+                       column(width = 3,
+                              style = "margin-top: 0.7em;",
+                              htmlOutput("fittingTimeTxt")),
+                       column(width = 3,
+                              style = "margin-top: -0.3em;",
                               selectInput("savedModels", label = "Load Model", choices = NULL)),
                        column(width = 1, 
-                              style = "margin-top: 14px;",
-                              actionButton("loadModel", "Load")),
+                              style = "margin-top: 1em;",
+                              actionButton("loadModel", "Load", width = "100%")),
                        column(width = 3, 
-                              offset = 2,
-                              style = "margin-top: -12px;",
+                              offset = 1,
+                              style = "margin-top: -0.7em;",
                               textInput("modelName", label = "Save Model", placeholder = "model name")),
                        column(width = 1, 
-                              style = "margin-top: 14px;",
-                              actionButton("saveModel", "Save"))
+                              style = "margin-top: 1em;",
+                              actionButton("saveModel", "Save", width = "100%"))
                        ),
                      tags$hr()
                    ),
@@ -183,7 +194,10 @@ tagList(
                                            value = defaultInputsForUI()$xmax),
                               textInput("xAxisLabel", label = "X-Axis title", value = "Time"),
                               numericInput(inputId = "sizeTextX", label = "Font size x-axis title", value = 24),
-                              numericInput(inputId = "sizeAxisX", label = "Font size x-axis", value = 18)
+                              numericInput(inputId = "sizeAxisX", label = "Font size x-axis", value = 18),
+                              checkboxInput(inputId = "extendLabels",
+                                            label = "Extend x-axis labels to lower and upper limits",
+                                            value = FALSE)
                               ),
                        column(2,
                               numericInput("ymin", "Lower y limit",
@@ -306,13 +320,6 @@ tagList(
                      verbatimTextOutput("userDefined") %>% withSpinner(color ="#20c997")
                    )
                  )
-               ),
-               ## right sidebar ----
-               sidebarPanel(
-                 width = 2,
-                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
-                 uploadModelUI("modelUpload", "Upload Model"),
-                 downloadModelUI("modelDownload", "Download Model")
                )
              )
              ),
@@ -350,7 +357,7 @@ tagList(
                      editableNames = TRUE
                    ),
                    rows = list(
-                     names = FALSE,
+                     names = TRUE,
                      editableNames = TRUE,
                      extend = TRUE
                    )
@@ -449,7 +456,7 @@ tagList(
                      editableNames = TRUE
                    ),
                    rows = list(
-                     names = FALSE,
+                     names = TRUE,
                      editableNames = TRUE,
                      extend = TRUE
                    )

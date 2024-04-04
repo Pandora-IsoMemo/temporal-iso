@@ -10,6 +10,8 @@
 timePlotFormattingUI <- function(id) {
   ns <- NS(id)
   tagList(
+    plotOutput(ns("plotTime")) %>% withSpinner(color = "#20c997"),
+    tags$br(),
     fluidRow(
       column(7,
              selectizeInput(ns("plotTimeModels"), "Display Models / Individuals", 
@@ -99,7 +101,9 @@ timePlotFormattingUI <- function(id) {
                                       title = "Points",
                                       initStyle = config()[["defaultPointStyle"]])
       )
-    )
+    ),
+    actionButton(ns("exportCredIntTimePlot"), "Export Plot"),
+    tags$br()
   )
 }
 
@@ -114,6 +118,8 @@ timePlotFormattingUI <- function(id) {
 timePlotFormattingServer <- function(id, savedModels) {
   moduleServer(id,
                function(input, output, session) {
+                 ns <- session$ns
+                 
                  formattedPlot <- reactiveVal()
                  
                  plotTexts <- shinyTools::plotTitlesServer(
@@ -200,19 +206,20 @@ timePlotFormattingServer <- function(id, savedModels) {
                  allFits <- reactive({
                    getEntry(savedModels(), "fit")
                  })
-                 
+
                  allExtractedPlotData <- reactive({
                    # extract plot data from model object
                    lapply(allFits(), function(x) {
-                     extractPlotData(object = x, 
-                                     prop = input$modCredInt, 
+                     extractPlotData(object = x,
+                                     prop = input$modCredInt,
                                      deriv = input$deriv)
                    })
                  })
                  
+                 savedPlot <- reactiveVal(list())
+                 
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
-                   
                    # draw basePlot (first element of input[["plotTimeModels"]])
                    firstModel <- input[["plotTimeModels"]][1]
                    basePlotData <- allExtractedPlotData()[[firstModel]]
@@ -265,9 +272,53 @@ timePlotFormattingServer <- function(id, savedModels) {
                    }
                    
                    formattedPlot(p)
+                   savedPlot(p)
                  }) %>%
                    bindEvent(list(input[["applyFormatToTimePlot"]], 
                                   input[["applyFormatToTimePlotModel"]]))
+                 
+                 output$plotTime <- renderPlot({
+                   validate(need(formattedPlot(), "Choose at least one element from 'Display Models / Individuals' and press 'Apply' ..."))
+                   formattedPlot()
+                 })
+                 
+                 observeEvent(input$exportCredIntTimePlot, {
+                   
+                   plotOutputElement <- renderPlot({ savedPlot() })
+                   exportTypeChoices <- c("png", "pdf", "svg", "tiff")
+                   
+                   showModal(modalDialog(
+                     title = "Export Graphic",
+                     footer = modalButton("OK"),
+                     plotOutputElement,
+                     selectInput(
+                       ns("exportType"), "Filetype",
+                       choices = exportTypeChoices
+                     ),
+                     numericInput(ns("width"), "Width (px)", value = 1280),
+                     numericInput(ns("height"), "Height (px)", value = 800),
+                     downloadButton(ns("exportExecute"), "Export"),
+                     easyClose = TRUE
+                   ))
+                   
+                   output$exportExecute <- downloadHandler(
+                     filename = function(){
+                       paste0(gsub("-", "", Sys.Date()), "_", "Credibility_Intervals_Over_Time", ".", input$exportType)
+                     },
+                     content = function(file){
+                       switch(
+                         input$exportType,
+                         png = png(file, width = input$width, height = input$height),
+                         pdf = pdf(file, width = input$width / 72, height = input$height / 72),
+                         tiff = tiff(file, width = input$width, height = input$height),
+                         svg = svg(file, width = input$width / 72, height = input$height / 72)
+                       )
+                       print( savedPlot() )
+                       
+                       dev.off()
+                     }
+                   )
+                 })
                  
                  return(reactive(formattedPlot()))
                })

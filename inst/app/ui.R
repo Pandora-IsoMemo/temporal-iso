@@ -184,11 +184,7 @@ tagList(
                      "Credibility intervals over time",
                      value = "credibilityIntervalsOverTimeTab",
                      HTML("<br>"),
-                     plotOutput("plotTime") %>% withSpinner(color = "#20c997"),
-                     tags$br(),
-                     timePlotFormattingUI(id = "timePlotFormat"),
-                     actionButton("exportCredIntTimePlot", "Export Plot"),
-                     tags$br()
+                     timePlotFormattingUI(id = "timePlotFormat")
                    ),
                    tabPanel(
                      "Shift detection",

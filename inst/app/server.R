@@ -408,8 +408,8 @@ shinyServer(function(input, output, session) {
     uploadedModelSpecInputs(currentModel$modelSpecifications)
     fit(currentModel$fit)
     
-    updateSelectizeInput(session, "plotTimeModels", selected = input$savedModels)
-    updateSelectizeInput(session, "formatTimePlot", selected = input$savedModels)
+    updateSelectizeInput(session, "timePlotFormat-plotTimeModels", selected = input$savedModels)
+    updateSelectizeInput(session, "timePlotFormat-formatTimePlot", selected = input$savedModels)
     updatePickerInput(session, "savedModelsShift", selected = input$savedModels)
     updatePickerInput(session, "savedModelsTime", selected = input$savedModels)
     updatePickerInput(session, "savedModelsUserDefined", selected = input$savedModels)
@@ -532,20 +532,8 @@ shinyServer(function(input, output, session) {
     })
     
   # create plotTime ----
-  savedPlot <- reactiveVal(list())
   formattedTimePlot <- timePlotFormattingServer(id = "timePlotFormat", 
                                                 savedModels = savedModels)
-  
-  observe({
-      intervalTimePlot(formattedTimePlot())
-      savedPlot(formattedTimePlot())
-  }) %>%
-    bindEvent(formattedTimePlot())
-  
-  output$plotTime <- renderPlot({
-    validate(need(intervalTimePlot(), "Choose at least one element from 'Display Models / Individuals' and press 'Apply' ..."))
-    intervalTimePlot()
-  })
   
   observe({
     updateNumericInput(session, "from", 
@@ -756,45 +744,6 @@ shinyServer(function(input, output, session) {
       }
     )
   })
-  
-  observeEvent(input$exportCredIntTimePlot, {
-
-    plotOutputElement <- renderPlot({ savedPlot() })
-    exportTypeChoices <- c("png", "pdf", "svg", "tiff")
-
-    showModal(modalDialog(
-      title = "Export Graphic",
-      footer = modalButton("OK"),
-      plotOutputElement,
-      selectInput(
-        "exportType", "Filetype",
-        choices = exportTypeChoices
-      ),
-      numericInput("width", "Width (px)", value = 1280),
-      numericInput("height", "Height (px)", value = 800),
-      downloadButton("exportExecute", "Export"),
-      easyClose = TRUE
-    ))
-  
-  output$exportExecute <- downloadHandler(
-    filename = function(){
-      paste0(gsub("-", "", Sys.Date()), "_", "Credibility_Intervals_Over_Time", ".", input$exportType)
-    },
-    content = function(file){
-      switch(
-        input$exportType,
-        png = png(file, width = input$width, height = input$height),
-        pdf = pdf(file, width = input$width / 72, height = input$height / 72),
-        tiff = tiff(file, width = input$width, height = input$height),
-        svg = svg(file, width = input$width / 72, height = input$height / 72)
-      )
-      print( savedPlot() )
-
-      dev.off()
-    }
-  )
-  })
-  
   
   # RESIDING TIME ------------------------------------------
   datStayTime <- reactiveValues()

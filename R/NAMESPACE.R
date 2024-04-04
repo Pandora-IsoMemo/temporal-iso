@@ -14,7 +14,7 @@
 #' @importFrom colourpicker colourInput 
 #' @importFrom DataTools checkAnyNonNumericColumns downloadModelUI downloadModelServer 
 #'  importDataUI importDataServer importOptions renameExistingNames tryCatchWithWarningsAndErrors
-#' @importFrom dplyr arrange bind_rows distinct slice
+#' @importFrom dplyr arrange bind_rows cur_group_id distinct do group_by mutate n select slice ungroup
 #' @importFrom ggplot2 aes element_line element_text ggplot geom_line geom_point geom_ribbon 
 #' labs scale_x_continuous theme ggtitle scale_y_continuous geom_vline coord_cartesian sec_axis
 #' @importFrom htmltools save_html
@@ -24,8 +24,10 @@
 #' @importFrom parallel detectCores
 #' @importFrom rlang .data
 #' @importFrom rstan sampling extract
+#' @importFrom shinycssloaders withSpinner
 #' @importFrom shinyjs alert
-#' @importFrom shinyTools formatPointsOfGGplot formatRangesOfGGplot formatTitlesOfGGplot
+#' @importFrom shinyTools dataExportButton dataExportServer plotExportButton plotExportServer
+#'  formatPointsOfGGplot formatRangesOfGGplot formatTitlesOfGGplot
 #'  plotPointsServer plotPointsUI plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
 #' @importFrom shinyWidgets pickerInput updatePickerInput
 #' @importFrom stats approx dnorm lm median quantile sd

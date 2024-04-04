@@ -10,13 +10,15 @@
 timePlotFormattingUI <- function(id) {
   ns <- NS(id)
   tagList(
+    tags$h4("Time Plot"),
     plotOutput(ns("plotTime")) %>% withSpinner(color = "#20c997"),
     tags$br(),
     fluidRow(
       column(7,
              selectizeInput(ns("plotTimeModels"), "Display Models / Individuals", 
-                            choices = NULL,
+                            choices = c("Fit or import a model ..." = ""),
                             multiple = TRUE,
+                            selected = "",
                             width = "100%")),
       column(1,
              align = "right",
@@ -24,7 +26,7 @@ timePlotFormattingUI <- function(id) {
              actionButton(ns("applyFormatToTimePlot"), "Apply")),
       column(3,
              selectizeInput(ns("formatTimePlot"), "Format Model / Individual",
-                            choices = NULL)),
+                            choices = c("Fit or import a model ..." = ""))),
       column(1,
              align = "right",
              style = "margin-top: 1.2em;",
@@ -103,6 +105,12 @@ timePlotFormattingUI <- function(id) {
       )
     ),
     actionButton(ns("exportCredIntTimePlot"), "Export Plot"),
+    tags$br(),
+    tags$br(),
+    tags$h4("Plot Data"),
+    tableOutput(ns("plotData")),
+    tags$br(),
+    dataExportButton(ns("exportCredIntTimeData")),
     tags$br()
   )
 }
@@ -207,7 +215,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                    getEntry(savedModels(), "fit")
                  })
 
-                 allExtractedPlotData <- reactive({
+                 extractedPlotDataList <- reactive({
                    # extract plot data from model object
                    lapply(allFits(), function(x) {
                      extractPlotData(object = x,
@@ -216,13 +224,43 @@ timePlotFormattingServer <- function(id, savedModels) {
                    })
                  })
                  
+                 extractedPlotDataDF <- reactive({
+                   # filter for displayed models:
+                   plotData <- extractedPlotDataList()[input[["plotTimeModels"]]] %>%
+                     bind_rows(.id = "individual") %>%
+                     # add column with 
+                     mutate(cred_interval = sprintf("%.0f%%", input$modCredInt * 100)) %>%
+                     group_by(.data$time) %>%
+                     # add id for each x value:
+                     mutate(id_time = cur_group_id()) %>% 
+                     ungroup() %>%
+                     group_by(.data$individual) %>%
+                     # add id for each individual:
+                     mutate(id_model = cur_group_id()) %>%
+                     # add an empty line after each individual (containing only NA values):
+                     do(add_na_row(.)) %>% 
+                     ungroup() %>%
+                     select("id_model", "individual", "id_time", "time", 
+                            "cred_interval", "lower", "median", "upper") %>%
+                     # remove last line containing only NA values
+                     slice(1:(n() - 1))
+                 })
+                 
+                 output$plotData <- renderTable({
+                   validate(need(input[["plotTimeModels"]],
+                                 "Choose at least one element from 'Display Models / Individuals' ..."))
+                   extractedPlotDataDF()
+                 })
+                 
+                 dataExportServer("exportCredIntTimeData", reactive(function() {extractedPlotDataDF()}))
+                 
                  savedPlot <- reactiveVal(list())
                  
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
                    # draw basePlot (first element of input[["plotTimeModels"]])
                    firstModel <- input[["plotTimeModels"]][1]
-                   basePlotData <- allExtractedPlotData()[[firstModel]]
+                   basePlotData <- extractedPlotDataList()[[firstModel]]
                    p <- basePlotTime(x = basePlotData) %>%
                      setTitles(prop = input$modCredInt) %>%
                      shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
@@ -245,7 +283,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                    nDisplayedModels <- length(input[["plotTimeModels"]])
                    if (nDisplayedModels > 1) {
                      for (i in input[["plotTimeModels"]][2:nDisplayedModels]) {
-                       layerPlotData <- allExtractedPlotData()[[i]]
+                       layerPlotData <- extractedPlotDataList()[[i]]
                        ## use always data based newYLimits, we only set global limits not(!) per model
                        rescaling <- getRescaleParams(oldLimits = p$coordinates$limits$y,
                                                      newLimits = getYRange(layerPlotData) %>% unlist(),
@@ -322,4 +360,17 @@ timePlotFormattingServer <- function(id, savedModels) {
                  
                  return(reactive(formattedPlot()))
                })
+}
+
+#' Add NA Row
+#' 
+#' Function to add a row with NA values at the end of a data.frame
+#' 
+#' @param df (data.frame) data.frame
+add_na_row <- function(df) {
+  na_row <-  matrix(rep(NA, ncol(df)), 
+                    nrow = 1, 
+                    dimnames = list("", colnames(df))) %>% 
+    as.data.frame()
+  bind_rows(df, na_row)
 }

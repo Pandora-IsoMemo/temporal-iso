@@ -104,7 +104,7 @@ timePlotFormattingUI <- function(id) {
                                       initStyle = config()[["defaultPointStyle"]])
       )
     ),
-    actionButton(ns("exportCredIntTimePlot"), "Export Plot"),
+    plotExportButton(ns("exportCredIntTimePlot")),
     tags$br(),
     tags$br(),
     tags$h4("Plot Data"),
@@ -320,43 +320,11 @@ timePlotFormattingServer <- function(id, savedModels) {
                    formattedPlot()
                  })
                  
-                 observeEvent(input$exportCredIntTimePlot, {
-                   
-                   plotOutputElement <- renderPlot({ savedPlot() })
-                   exportTypeChoices <- c("png", "pdf", "svg", "tiff")
-                   
-                   showModal(modalDialog(
-                     title = "Export Graphic",
-                     footer = modalButton("OK"),
-                     plotOutputElement,
-                     selectInput(
-                       ns("exportType"), "Filetype",
-                       choices = exportTypeChoices
-                     ),
-                     numericInput(ns("width"), "Width (px)", value = 1280),
-                     numericInput(ns("height"), "Height (px)", value = 800),
-                     downloadButton(ns("exportExecute"), "Export"),
-                     easyClose = TRUE
-                   ))
-                   
-                   output$exportExecute <- downloadHandler(
-                     filename = function(){
-                       paste0(gsub("-", "", Sys.Date()), "_", "Credibility_Intervals_Over_Time", ".", input$exportType)
-                     },
-                     content = function(file){
-                       switch(
-                         input$exportType,
-                         png = png(file, width = input$width, height = input$height),
-                         pdf = pdf(file, width = input$width / 72, height = input$height / 72),
-                         tiff = tiff(file, width = input$width, height = input$height),
-                         svg = svg(file, width = input$width / 72, height = input$height / 72)
-                       )
-                       print( savedPlot() )
-                       
-                       dev.off()
-                     }
-                   )
-                 })
+                 plotExportServer("exportCredIntTimePlot",
+                                  plotFun = reactive(function() savedPlot()),
+                                  filename = sprintf("%s_Credibility_Intervals_Over_Time",
+                                                     gsub("-", "", Sys.Date()))
+                                  )
                  
                  return(reactive(formattedPlot()))
                })

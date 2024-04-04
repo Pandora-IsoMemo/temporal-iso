@@ -25,7 +25,7 @@
 #' @importFrom rlang .data
 #' @importFrom rstan sampling extract
 #' @importFrom shinycssloaders withSpinner
-#' @importFrom shinyjs alert
+#' @importFrom shinyjs alert disable enable
 #' @importFrom shinyTools dataExportButton dataExportServer plotExportButton plotExportServer
 #'  formatPointsOfGGplot formatRangesOfGGplot formatTitlesOfGGplot
 #'  plotPointsServer plotPointsUI plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI

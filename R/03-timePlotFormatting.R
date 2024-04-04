@@ -254,8 +254,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                  
                  dataExportServer("exportCredIntTimeData", reactive(function() {extractedPlotDataDF()}))
                  
-                 savedPlot <- reactiveVal(list())
-                 
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
                    # draw basePlot (first element of input[["plotTimeModels"]])
@@ -310,7 +308,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                    }
                    
                    formattedPlot(p)
-                   savedPlot(p)
                  }) %>%
                    bindEvent(list(input[["applyFormatToTimePlot"]], 
                                   input[["applyFormatToTimePlotModel"]]))
@@ -321,7 +318,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  })
                  
                  plotExportServer("exportCredIntTimePlot",
-                                  plotFun = reactive(function() savedPlot()),
+                                  plotFun = reactive(function() formattedPlot()),
                                   filename = sprintf("%s_Credibility_Intervals_Over_Time",
                                                      gsub("-", "", Sys.Date()))
                                   )

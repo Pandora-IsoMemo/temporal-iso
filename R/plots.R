@@ -222,6 +222,29 @@ getLim <- function(plotRanges, axis = c("xAxis", "yAxis")) {
   c(plotRanges[[axis]][["min"]], plotRanges[[axis]][["max"]])
 }
 
+extractDisplayData <- function(plotDataList, models, credInt) {
+  # filter for displayed models:
+  plotDataList[models] %>%
+    bind_rows(.id = "individual") %>%
+    # add column with 
+    mutate(cred_interval = sprintf("%.0f%%", credInt * 100)) %>%
+    group_by(.data$time) %>%
+    # add id for each x value:
+    mutate(id_time = cur_group_id()) %>% 
+    ungroup() %>%
+    group_by(.data$individual) %>%
+    # add id for each individual:
+    mutate(id_model = cur_group_id()) %>%
+    # add an empty line after each individual (containing only NA values):
+    do(add_na_row(.)) %>% 
+    ungroup() %>%
+    # select order of columns for display and export data
+    select("id_model", "individual", "id_time", "time_lower", "time_upper", "time", 
+           "cred_interval", "lower", "median", "upper", "sd") %>%
+    # remove last line containing only NA values
+    slice(1:(n() - 1))
+}
+
 #' Get Plot Data
 #' 
 #' Extracts data from model output object
@@ -241,11 +264,21 @@ getPlotData <- function(object, prop = 0.8, time = NULL, deriv = "1"){
     }
   }
   
-  out <- as.data.frame(
+  # extract quantiles
+  intervalQuantiles <- as.data.frame(
     t(apply(dat, 2, quantile, probs = c(lLim, 0.5, uLim)))
   )
-  names(out) <- c("lower", "median", "upper")
+  names(intervalQuantiles) <- c("lower", "median", "upper")
   
+  # extract sd
+  intervalSD <- data.frame(
+    sd = apply(dat, 2, sd)
+  )
+  
+  # combine data
+  out <- bind_cols(intervalQuantiles, intervalSD)
+  
+  # add time column
   if (is.null(time)) time <- 1:ncol(dat)
   out$time <- time
   

@@ -14,7 +14,8 @@
 #' @importFrom colourpicker colourInput 
 #' @importFrom DataTools checkAnyNonNumericColumns downloadModelUI downloadModelServer 
 #'  importDataUI importDataServer importOptions renameExistingNames tryCatchWithWarningsAndErrors
-#' @importFrom dplyr arrange bind_rows cur_group_id distinct do group_by mutate n select slice ungroup
+#' @importFrom dplyr arrange bind_cols bind_rows cur_group_id distinct do group_by mutate n select
+#'  slice ungroup
 #' @importFrom ggplot2 aes element_line element_text ggplot geom_line geom_point geom_ribbon 
 #' labs scale_x_continuous theme ggtitle scale_y_continuous geom_vline coord_cartesian sec_axis
 #' @importFrom htmltools save_html

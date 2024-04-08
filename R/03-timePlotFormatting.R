@@ -220,25 +220,9 @@ timePlotFormattingServer <- function(id, savedModels) {
                  })
                  
                  extractedPlotDataDF <- reactive({
-                   # filter for displayed models:
-                   plotData <- extractedPlotDataList()[input[["plotTimeModels"]]] %>%
-                     bind_rows(.id = "individual") %>%
-                     # add column with 
-                     mutate(cred_interval = sprintf("%.0f%%", input$modCredInt * 100)) %>%
-                     group_by(.data$time) %>%
-                     # add id for each x value:
-                     mutate(id_time = cur_group_id()) %>% 
-                     ungroup() %>%
-                     group_by(.data$individual) %>%
-                     # add id for each individual:
-                     mutate(id_model = cur_group_id()) %>%
-                     # add an empty line after each individual (containing only NA values):
-                     do(add_na_row(.)) %>% 
-                     ungroup() %>%
-                     select("id_model", "individual", "id_time", "time_lower", "time_upper", "time", 
-                            "cred_interval", "lower", "median", "upper") %>%
-                     # remove last line containing only NA values
-                     slice(1:(n() - 1))
+                   extractDisplayData(plotDataList = extractedPlotDataList(),
+                                      models = input[["plotTimeModels"]],
+                                      credInt = input$modCredInt)
                  })
                  
                  output$plotData <- renderTable({

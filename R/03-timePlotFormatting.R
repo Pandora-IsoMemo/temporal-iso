@@ -219,7 +219,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                    # extract plot data from model object
                    lapply(allFits(), function(x) {
                      getPlotData(object = x, prop = input$modCredInt, deriv = input$deriv) %>%
-                       updateTime(time = x@time, deriv = input$deriv)
+                       updateTime(object = x, deriv = input$deriv)
                    })
                  })
                  
@@ -239,7 +239,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                      # add an empty line after each individual (containing only NA values):
                      do(add_na_row(.)) %>% 
                      ungroup() %>%
-                     select("id_model", "individual", "id_time", "time", 
+                     select("id_model", "individual", "id_time", "time_lower", "time_upper", "time", 
                             "cred_interval", "lower", "median", "upper") %>%
                      # remove last line containing only NA values
                      slice(1:(n() - 1))

@@ -4,12 +4,12 @@
 \alias{updateTime}
 \title{Extract Plot Data}
 \usage{
-updateTime(plotData, time, deriv = "1")
+updateTime(plotData, object, deriv = "1")
 }
 \arguments{
 \item{plotData}{(data.frame) plot data}
 
-\item{time}{(numeric) time entry of object (model of class \code{\link{TemporalIso}})}
+\item{object}{model of class \code{\link{TemporalIso}}}
 
 \item{deriv}{character "1" for absolute values, "2" for first differences}
 }

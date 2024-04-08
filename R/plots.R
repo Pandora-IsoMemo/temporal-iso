@@ -41,7 +41,7 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   stopifnot(prop < 1)
 
   x <- getPlotData(object, prop = prop, deriv = deriv) %>%
-    updateTime(time = object@time, deriv = deriv)
+    updateTime(object = object, deriv = deriv)
   
   if(is.null(oldPlot)){
     p <- basePlotTime(x = x,
@@ -222,17 +222,6 @@ getLim <- function(plotRanges, axis = c("xAxis", "yAxis")) {
   c(plotRanges[[axis]][["min"]], plotRanges[[axis]][["max"]])
 }
 
-#' Extract Plot Data
-#' 
-#' @param plotData (data.frame) plot data
-#' @param time (numeric) time entry of object (model of class \code{\link{TemporalIso}})
-#' @inheritParams plotTime
-updateTime <- function(plotData, time, deriv = "1") {
-  plotData$time <- adjustTimeColumn(objectTime = time, deriv = deriv)
-  
-  plotData
-}
-
 #' Get Plot Data
 #' 
 #' Extracts data from model output object
@@ -263,6 +252,17 @@ getPlotData <- function(object, prop = 0.8, time = NULL, deriv = "1"){
   return(out)
 }
 
+#' Extract Plot Data
+#' 
+#' @param plotData (data.frame) plot data
+#' @inheritParams plotTime
+updateTime <- function(plotData, object, deriv = "1") {
+  plotData$time <- adjustTimeColumn(objectTime = object@time, deriv = deriv)
+  plotData$time_lower <- adjustTimeColumn(objectTime = object@timeLower, deriv = deriv)
+  plotData$time_upper <- adjustTimeColumn(objectTime = object@timeUpper, deriv = deriv)
+  
+  plotData
+}
 
 #' Adjust Time Column
 #' 

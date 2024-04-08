@@ -32,7 +32,7 @@ testthat::test_that("plotTime",  {
 
 testthat::test_that("basePlotTime",  {
   plotData <- getPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1") %>%
-    updateTime(time = testObjectDefault1@time, deriv = "1")
+    updateTime(object = testObjectDefault1, deriv = "1")
   # specify x, y limits
   plot <- basePlotTime(x = plotData,
                        yLim = c(-10,-5), xLim = c(0, 8)) %>%
@@ -84,7 +84,7 @@ testthat::test_that("setSecondYAxis",  {
   allXAxisData <- extractAllXAxisData(allModels)
   
   plotData1 <- getPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1") %>%
-    updateTime(time = testObjectDefault1@time, deriv = "1")
+    updateTime(object = testObjectDefault1, deriv = "1")
   plot1 <- basePlotTime(x = plotData1,
                         yLim = c(-10,-5), xLim = c(0, 8)) %>%
     drawLinesAndRibbon(x = plotData1,
@@ -106,7 +106,7 @@ testthat::test_that("setSecondYAxis",  {
   
   # add another plot
   plotData2 <- getPlotData(object = testObjectGap1, prop = 0.8, deriv = "1") %>%
-    updateTime(time = testObjectGap1@time, deriv = "1")
+    updateTime(object = testObjectGap1, deriv = "1")
   rescaling <- getRescaleParams(oldLimits = plot1$coordinates$limits$y,
                                 newLimits = getYRange(plotData2) %>% unlist(),
                                 secAxis = FALSE)

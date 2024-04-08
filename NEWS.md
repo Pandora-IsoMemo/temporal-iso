@@ -1,23 +1,31 @@
 # OsteoBioR
 
-## Version 24.04.0
+## OsteoBioR 24.04.1
+
+### New Features
+- When generating multiple plots in Credible intervals over time have the option to select which 
+ones to show/hide (#45)
+- When having two y-axes (one on the left and another one on the right of the plot). Have the option
+to switch their positions. (#43)
+
+## OsteoBioR 24.04.0
 
 ### New Features
 - option to change symbol, color, size of points in "Model: Credibility intervals over time" (#43)
 
-## Version 24.01.1
+## OsteoBioR 24.01.1
 
 ### New Features
 - Option to use rownames of data as individual variable. This allows to use non-numeric values for 
   individuals since rownames do not need to be numeric (#35)
 
-## Version 24.01.0
+## OsteoBioR 24.01.0
 
 ### Bug Fixes
 - fix a bug that prevented the usage of multiple cores during model estimation. In essence only a
  single core was used.
 
-## Version 23.12.2
+## OsteoBioR 23.12.2
 
 ### New Features
 - _Import of models from Pandora_: 
@@ -28,29 +36,29 @@
   - an error message occurred when trying to load a model from pandora.
   - fix: adding the missing download of the zip file from the url before unpacking the zip
 
-## Version 23.12.0
+## OsteoBioR 23.12.0
 
 #### New Features
 - option to use a fixed seed when fitting the model (#37)
 
-## Version 23.10.1
+## OsteoBioR 23.10.1
 
 ### Bug Fixes
 - fix for model down- and upload: add missing export to package functions
 
-## Version 23.10.0
+## OsteoBioR 23.10.0
 
 ### New Features
 - _Import of models_:
   - option to import models from Pandora platform
 
-## Version 23.09.1
+## OsteoBioR 23.09.1
 
 ### New Features
 - tab _Model_, section _Credibility intervals over time_: new checkbox to extend the x-axis labels
 to the _lower_ and _upper x limit_ (#26)
 
-## Version 23.04.1
+## OsteoBioR 23.04.1
 
 ### Bug Fixes
 - add missing logic for default values if "Use renewal rates uncertainty" is unchecked (#24)
@@ -58,7 +66,7 @@ to the _lower_ and _upper x limit_ (#26)
 uncertainties
 - add tests to check new logic
 
-## Version 23.03.2
+## OsteoBioR 23.03.2
 
 ### Updates
 - remote models are loaded from the github folder `inst/app/predefinedModels` of the respective 
@@ -66,17 +74,17 @@ repository
 - if there is no internet connection remote models are taken from the models that were saved with
   the last deployed app version
 
-## Version 23.03.1
+## OsteoBioR 23.03.1
 
 ### Bug fixes
 - add remote package to enable the _Import Data_ module
 
-## Version 23.02.2
+## OsteoBioR 23.02.2
 
 ### Updates
 - add more tryCatch statements
 
-## Version 23.02.1
+## OsteoBioR 23.02.1
 
 ### New Features
 - the _Import Data_ module is now imported from the new package DataTools (#15, PR #16)
@@ -85,12 +93,12 @@ repository
   - using "file" as default source in _Import Data_
 - now, sidebars are fixed with auto scroll in all tabs (iso-app #4)
 
-## Version 23.01.1
+## OsteoBioR 23.01.1
 
 ### New Features
 - option to use renewal rates uncertainties
 
-## Version 22.11.1
+## OsteoBioR 22.11.1
 
 ### Updates
 - added column names to exported interval data

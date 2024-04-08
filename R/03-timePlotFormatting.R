@@ -218,9 +218,8 @@ timePlotFormattingServer <- function(id, savedModels) {
                  extractedPlotDataList <- reactive({
                    # extract plot data from model object
                    lapply(allFits(), function(x) {
-                     extractPlotData(object = x,
-                                     prop = input$modCredInt,
-                                     deriv = input$deriv)
+                     getPlotData(object = x, prop = input$modCredInt, deriv = input$deriv) %>%
+                       updateTime(time = x@time, deriv = input$deriv)
                    })
                  })
                  
@@ -252,15 +251,15 @@ timePlotFormattingServer <- function(id, savedModels) {
                    extractedPlotDataDF()
                  })
                  
-                 dataExportServer("exportCredIntTimeData",
-                                  reactive(function() {extractedPlotDataDF()}))
+                 plotDataExport <- reactiveVal()
                  
                  observe({
-                   if (is.null(input[["plotTimeModels"]]) || 
-                       (length(input[["plotTimeModels"]]) == 1 && input[["plotTimeModels"]] == "")) 
-                     shinyjs::disable(ns("exportCredIntTimeData-export"), asis = TRUE) else 
-                       shinyjs::enable(ns("exportCredIntTimeData-export"), asis = TRUE)
-                 })
+                   plotDataExport(extractedPlotDataDF())
+                 }) %>%
+                   bindEvent(input[["plotTimeModels"]])
+                 
+                 dataExportServer("exportCredIntTimeData",
+                                  reactive(function() {plotDataExport()}))
                  
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
@@ -330,12 +329,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                                   filename = sprintf("%s_Credibility_Intervals_Over_Time",
                                                      gsub("-", "", Sys.Date()))
                                   )
-                 
-                 observe({
-                   if (length(formattedPlot()) == 0) 
-                     shinyjs::disable(ns("exportCredIntTimePlot-export"), asis = TRUE) else 
-                       shinyjs::enable(ns("exportCredIntTimePlot-export"), asis = TRUE)
-                 })
                  
                  return(reactive(formattedPlot()))
                })

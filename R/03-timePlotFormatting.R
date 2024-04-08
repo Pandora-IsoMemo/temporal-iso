@@ -152,7 +152,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                    initStyle = config()[["defaultPointStyle"]]
                    )
                  
-                 allXAxisData <- reactiveVal(data.frame())
                  pointStyleList <- reactiveValues()
                  lineStyleList <- reactiveValues()
                  
@@ -173,9 +172,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                    # inputs in tab "Credibility intervals over time"
                    updateSelectizeInput(session, "plotTimeModels", 
                                         choices = modelChoices, selected = selectedModel)
-                   
-                   allXAxisData(extractAllXAxisData(models = savedModels(), 
-                                                    allXAxisData = allXAxisData()))
                  }) %>%
                    bindEvent(savedModels())
                  
@@ -266,11 +262,14 @@ timePlotFormattingServer <- function(id, savedModels) {
                    # draw basePlot (first element of input[["plotTimeModels"]])
                    firstModel <- input[["plotTimeModels"]][1]
                    basePlotData <- extractedPlotDataList()[[firstModel]]
-                   p <- basePlotTime(x = basePlotData) %>%
+                   p <- basePlotTime(x = basePlotData,
+                                     xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
+                                     yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
                      setTitles(prop = input$modCredInt) %>%
                      shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
                      shinyTools::formatRangesOfGGplot(ranges = plotRanges) %>%
-                     setXAxisLabels(xAxisData = allXAxisData(),
+                     setXAxisLabels(xAxisData = extractedPlotDataList() %>%
+                                      extractAllXAxisData(), # labels for all x axis data
                                     extendLabels = input$extendLabels, 
                                     xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
                                     deriv = input$deriv,
@@ -302,7 +301,9 @@ timePlotFormattingServer <- function(id, savedModels) {
                                         textFormat = plotTexts[["yAxisText"]],
                                         yAxisLabel = input[["secAxisText"]],
                                         yAxisTitleColor = input[["secAxisColor"]]) %>%
-                         setPlotLimits(newData = layerPlotData) %>%
+                         setPlotLimits(newData = layerPlotData,
+                                       xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
+                                       yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
                          drawLinesAndRibbon(x = layerPlotData,
                                             colorL = lineStyleList[[i]]$colorL,
                                             colorU = lineStyleList[[i]]$colorU,

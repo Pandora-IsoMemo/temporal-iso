@@ -278,22 +278,12 @@ adjustTimeColumn <- function(objectTime, deriv){
   res
 }
 
-#' Extract All X-Axis Data
-#' 
-#' Extract all x-axis data to draw x axis ticks and labels at all possible points in time present 
-#'  in models
-#' 
-#' @param models (list) list of models
-#' @param allXAxisData (data.frame) empty data.frame, or a data.frame containing xAxisData, output
-#'  of \code{getXAxisData}
-#' 
-#' @export
-extractAllXAxisData <- function(models, allXAxisData = data.frame()) {
-  for (i in 1:length(models)) {
-    allXAxisData <- getXAxisData(models[[i]]$fit, oldXAxisData = allXAxisData)
-  }
-  
-  allXAxisData
+extractAllXAxisData <- function(extractedPlotDataList) {
+  extractedPlotDataList %>%
+    bind_rows() %>%
+    select("time", "time_lower", "time_upper") %>% 
+    distinct() %>%
+    arrange(.data$time)
 }
 
 #' Get X-Axis Data
@@ -306,8 +296,8 @@ getXAxisData <- function(object, oldXAxisData = data.frame()){
   if (is.null(object)) return(data.frame())
   
   xAxisData <- data.frame(time = object@time,
-                          lower = object@timeLower,
-                          upper = object@timeUpper)
+                          time_lower = object@timeLower,
+                          time_upper = object@timeUpper)
   
   if (nrow(oldXAxisData) > 0) {
     xAxisData <- bind_rows(xAxisData, oldXAxisData) %>%
@@ -326,24 +316,24 @@ getXAxisData <- function(object, oldXAxisData = data.frame()){
 #'  the x axis.
 #' @param xLabelLim numeric vector of length 2: range of labels of x axis
 extendXAxis <- function(xAxisData, xLabelLim) {
-  if (min(xLabelLim) < min(xAxisData[["lower"]])) {
+  if (min(xLabelLim) < min(xAxisData[["time_lower"]])) {
     # add new row at the beginning
     newFirstRow <- data.frame(
-      "time" = mean(c(min(xLabelLim), min(xAxisData[["lower"]]))),
-      "lower" = min(xLabelLim),
-      "upper" = min(xAxisData[["lower"]])
+      "time" = mean(c(min(xLabelLim), min(xAxisData[["time_lower"]]))),
+      "time_lower" = min(xLabelLim),
+      "time_upper" = min(xAxisData[["time_lower"]])
     )
     
     xAxisData <- rbind(newFirstRow, 
                        xAxisData)
   }
   
-  if (max(xLabelLim) > max(xAxisData[["upper"]])) {
+  if (max(xLabelLim) > max(xAxisData[["time_upper"]])) {
     # add new row at the end
     newLastRow <- data.frame(
-      "time" = mean(c(max(xAxisData[["upper"]]), max(xLabelLim))),
-      "lower" = max(xAxisData[["upper"]]),
-      "upper" = max(xLabelLim)
+      "time" = mean(c(max(xAxisData[["time_upper"]]), max(xLabelLim))),
+      "time_lower" = max(xAxisData[["time_upper"]]),
+      "time_upper" = max(xLabelLim)
     )
     
     xAxisData <- rbind(xAxisData,
@@ -359,10 +349,10 @@ extendXAxis <- function(xAxisData, xLabelLim) {
 #' @inheritParams plotTime
 #' @param hidePastedLabels (logical) if TRUE then dont't show pasted labels 
 getLabel <- function(xAxisData, deriv, hidePastedLabels = TRUE){
-  if(any(xAxisData$lower != xAxisData$upper)){
-    labels <- c(paste0("[", as.character(xAxisData$lower),"-", as.character(xAxisData$upper), "]"))
+  if(any(xAxisData$time_lower != xAxisData$time_upper)){
+    labels <- c(paste0("[", as.character(xAxisData$time_lower),"-", as.character(xAxisData$time_upper), "]"))
   } else {
-    labels <- unique(sort(as.numeric(c(xAxisData$lower, xAxisData$time, xAxisData$upper))))
+    labels <- unique(sort(as.numeric(c(xAxisData$time_lower, xAxisData$time, xAxisData$time_upper))))
   }
   
   if(deriv == "2"){

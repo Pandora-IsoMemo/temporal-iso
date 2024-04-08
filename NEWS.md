@@ -119,7 +119,6 @@ of "Current"
 - new model name and note in remote Test data containing only model inputs and data
     
 ### Bug Fixes
-
 - fixed export of interval data (#12)
 - fixed reactive behavior after model upload in the tab _Credibility intervals over time_ (#12)
 - fixed error when trying to export credibility interval plot 

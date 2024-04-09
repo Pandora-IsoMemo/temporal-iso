@@ -220,7 +220,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  })
                  
                  extractedPlotDataDF <- reactive({
-                   extractDisplayData(plotDataList = extractedPlotDataList(),
+                   extractPlotDataDF(plotDataList = extractedPlotDataList(),
                                       models = input[["plotTimeModels"]],
                                       credInt = input$modCredInt)
                  })
@@ -245,8 +245,11 @@ timePlotFormattingServer <- function(id, savedModels) {
                    req(savedModels(), input[["plotTimeModels"]])
                    # draw basePlot (first element of input[["plotTimeModels"]])
                    firstModel <- input[["plotTimeModels"]][1]
-                   basePlotData <- extractedPlotDataList()[[firstModel]]
-                   p <- basePlotTime(x = basePlotData,
+                   #basePlotData <- extractedPlotDataList()[[firstModel]]
+                   plotData <- extractedPlotDataDF() %>%
+                     na.omit()
+                   browser()
+                   p <- basePlotTime(x = plotData, #basePlotData,
                                      xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
                                      yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
                      setTitles(prop = input$modCredInt) %>%
@@ -258,46 +261,48 @@ timePlotFormattingServer <- function(id, savedModels) {
                                     xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
                                     deriv = input$deriv,
                                     plotShifts = FALSE) %>%
-                     drawLinesAndRibbon(x = basePlotData,
+                     drawLinesAndRibbon(x = plotData, #basePlotData,
                                         colorL = lineStyleList[[firstModel]]$colorL,
                                         colorU = lineStyleList[[firstModel]]$colorU,
                                         alphaL = lineStyleList[[firstModel]]$alphaL, 
                                         alphaU = lineStyleList[[firstModel]]$alphaU) %>%
-                     shinyTools::formatPointsOfGGplot(data = basePlotData,
-                                                      aes(x = .data[["time"]], y = .data[["median"]]), 
+                     shinyTools::formatPointsOfGGplot(data = plotData, #basePlotData,
+                                                      aes(x = .data[["time"]], 
+                                                          y = .data[["median"]],
+                                                          colour = .data[["individual"]]), 
                                                       pointStyle = pointStyleList[[firstModel]])
                    
                    # loop over multiple elements of input[["plotTimeModels"]]
-                   nDisplayedModels <- length(input[["plotTimeModels"]])
-                   if (nDisplayedModels > 1) {
-                     for (i in input[["plotTimeModels"]][2:nDisplayedModels]) {
-                       layerPlotData <- extractedPlotDataList()[[i]]
-                       ## use always data based newYLimits, we only set global limits not(!) per model
-                       rescaling <- getRescaleParams(oldLimits = p$coordinates$limits$y,
-                                                     newLimits = getYRange(layerPlotData) %>% unlist(),
-                                                     secAxis = input[["secAxisModel"]] == i)
-                       layerPlotData <- layerPlotData %>%
-                         rescaleLayerData(rescaling = rescaling)
-                       
-                       p <- p %>%
-                         setSecondYAxis(rescaling = rescaling,
-                                        titleFormat = plotTexts[["yAxisTitle"]],
-                                        textFormat = plotTexts[["yAxisText"]],
-                                        yAxisLabel = input[["secAxisText"]],
-                                        yAxisTitleColor = input[["secAxisColor"]]) %>%
-                         setPlotLimits(newData = layerPlotData,
-                                       xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
-                                       yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
-                         drawLinesAndRibbon(x = layerPlotData,
-                                            colorL = lineStyleList[[i]]$colorL,
-                                            colorU = lineStyleList[[i]]$colorU,
-                                            alphaL = lineStyleList[[i]]$alphaL,
-                                            alphaU = lineStyleList[[i]]$alphaU) %>%
-                         shinyTools::formatPointsOfGGplot(data = layerPlotData,
-                                                          aes(x = .data[["time"]], y = .data[["median"]]), 
-                                                          pointStyle = pointStyleList[[i]])
-                     }
-                   }
+                   # nDisplayedModels <- length(input[["plotTimeModels"]])
+                   # if (nDisplayedModels > 1) {
+                   #   for (i in input[["plotTimeModels"]][2:nDisplayedModels]) {
+                   #     layerPlotData <- extractedPlotDataList()[[i]]
+                   #     ## use always data based newYLimits, we only set global limits not(!) per model
+                   #     rescaling <- getRescaleParams(oldLimits = p$coordinates$limits$y,
+                   #                                   newLimits = getYRange(layerPlotData) %>% unlist(),
+                   #                                   secAxis = input[["secAxisModel"]] == i)
+                   #     layerPlotData <- layerPlotData %>%
+                   #       rescaleLayerData(rescaling = rescaling)
+                   #     
+                   #     p <- p %>%
+                   #       setSecondYAxis(rescaling = rescaling,
+                   #                      titleFormat = plotTexts[["yAxisTitle"]],
+                   #                      textFormat = plotTexts[["yAxisText"]],
+                   #                      yAxisLabel = input[["secAxisText"]],
+                   #                      yAxisTitleColor = input[["secAxisColor"]]) %>%
+                   #       setPlotLimits(newData = layerPlotData,
+                   #                     xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
+                   #                     yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
+                   #       drawLinesAndRibbon(x = layerPlotData,
+                   #                          colorL = lineStyleList[[i]]$colorL,
+                   #                          colorU = lineStyleList[[i]]$colorU,
+                   #                          alphaL = lineStyleList[[i]]$alphaL,
+                   #                          alphaU = lineStyleList[[i]]$alphaU) %>%
+                   #       shinyTools::formatPointsOfGGplot(data = layerPlotData,
+                   #                                        aes(x = .data[["time"]], y = .data[["median"]]), 
+                   #                                        pointStyle = pointStyleList[[i]])
+                   #   }
+                   # }
                    
                    formattedPlot(p)
                  }) %>%

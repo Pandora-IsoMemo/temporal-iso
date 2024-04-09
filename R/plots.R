@@ -162,20 +162,27 @@ getRescaleParams <- function(oldLimits, newLimits = NULL, secAxis = FALSE) {
 drawLinesAndRibbon <- function(plot, x, colorL, colorU, alphaL, alphaU) {
   if (nrow(x) > 1) {
     plot <- plot +
-      geom_line(data = x, aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
-      geom_line(data = x, aes(y = .data[["lower"]]), linewidth = 0.05, colour = colorL, alpha = alphaL) +
-      geom_line(data = x, aes(y = .data[["upper"]]), linewidth = 0.05, colour = colorL, alpha = alphaL)
+      geom_line(data = x, aes(y = .data[["median"]], colour = .data[["individual"]]), 
+                alpha = alphaL) + #, colour = colorL) +
+      geom_line(data = x, aes(y = .data[["lower"]], colour = .data[["individual"]]), 
+                linewidth = 0.05, alpha = alphaL) + #, colour = colorL) +
+      geom_line(data = x, aes(y = .data[["upper"]], colour = .data[["individual"]]), 
+                linewidth = 0.05, alpha = alphaL) #, colour = colorL)
   } else {
     plot <- plot +
-      geom_point(data = x, aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
-      geom_point(data = x, aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
-      geom_point(data = x, aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL)
+      geom_point(data = x, aes(y = .data[["median"]], colour = .data[["individual"]]),
+                 alpha = alphaL) + # , colour = colorL
+      geom_point(data = x, aes(y = .data[["lower"]], colour = .data[["individual"]]), 
+                 size = 0.05, alpha = alphaL) + # , colour = colorL
+      geom_point(data = x, aes(y = .data[["upper"]], colour = .data[["individual"]]), 
+                 size = 0.05, alpha = alphaL) # , colour = colorL
   }
   
   if (nrow(x) > 1) {
     plot <- plot + 
-      geom_ribbon(data = x, aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), 
-                  linetype = 2, alpha = alphaU, fill = colorU)
+      geom_ribbon(data = x, aes(ymin = .data[["lower"]], ymax = .data[["upper"]], 
+                                fill = .data[["individual"]]), 
+                  linetype = 2, alpha = alphaU) #, fill = colorU)
   }
   
   plot
@@ -222,7 +229,7 @@ getLim <- function(plotRanges, axis = c("xAxis", "yAxis")) {
   c(plotRanges[[axis]][["min"]], plotRanges[[axis]][["max"]])
 }
 
-extractDisplayData <- function(plotDataList, models, credInt) {
+extractPlotDataDF <- function(plotDataList, models, credInt) {
   # filter for displayed models:
   plotDataList[models] %>%
     bind_rows(.id = "individual") %>%

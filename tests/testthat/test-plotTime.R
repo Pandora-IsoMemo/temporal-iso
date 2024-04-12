@@ -3,31 +3,26 @@ load("testObjectGap.RData")
 
 testthat::test_that("plotTime",  {
   plot1 <- plotTime(object = testObjectDefault1, prop = 0.8, yLim = c(-10,-5), xLim = c(0, 8),
-                    colorL = "#002350", colorU = "#002350")
+                    color = "#002350")
   
   expect_equal(plot1$labels, list(x = "Time", y = "Estimate", 
                                   title = "80%-Credibility-Interval for isotopic values over time", 
-                                  ymin = "lower", ymax = "upper"))
+                                  colour = "individual",
+                                  ymin = "lower", ymax = "upper",
+                                  fill = "individual",
+                                  shape = "individual",
+                                  size = "individual"))
   
   plot2 <- plotTime(object = testObjectGap1, prop = 0.8, yLim = c(-10,-5), xLim = c(0, 4),
-                    colorL = "#002350", colorU = "#002350")
+                    color = "#002350")
   
   expect_equal(plot2$labels, list(x = "Time", y = "Estimate", 
                                   title = "80%-Credibility-Interval for isotopic values over time", 
-                                  ymin = "lower", ymax = "upper"))
-  
-  
-  xAxisData1 <- getXAxisData(object = testObjectDefault1)
-  oldXAxisData <- getXAxisData(object = testObjectGap1, oldXAxisData = xAxisData1)
-  
-  plot <- plotTime(object = testObjectGap1, prop = 0.8, yLim = c(-10,-5), xLim = c(0, 8),
-                   oldPlot = plot1, oldXAxisData = oldXAxisData,
-                   colorL = "#002350", colorU = "#002350")
-  
-  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
-                                 title = "80%-Credibility-Interval for isotopic values over time", 
-                                 ymin = "lower", ymax = "upper"))
-  expect_equal(plot$coordinates$limits, list(x = c(0, 8), y = c(-10, -5)))
+                                  colour = "individual",
+                                  ymin = "lower", ymax = "upper",
+                                  fill = "individual",
+                                  shape = "individual",
+                                  size = "individual"))
 })
 
 testthat::test_that("basePlotTime",  {
@@ -52,6 +47,8 @@ testthat::test_that("basePlotTime",  {
                 xLim = c(0, 8), 
                 deriv = "1",
                 plotShifts = FALSE)
+  
+  plot <- plot + theme(legend.position = "none")
   
   expect_equal(plot$labels, list(x = "Time", y = "Estimate",
                                  title = "80%-Credibility-Interval for isotopic values over time", 
@@ -82,7 +79,57 @@ testthat::test_that("basePlotTime",  {
                     y = c(ymin = -12.7512327337153, ymax = -4.60003088235379)))
 })
 
+testthat::test_that("drawLinesAndRibbon",  {
+  allModels <- list(
+    list(fit = testObjectDefault1),
+    list(fit = testObjectGap1),
+    list(fit = testObjectGap11)
+  )
+  
+  plotData1 <- getPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1") %>%
+    updateTime(object = testObjectDefault1, deriv = "1")
+  plotData2 <- getPlotData(object = testObjectGap1, prop = 0.8, deriv = "1") %>%
+    updateTime(object = testObjectGap1, deriv = "1")
+  allPlotDataDF <- list(ind_1 = plotData1,
+                        ind_2 = plotData2) %>%
+    extractPlotDataDF(models = c("ind_1", "ind_2"),
+                      credInt = 0.8) %>%
+    na.omit()
+  
+  pointStyleList <- list(ind_1 = list(dataPoints = list(symbol = 19L, 
+                                                        color = "#002350", 
+                                                        colorBg = "#002350", 
+                                                        size = 2L, 
+                                                        alpha = 1L, 
+                                                        lineWidthBg = 2L, 
+                                                        hide = FALSE)), 
+                         ind_2 = list(dataPoints = list(symbol = 19L, 
+                                                        color = "#002350",
+                                                        colorBg = "#002350", 
+                                                        size = 2L,
+                                                        alpha = 1L, 
+                                                        lineWidthBg = 2L,
+                                                        hide = FALSE)))
+  
+  # ggplot2::scale_color_discrete()$palette(n = 2)
+  
+  lineStyleList <- list(ind_1 = list(colorL = "#F8766D",
+                                     colorU = "#F8766D"),
+                        ind_2 = list(colorL = "#00BFC4",
+                                     colorU = "#00BFC4"))
+  
+  
+  plot <- basePlotTime(x = allPlotDataDF,
+                        yLim = c(-10,-5), xLim = c(0, 8)) %>%
+    drawLinesAndRibbon(x = allPlotDataDF,
+                       lineStyleList = lineStyleList,
+                       alphaL = 0.9, alphaU = 0.1)
+})
+
 testthat::test_that("setSecondYAxis",  {
+  
+  
+  
   allModels <- list(
     list(fit = testObjectDefault1),
     list(fit = testObjectGap1),

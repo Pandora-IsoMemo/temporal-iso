@@ -73,7 +73,7 @@
 #' ###############################
 #' plotTime(fit, plotShifts = TRUE, threshold = 0.5)
 #' plotTime(fit, plotShifts = TRUE, threshold = 0.5,
-#'         absolute = TRUE, probability = 0.5)
+#'          type = TRUE, probability = 0.5)
 #'
 #' getShiftTime(fit, threshold = 0.5)
 #'

@@ -8,13 +8,10 @@
 #' @param plotShifts boolean if shifts shall be marked or not. Defaults to False.
 #' @param yLim numeric vector of length 2: range of y axis
 #' @param xLim numeric vector of length 2: range of x axis
-#' @param oldPlot ggplot object
-#' @param oldXAxisData data.frame of time data from object
 #' @param deriv character "1" for absolute values, "2" for first differences
-#' @param colorL color of line (RGB)
-#' @param colorU color of uncertainty region (RGB)
-#' @param alphaL Color line
-#' @param alphaU Color uncertainty region
+#' @param color color of line and uncertainty region (RGB)
+#' @param alphaL opacity line
+#' @param alphaU opacity uncertainty region
 #' @param sizeTextY size plot y label
 #' @param xAxisLabel character label x-axis
 #' @param yAxisLabel character label y-axis
@@ -25,50 +22,43 @@
 #' @param extendLabels boolean if TRUE, extend the labels of the x-axis to the x-axis limits. 
 #'  If FALSE, the range of the data defines the range of x-axis labels.
 #' @param ... arguments handed to \code{\link{getShiftTime}}
-#' @inheritParams shinyTools::formatPointsOfGGplot
 #' 
 #' @return a \link[ggplot2]{ggplot} object.
 #' 
 #' @export
 plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
                      yLim = c(0,1), xLim = c(0,1),
-                     oldPlot = NULL, oldXAxisData = data.frame(), deriv = "1", colorL = NULL,
-                     colorU = NULL, alphaL = 0.9, alphaU = 0.1,
+                     deriv = "1", 
+                     color = NULL, alphaL = 0.9, alphaU = 0.1,
                      sizeTextY = 12, sizeTextX = 12, sizeAxisX = 12, sizeAxisY = 12, secAxis = FALSE,
                      xAxisLabel = "Time", yAxisLabel = "Estimate", extendLabels = FALSE,
-                     pointStyle = config()[["defaultPointStyle"]],
                      ...){
   stopifnot(prop < 1)
 
   x <- getPlotData(object, prop = prop, deriv = deriv) %>%
     updateTime(object = object, deriv = deriv)
   
-  if(is.null(oldPlot)){
-    p <- basePlotTime(x = x,
+  x$individual <- "current"
+  pointStyleList <- list()
+  pointStyleList[["current"]] <- config()[["defaultPointStyle"]][["dataPoints"]]
+  pointStyleList[["current"]]["color"] <- colorL
+  
+  p <- basePlotTime(x = x,
                       xLim = xLim, yLim = yLim,
                       sizeTextX = sizeTextX, sizeTextY = sizeTextY,
                       sizeAxisX = sizeAxisX, sizeAxisY = sizeAxisY) %>%
       setTitles(prop, xAxisLabel, yAxisLabel)
-  } else {
-    rescaling <- getRescaleParams(oldLimits = oldPlot$coordinates$limits$y,
-                                  newLimits = getYRange(x) %>% unlist(),
-                                  secAxis = secAxis)
-    x <- x %>%
-      rescaleLayerData(rescaling = rescaling)
-    
-    p <- oldPlot %>%
-      setSecondYAxis(rescaling = rescaling, yAxisLabel = yAxisLabel)
-  }
   
-  p %>%
-    drawLinesAndRibbon(x = x, colorL = colorL, colorU = colorU, alphaL = alphaL, alphaU = alphaU) %>%
-    formatPointsOfGGplot(data = x, aes(x = .data[["time"]], y = .data[["median"]]), pointStyle = pointStyle) %>%
-    setXAxisLabels(xAxisData = getXAxisData(object = object, oldXAxisData = oldXAxisData),
+  p <- p %>%
+    drawLinesAndRibbon(pointStyleList = pointStyleList, alphaL = alphaL, alphaU = alphaU) %>%
+    setXAxisLabels(xAxisData = getXAxisData(object = object),
                    extendLabels = extendLabels, 
                    xLim = xLim, 
                    deriv = deriv,
                    plotShifts = plotShifts,
                    ...)
+  
+  p + theme(legend.position = "none")
 }
 
 basePlotTime <- function(x,
@@ -159,33 +149,63 @@ getRescaleParams <- function(oldLimits, newLimits = NULL, secAxis = FALSE) {
        center = res$coefficients[1])
 }
 
-drawLinesAndRibbon <- function(plot, x, colorL, colorU, alphaL, alphaU) {
-  if (nrow(x) > 1) {
+drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU) {
+  # draw lines "upper", "mdeian", "lower"
+  if (nrow(plot$data) > 1) {
     plot <- plot +
-      geom_line(data = x, aes(y = .data[["median"]], colour = .data[["individual"]]), 
-                alpha = alphaL) + #, colour = colorL) +
-      geom_line(data = x, aes(y = .data[["lower"]], colour = .data[["individual"]]), 
-                linewidth = 0.05, alpha = alphaL) + #, colour = colorL) +
-      geom_line(data = x, aes(y = .data[["upper"]], colour = .data[["individual"]]), 
-                linewidth = 0.05, alpha = alphaL) #, colour = colorL)
+      geom_line(aes(y = .data[["median"]], colour = .data[["individual"]]), 
+                alpha = alphaL) +
+      geom_line(aes(y = .data[["lower"]], colour = .data[["individual"]]), 
+                linewidth = 0.05, alpha = alphaL) + 
+      geom_line(aes(y = .data[["upper"]], colour = .data[["individual"]]), 
+                linewidth = 0.05, alpha = alphaL)
   } else {
     plot <- plot +
-      geom_point(data = x, aes(y = .data[["median"]], colour = .data[["individual"]]),
-                 alpha = alphaL) + # , colour = colorL
-      geom_point(data = x, aes(y = .data[["lower"]], colour = .data[["individual"]]), 
-                 size = 0.05, alpha = alphaL) + # , colour = colorL
-      geom_point(data = x, aes(y = .data[["upper"]], colour = .data[["individual"]]), 
-                 size = 0.05, alpha = alphaL) # , colour = colorL
+      geom_point(aes(y = .data[["median"]], colour = .data[["individual"]]),
+                 alpha = alphaL) +
+      geom_point(aes(y = .data[["lower"]], colour = .data[["individual"]]), 
+                 size = 0.05, alpha = alphaL) +
+      geom_point(aes(y = .data[["upper"]], colour = .data[["individual"]]), 
+                 size = 0.05, alpha = alphaL)
   }
   
-  if (nrow(x) > 1) {
+  # draw ribbon
+  if (nrow(plot$data) > 1) {
     plot <- plot + 
-      geom_ribbon(data = x, aes(ymin = .data[["lower"]], ymax = .data[["upper"]], 
-                                fill = .data[["individual"]]), 
-                  linetype = 2, alpha = alphaU) #, fill = colorU)
+      geom_ribbon(aes(ymin = .data[["lower"]], ymax = .data[["upper"]], 
+                      fill = .data[["individual"]]), 
+                  linetype = 2, alpha = alphaU)
   }
   
-  plot
+  # draw points "median"
+  plot <- plot +
+    geom_point(aes(y = .data[["median"]],
+                   colour = .data[["individual"]],
+                   shape = .data[["individual"]],
+                   size = .data[["individual"]],
+                   fill = .data[["individual"]]),
+               alpha = alphaL)
+  
+  # set scales for each "individual"
+  lineColors <- getStyleForIndividuals(pointStyleList, input = "color")
+  fillColors <- getStyleForIndividuals(pointStyleList, input = "color")
+  pointShapes <- getStyleForIndividuals(pointStyleList, input = "symbol")
+  pointSize <- getStyleForIndividuals(pointStyleList, input = "size")
+  
+  plot + 
+    scale_colour_manual(name = "individual", values = lineColors) +  # former colorL
+    scale_fill_manual(name = "individual", values = fillColors)+  # former colorU
+    scale_shape_manual(name = "individual", values = pointShapes) +
+    scale_size_manual(name = "individual", values = pointSize)
+}
+
+getStyleForIndividuals <- function(pointStyleList, input) {
+  # pointStyleList are reactive values -> lapply over the names and not(!) the list itself
+  style <- lapply(names(pointStyleList), function(x) {pointStyleList[[x]][input]}) %>% 
+    unlist()
+  names(style) <- names(pointStyleList)
+  
+  style
 }
 
 setTitles <- function(plot, prop, xAxisLabel = "Time", yAxisLabel = "Estimate") {

@@ -14,9 +14,9 @@ timePlotFormattingUI <- function(id) {
     plotOutput(ns("plotTime")) %>% withSpinner(color = "#20c997"),
     tags$br(),
     fluidRow(
-      column(7,
+      column(8,
              selectizeInput(ns("plotTimeModels"), "Display Models / Individuals", 
-                            choices = c("Fit or import a model ..." = ""),
+                            choices = c("Fit / import a model ..." = ""),
                             multiple = TRUE,
                             selected = "",
                             width = "100%")),
@@ -24,9 +24,10 @@ timePlotFormattingUI <- function(id) {
              align = "right",
              style = "margin-top: 1.2em;",
              actionButton(ns("applyFormatToTimePlot"), "Apply")),
-      column(3,
+      column(2,
              selectizeInput(ns("formatTimePlot"), "Format Model / Individual",
-                            choices = c("Fit or import a model ..." = ""))),
+                            choices = c("Fit / import a model ..." = ""),
+                            width = "100%")),
       column(1,
              align = "right",
              style = "margin-top: 1.2em;",
@@ -34,7 +35,7 @@ timePlotFormattingUI <- function(id) {
     ),
     tags$br(),
     fluidRow(
-      column(4,
+      column(3,
              tags$h4("Data"),
              radioButtons(ns("deriv"), 
                           "Type", 
@@ -48,7 +49,8 @@ timePlotFormattingUI <- function(id) {
                          value = .8,
                          step = .05,
                          width = "100%"),
-             tags$h4("Secondary Axis"),
+             tags$br(),
+             tags$h4("Secondary Y Axis"),
              selectizeInput(ns("secAxisModel"), "Add a new secondary axis",
                             choices = c("Choose one Model / Individual ..." = "")),
              helpText("The first element from 'Display Models / Individuals' is always used for the first (left) axis."),
@@ -66,7 +68,7 @@ timePlotFormattingUI <- function(id) {
       column(2,
              shinyTools::plotTitlesUI(
                id = ns("plotLabels"),
-               title = "Texts",
+               title = "Text",
                type = "ggplot",
                initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]])
                )
@@ -74,6 +76,7 @@ timePlotFormattingUI <- function(id) {
       column(2,
              shinyTools::plotRangesUI(
                id = ns("plotRanges"), 
+               title = "Axis Range",
                initRanges = list(xAxis = config()[["plotRange"]],
                                  yAxis = config()[["plotRange"]])
              ),
@@ -82,28 +85,26 @@ timePlotFormattingUI <- function(id) {
                            value = FALSE)
       ),
       column(2,
-             tags$h4("Lines"),
-             colourInput(inputId = ns("colorL"),
-                         label = "Color line",
-                         value = rgb(0, 35 / 255, 80 / 255, alpha = 0.6)),
-             sliderInput(ns("alphaL"), "Transparency lines", min = 0, max = 1, value = 0.9),
-             tags$br(),
-             tags$br(),
-             colourInput(inputId = ns("colorU"),
-                         label = "Color uncertainty region",
-                         value = rgb(0, 35 / 255, 80 / 255, alpha = 0.6)),
+             tags$h4("Transparency"),
+             sliderInput(ns("alphaL"), "Points / Lines", min = 0, max = 1, value = 0.9),
              sliderInput(ns("alphaU"),
-                         "Transparency uncertainty region",
-                         min = 0, 
+                         "Uncertainty Region",
+                         min = 0,
                          max = 1,
-                         value = 0.1)
+                         value = 0.1),
+             tags$br(),
+             tags$h4("Legend"),
+             checkboxInput(inputId = ns("hideLegend"),
+                           label = "Hide legend",
+                           value = FALSE)
       ),
-      column(2,
+      column(3,
              shinyTools::plotPointsUI(id = ns("pointStyle"),
-                                      title = "Points",
+                                      title = "Points / Lines",
                                       initStyle = config()[["defaultPointStyle"]])
       )
     ),
+    tags$br(),
     plotExportButton(ns("exportCredIntTimePlot")),
     tags$br(),
     tags$br(),
@@ -149,20 +150,26 @@ timePlotFormattingServer <- function(id, savedModels) {
                  pointStyle <- shinyTools::plotPointsServer(
                    "pointStyle", 
                    type = "ggplot",
-                   initStyle = config()[["defaultPointStyle"]]
+                   initStyle = config()[["defaultPointStyle"]],
+                   hideInput = c("hide", "alpha", "colorBg")
                    )
                  
                  pointStyleList <- reactiveValues()
-                 lineStyleList <- reactiveValues()
                  
                  observe({
                    req(length(savedModels()) > 0)
                    modelChoices <- names(savedModels())
                    
+                   # default colours
+                   defaultColours <- ggplot2::scale_color_discrete()$palette(n = length(savedModels()))
+                   names(defaultColours) <- modelChoices
+                   
                    # setup lists with default values for style specs
                    for (i in modelChoices) {
-                     if (is.null(pointStyleList[[i]])) pointStyleList[[i]] <- config()[["defaultPointStyle"]]
-                     if (is.null(lineStyleList[[i]])) lineStyleList[[i]] <- config()[["defaultLineStyle"]]
+                     if (is.null(pointStyleList[[i]])) 
+                       pointStyleList[[i]] <- config()[["defaultPointStyle"]][["dataPoints"]]
+                     # use default colour per model
+                     pointStyleList[[i]]["color"] <- defaultColours[i]
                    }
                    
                    selectedModel <- names(savedModels())[length(savedModels())]
@@ -198,12 +205,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  observe({
                    req(input[["formatTimePlot"]])
                    # observe point style
-                   pointStyleList[[input[["formatTimePlot"]]]] <- pointStyle
-                   # observe line style
-                   lineStyleList[[input[["formatTimePlot"]]]][["colorL"]] <- input[["colorL"]]
-                   lineStyleList[[input[["formatTimePlot"]]]][["colorU"]] <- input[["colorU"]]
-                   lineStyleList[[input[["formatTimePlot"]]]][["alphaL"]] <- input[["alphaL"]]
-                   lineStyleList[[input[["formatTimePlot"]]]][["alphaU"]] <- input[["alphaU"]]
+                   pointStyleList[[input[["formatTimePlot"]]]] <- pointStyle[["dataPoints"]]
                  }) %>%
                    bindEvent(input[["applyFormatToTimePlotModel"]])
                  
@@ -248,7 +250,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                    #basePlotData <- extractedPlotDataList()[[firstModel]]
                    plotData <- extractedPlotDataDF() %>%
                      na.omit()
-                   browser()
+                   
                    p <- basePlotTime(x = plotData, #basePlotData,
                                      xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
                                      yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
@@ -261,16 +263,16 @@ timePlotFormattingServer <- function(id, savedModels) {
                                     xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
                                     deriv = input$deriv,
                                     plotShifts = FALSE) %>%
-                     drawLinesAndRibbon(x = plotData, #basePlotData,
-                                        colorL = lineStyleList[[firstModel]]$colorL,
-                                        colorU = lineStyleList[[firstModel]]$colorU,
-                                        alphaL = lineStyleList[[firstModel]]$alphaL, 
-                                        alphaU = lineStyleList[[firstModel]]$alphaU) %>%
-                     shinyTools::formatPointsOfGGplot(data = plotData, #basePlotData,
-                                                      aes(x = .data[["time"]], 
-                                                          y = .data[["median"]],
-                                                          colour = .data[["individual"]]), 
-                                                      pointStyle = pointStyleList[[firstModel]])
+                     drawLinesAndRibbon(
+                       pointStyleList = pointStyleList,
+                       alphaL = input[["alphaL"]],
+                       alphaU = input[["alphaU"]])
+                   
+                   if (input[["hideLegend"]]) {
+                     p <- p + theme(legend.position = "none")
+                   }
+                   
+                   # need new logic for second axis needed
                    
                    # loop over multiple elements of input[["plotTimeModels"]]
                    # nDisplayedModels <- length(input[["plotTimeModels"]])

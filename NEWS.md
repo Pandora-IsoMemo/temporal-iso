@@ -1,11 +1,22 @@
 # OsteoBioR
 
+## OsteoBioR 24.04.2
+
+### New Features
+- table output of data for the "Credible intervals over time" plot (#43)
+- option to export values for displayed graph under "Credibility intervals over time" (#43)
+- option to export data for single plots or batch export (#43)
+  - for the latter a single file is generated with data for different individuals separated by a 
+  fully empty row.
+  - individual ID’s are given in a first column and for all x values
+  - a column gives row number (1,2,3…) for each estimate
+
 ## OsteoBioR 24.04.1
 
 ### New Features
-- When generating multiple plots in Credible intervals over time have the option to select which 
+- when generating multiple plots in Credible intervals over time have the option to select which 
 ones to show/hide (#45)
-- When having two y-axes (one on the left and another one on the right of the plot). Have the option
+- when having two y-axes (one on the left and another one on the right of the plot). Have the option
 to switch their positions. (#43)
 
 ## OsteoBioR 24.04.0
@@ -16,7 +27,7 @@ to switch their positions. (#43)
 ## OsteoBioR 24.01.1
 
 ### New Features
-- Option to use rownames of data as individual variable. This allows to use non-numeric values for 
+- option to use rownames of data as individual variable. This allows to use non-numeric values for 
   individuals since rownames do not need to be numeric (#35)
 
 ## OsteoBioR 24.01.0
@@ -108,7 +119,6 @@ of "Current"
 - new model name and note in remote Test data containing only model inputs and data
     
 ### Bug Fixes
-
 - fixed export of interval data (#12)
 - fixed reactive behavior after model upload in the tab _Credibility intervals over time_ (#12)
 - fixed error when trying to export credibility interval plot 

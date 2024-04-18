@@ -10,21 +10,24 @@
 timePlotFormattingUI <- function(id) {
   ns <- NS(id)
   tagList(
+    tags$h4("Time Plot"),
     plotOutput(ns("plotTime")) %>% withSpinner(color = "#20c997"),
     tags$br(),
     fluidRow(
-      column(7,
+      column(8,
              selectizeInput(ns("plotTimeModels"), "Display Models / Individuals", 
-                            choices = NULL,
+                            choices = c("Fit / import a model ..." = ""),
                             multiple = TRUE,
+                            selected = "",
                             width = "100%")),
       column(1,
              align = "right",
              style = "margin-top: 1.2em;",
              actionButton(ns("applyFormatToTimePlot"), "Apply")),
-      column(3,
+      column(2,
              selectizeInput(ns("formatTimePlot"), "Format Model / Individual",
-                            choices = NULL)),
+                            choices = c("Fit / import a model ..." = ""),
+                            width = "100%")),
       column(1,
              align = "right",
              style = "margin-top: 1.2em;",
@@ -32,13 +35,11 @@ timePlotFormattingUI <- function(id) {
     ),
     tags$br(),
     fluidRow(
-      column(4,
+      column(3,
              tags$h4("Data"),
              radioButtons(ns("deriv"), 
                           "Type", 
-                          choices = c("Absolute values" = "1", "First derivate" = "2"),
-                          inline = TRUE,
-                          width = "100%"), 
+                          choices = c("Absolute values" = "1", "First derivate" = "2")), 
              sliderInput(ns("modCredInt"),
                          "Credibility interval:",
                          min = 0,
@@ -46,63 +47,81 @@ timePlotFormattingUI <- function(id) {
                          value = .8,
                          step = .05,
                          width = "100%"),
-             tags$h4("Secondary Axis"),
-             selectizeInput(ns("secAxisModel"), "Add a new secondary axis",
+             tags$br(),
+             sliderInput(ns("alphaU"),
+                         "Transparency of uncertainty region",
+                         min = 0,
+                         max = 1,
+                         value = 0.1,
+                         step = 0.05),
+             sliderInput(ns("alphaL"), 
+                         "Transparency of points / lines",
+                         min = 0, 
+                         max = 1, 
+                         value = 0.9,
+                         step = 0.05),
+             tags$br(),
+             fluidRow(
+               column(6, selectInput(inputId = ns("legendPosition"),
+                                     label = "Legend position",
+                                     choices = c("right", "top", "bottom", "left"))),
+               column(6, 
+                      style = "margin-top: 1.5em;",
+                      checkboxInput(inputId = ns("hideLegend"),
+                                    label = "Hide legend",
+                                    value = FALSE))
+             )
+      ),
+      column(3,
+             shinyTools::plotTitlesUI(
+               id = ns("plotLabels"),
+               title = "Text",
+               type = "ggplot",
+               initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]])
+               )
+      ),
+      column(3,
+             shinyTools::plotRangesUI(
+               id = ns("plotRanges"), 
+               title = "Axis",
+               initRanges = list(xAxis = config()[["plotRange"]],
+                                 yAxis = config()[["plotRange"]])
+             ),
+             checkboxInput(inputId = ns("extendLabels"),
+                           label = "Extend x-axis labels to full range",
+                           value = FALSE),
+             tags$br(),
+             selectizeInput(ns("secAxisModel"), "Add a new secondary y axis",
                             choices = c("Choose one Model / Individual ..." = "")),
-             helpText("The first element from 'Display Models / Individuals' is always used for the first (left) axis."),
+             helpText("The first element of 'Display Models / Individuals' is always used for the first (left) axis."),
              conditionalPanel(
                ns = ns,
                condition = "input.secAxisModel != ''",
                fluidRow(
                  column(6, textInput(ns("secAxisText"), label = "Title",
-                                     value = "Estimate")),
+                                     value = "",
+                                     placeholder = "Custom title ...")),
                  column(6, colourInput(ns("secAxisColor"),
                                        label = "Title color",
                                        value = config()[["defaultIntervalTimePlotTitle"]][["color"]]))
-               ))
+               )),
+             
       ),
-      column(2,
-             shinyTools::plotTitlesUI(
-               id = ns("plotLabels"),
-               title = "Texts",
-               type = "ggplot",
-               initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]])
-               )
-      ),
-      column(2,
-             shinyTools::plotRangesUI(
-               id = ns("plotRanges"), 
-               initRanges = list(xAxis = config()[["plotRange"]],
-                                 yAxis = config()[["plotRange"]])
-             ),
-             checkboxInput(inputId = ns("extendLabels"),
-                           label = "Extend x-axis labels to lower and upper limits",
-                           value = FALSE)
-      ),
-      column(2,
-             tags$h4("Lines"),
-             colourInput(inputId = ns("colorL"),
-                         label = "Color line",
-                         value = rgb(0, 35 / 255, 80 / 255, alpha = 0.6)),
-             sliderInput(ns("alphaL"), "Transparency lines", min = 0, max = 1, value = 0.9),
-             tags$br(),
-             tags$br(),
-             colourInput(inputId = ns("colorU"),
-                         label = "Color uncertainty region",
-                         value = rgb(0, 35 / 255, 80 / 255, alpha = 0.6)),
-             sliderInput(ns("alphaU"),
-                         "Transparency uncertainty region",
-                         min = 0, 
-                         max = 1,
-                         value = 0.1)
-      ),
-      column(2,
+      column(3,
              shinyTools::plotPointsUI(id = ns("pointStyle"),
-                                      title = "Points",
+                                      title = "Points / Lines",
                                       initStyle = config()[["defaultPointStyle"]])
       )
     ),
-    actionButton(ns("exportCredIntTimePlot"), "Export Plot"),
+    fluidRow(column(12, 
+                    style = "margin-top: -3em;",
+                    align = "right",
+                    plotExportButton(ns("exportCredIntTimePlot")))),
+    tags$hr(),
+    tags$h4("Plot Data"),
+    tableOutput(ns("plotData")),
+    tags$br(),
+    fluidRow(column(12, align = "right", dataExportButton(ns("exportCredIntTimeData")))),
     tags$br()
   )
 }
@@ -125,11 +144,8 @@ timePlotFormattingServer <- function(id, savedModels) {
                  plotTexts <- shinyTools::plotTitlesServer(
                    "plotLabels",
                    type = "ggplot", 
-                   initText = list(plotTitle  = config()[["defaultIntervalTimePlotTitle"]],
-                                   xAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
-                                   yAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
-                                   xAxisText  = config()[["defaultIntervalTimePlotText"]],
-                                   yAxisText  = config()[["defaultIntervalTimePlotText"]])
+                   availableElements = c("title", "axis", "legend"),
+                   initText = getDefaultTextFormat()
                  )
                  plotRanges <- shinyTools::plotRangesServer(
                    "plotRanges",
@@ -141,33 +157,22 @@ timePlotFormattingServer <- function(id, savedModels) {
                  pointStyle <- shinyTools::plotPointsServer(
                    "pointStyle", 
                    type = "ggplot",
-                   initStyle = config()[["defaultPointStyle"]]
+                   initStyle = config()[["defaultPointStyle"]],
+                   hideInput = c("hide", "alpha", "colorBg")
                    )
                  
-                 allXAxisData <- reactiveVal(data.frame())
                  pointStyleList <- reactiveValues()
-                 lineStyleList <- reactiveValues()
                  
                  observe({
                    req(length(savedModels()) > 0)
-                   modelChoices <- names(savedModels())
+                   modelNames <- names(savedModels())
                    
-                   # setup lists with default values for style specs
-                   for (i in modelChoices) {
-                     if (is.null(pointStyleList[[i]])) pointStyleList[[i]] <- config()[["defaultPointStyle"]]
-                     if (is.null(lineStyleList[[i]])) lineStyleList[[i]] <- config()[["defaultLineStyle"]]
-                   }
+                   pointStyleList <- pointStyleList %>%
+                     getDefaultPointFormatForModels(modelNames = modelNames)
                    
-                   selectedModel <- names(savedModels())[length(savedModels())]
-                   
-                   #fit(savedModels()[[selectedModel]]$fit)
-                   
-                   # inputs in tab "Credibility intervals over time"
                    updateSelectizeInput(session, "plotTimeModels", 
-                                        choices = modelChoices, selected = selectedModel)
-                   
-                   allXAxisData(extractAllXAxisData(models = savedModels(), 
-                                                    allXAxisData = allXAxisData()))
+                                        choices = modelNames, 
+                                        selected = modelNames[length(modelNames)])
                  }) %>%
                    bindEvent(savedModels())
                  
@@ -194,12 +199,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  observe({
                    req(input[["formatTimePlot"]])
                    # observe point style
-                   pointStyleList[[input[["formatTimePlot"]]]] <- pointStyle
-                   # observe line style
-                   lineStyleList[[input[["formatTimePlot"]]]][["colorL"]] <- input[["colorL"]]
-                   lineStyleList[[input[["formatTimePlot"]]]][["colorU"]] <- input[["colorU"]]
-                   lineStyleList[[input[["formatTimePlot"]]]][["alphaL"]] <- input[["alphaL"]]
-                   lineStyleList[[input[["formatTimePlot"]]]][["alphaU"]] <- input[["alphaU"]]
+                   pointStyleList[[input[["formatTimePlot"]]]] <- pointStyle[["dataPoints"]]
                  }) %>%
                    bindEvent(input[["applyFormatToTimePlotModel"]])
                  
@@ -207,72 +207,95 @@ timePlotFormattingServer <- function(id, savedModels) {
                    getEntry(savedModels(), "fit")
                  })
 
-                 allExtractedPlotData <- reactive({
+                 extractedPlotDataList <- reactive({
                    # extract plot data from model object
                    lapply(allFits(), function(x) {
-                     extractPlotData(object = x,
-                                     prop = input$modCredInt,
-                                     deriv = input$deriv)
+                     getPlotData(object = x, prop = input$modCredInt, deriv = input$deriv) %>%
+                       updateTime(object = x, deriv = input$deriv)
                    })
                  })
                  
-                 savedPlot <- reactiveVal(list())
+                 extractedPlotDataDF <- reactive({
+                   extractPlotDataDF(plotDataList = extractedPlotDataList(),
+                                      models = input[["plotTimeModels"]],
+                                      credInt = input$modCredInt)
+                 })
+                 
+                 output$plotData <- renderTable({
+                   validate(need(input[["plotTimeModels"]],
+                                 "Choose at least one element from 'Display Models / Individuals' ..."))
+                   extractedPlotDataDF()
+                 })
+                 
+                 plotDataExport <- reactiveVal()
+                 
+                 observe({
+                   plotDataExport(extractedPlotDataDF())
+                 }) %>%
+                   bindEvent(input[["plotTimeModels"]])
+                 
+                 dataExportServer("exportCredIntTimeData",
+                                  reactive(function() {plotDataExport()}))
+                 
+                 # set default: no rescaling
+                 rescalingSecAxis <- reactiveVal(list(scale = 1, center = 0))
+                 observe({
+                   req(input[["plotTimeModels"]])
+                   
+                   plotData <- extractedPlotDataDF() %>%
+                     na.omit()
+                   # get index for filter
+                   index <- plotData$individual == input[["secAxisModel"]]
+                   
+                   # get rescaling parameters
+                   req(nrow(plotData[index, ]) > 0)
+                   
+                   # update title of second axis
+                   updateTextInput(session, "secAxisText", 
+                                   value = sprintf("%s Estimate", input[["secAxisModel"]]))
+                   
+                   ## use always data based newYLimits, we only set global limits not(!) per model
+                   rescaling <- getRescaleParams(oldLimits = getYRange(plotData) %>% unlist(),
+                                                 newLimits = getYRange(plotData[index, ]) %>% unlist(),
+                                                 secAxis = TRUE)
+                   rescalingSecAxis(rescaling)
+                   
+                   
+                 }) %>%
+                   bindEvent(input[["secAxisModel"]])
                  
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
-                   # draw basePlot (first element of input[["plotTimeModels"]])
-                   firstModel <- input[["plotTimeModels"]][1]
-                   basePlotData <- allExtractedPlotData()[[firstModel]]
-                   p <- basePlotTime(x = basePlotData) %>%
-                     setTitles(prop = input$modCredInt) %>%
+                   p <- extractedPlotDataDF() %>%
+                     na.omit() %>%
+                     rescaleSecondAxisData(individual = input[["secAxisModel"]],
+                                           rescaling = rescalingSecAxis()) %>%
+                     basePlotTime(xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
+                                  yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
+                     setDefaultTitles(prop = input$modCredInt) %>%
                      shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
                      shinyTools::formatRangesOfGGplot(ranges = plotRanges) %>%
-                     setXAxisLabels(xAxisData = allXAxisData(),
-                                    extendLabels = input$extendLabels, 
-                                    xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
-                                    deriv = input$deriv,
-                                    plotShifts = FALSE) %>%
-                     drawLinesAndRibbon(x = basePlotData,
-                                        colorL = lineStyleList[[firstModel]]$colorL,
-                                        colorU = lineStyleList[[firstModel]]$colorU,
-                                        alphaL = lineStyleList[[firstModel]]$alphaL, 
-                                        alphaU = lineStyleList[[firstModel]]$alphaU) %>%
-                     shinyTools::formatPointsOfGGplot(data = basePlotData,
-                                                      aes(x = .data[["time"]], y = .data[["median"]]), 
-                                                      pointStyle = pointStyleList[[firstModel]])
-                   
-                   # loop over multiple elements of input[["plotTimeModels"]]
-                   nDisplayedModels <- length(input[["plotTimeModels"]])
-                   if (nDisplayedModels > 1) {
-                     for (i in input[["plotTimeModels"]][2:nDisplayedModels]) {
-                       layerPlotData <- allExtractedPlotData()[[i]]
-                       ## use always data based newYLimits, we only set global limits not(!) per model
-                       rescaling <- getRescaleParams(oldLimits = p$coordinates$limits$y,
-                                                     newLimits = getYRange(layerPlotData) %>% unlist(),
-                                                     secAxis = input[["secAxisModel"]] == i)
-                       layerPlotData <- layerPlotData %>%
-                         rescaleLayerData(rescaling = rescaling)
-                       
-                       p <- p %>%
-                         setSecondYAxis(rescaling = rescaling,
-                                        titleFormat = plotTexts[["yAxisTitle"]],
-                                        textFormat = plotTexts[["yAxisText"]],
-                                        yAxisLabel = input[["secAxisText"]],
-                                        yAxisTitleColor = input[["secAxisColor"]]) %>%
-                         setPlotLimits(newData = layerPlotData) %>%
-                         drawLinesAndRibbon(x = layerPlotData,
-                                            colorL = lineStyleList[[i]]$colorL,
-                                            colorU = lineStyleList[[i]]$colorU,
-                                            alphaL = lineStyleList[[i]]$alphaL,
-                                            alphaU = lineStyleList[[i]]$alphaU) %>%
-                         shinyTools::formatPointsOfGGplot(data = layerPlotData,
-                                                          aes(x = .data[["time"]], y = .data[["median"]]), 
-                                                          pointStyle = pointStyleList[[i]])
-                     }
-                   }
+                     setXAxisLabels(
+                       xAxisData = extractedPlotDataList() %>%
+                         extractAllXAxisData(), # labels for all x axis data
+                       extendLabels = input$extendLabels, 
+                       xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
+                       deriv = "1" # input$deriv already included within extractedPlotDataList()
+                     ) %>%
+                     drawLinesAndRibbon(
+                       pointStyleList = pointStyleList,
+                       alphaL = input[["alphaL"]],
+                       alphaU = input[["alphaU"]],
+                       legendName = plotTexts[["legendTitle"]][["text"]]) %>%
+                     setSecondYAxis(rescaling = rescalingSecAxis(),
+                                    titleFormat = plotTexts[["yAxisTitle"]],
+                                    textFormat = plotTexts[["yAxisText"]],
+                                    yAxisLabel = input[["secAxisText"]],
+                                    yAxisTitleColor = input[["secAxisColor"]]) %>%
+                     setLegendPosition(hideLegend = input[["hideLegend"]],
+                                       legendPosition = input[["legendPosition"]])
                    
                    formattedPlot(p)
-                   savedPlot(p)
                  }) %>%
                    bindEvent(list(input[["applyFormatToTimePlot"]], 
                                   input[["applyFormatToTimePlotModel"]]))
@@ -282,44 +305,25 @@ timePlotFormattingServer <- function(id, savedModels) {
                    formattedPlot()
                  })
                  
-                 observeEvent(input$exportCredIntTimePlot, {
-                   
-                   plotOutputElement <- renderPlot({ savedPlot() })
-                   exportTypeChoices <- c("png", "pdf", "svg", "tiff")
-                   
-                   showModal(modalDialog(
-                     title = "Export Graphic",
-                     footer = modalButton("OK"),
-                     plotOutputElement,
-                     selectInput(
-                       ns("exportType"), "Filetype",
-                       choices = exportTypeChoices
-                     ),
-                     numericInput(ns("width"), "Width (px)", value = 1280),
-                     numericInput(ns("height"), "Height (px)", value = 800),
-                     downloadButton(ns("exportExecute"), "Export"),
-                     easyClose = TRUE
-                   ))
-                   
-                   output$exportExecute <- downloadHandler(
-                     filename = function(){
-                       paste0(gsub("-", "", Sys.Date()), "_", "Credibility_Intervals_Over_Time", ".", input$exportType)
-                     },
-                     content = function(file){
-                       switch(
-                         input$exportType,
-                         png = png(file, width = input$width, height = input$height),
-                         pdf = pdf(file, width = input$width / 72, height = input$height / 72),
-                         tiff = tiff(file, width = input$width, height = input$height),
-                         svg = svg(file, width = input$width / 72, height = input$height / 72)
-                       )
-                       print( savedPlot() )
-                       
-                       dev.off()
-                     }
-                   )
-                 })
+                 plotExportServer("exportCredIntTimePlot",
+                                  plotFun = reactive(function() formattedPlot()),
+                                  filename = sprintf("%s_Credibility_Intervals_Over_Time",
+                                                     gsub("-", "", Sys.Date()))
+                                  )
                  
                  return(reactive(formattedPlot()))
                })
+}
+
+#' Add NA Row
+#' 
+#' Function to add a row with NA values at the end of a data.frame
+#' 
+#' @param df (data.frame) data.frame
+add_na_row <- function(df) {
+  na_row <-  matrix(rep(NA, ncol(df)), 
+                    nrow = 1, 
+                    dimnames = list("", colnames(df))) %>% 
+    as.data.frame()
+  bind_rows(df, na_row)
 }

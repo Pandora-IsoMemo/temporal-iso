@@ -6,6 +6,7 @@ library(shinyMatrix)
 library(dplyr)
 library(ggplot2)
 library(rstan)
+library(stats)
 
 options(shiny.maxRequestSize = 200*1024^2
         # Set mc.cores option

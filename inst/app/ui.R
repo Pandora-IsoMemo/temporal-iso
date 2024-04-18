@@ -151,7 +151,8 @@ tagList(
                               htmlOutput("fittingTimeTxt")),
                        column(width = 3,
                               style = "margin-top: -0.3em;",
-                              selectInput("savedModels", label = "Load Model", choices = NULL)),
+                              selectInput("savedModels", label = "Load Model", 
+                                          choices = c("Fit or import a model ..." = ""))),
                        column(width = 1, 
                               style = "margin-top: 1em;",
                               actionButton("loadModel", "Load", width = "100%")),
@@ -183,7 +184,6 @@ tagList(
                    tabPanel(
                      "Credibility intervals over time",
                      value = "credibilityIntervalsOverTimeTab",
-                     HTML("<br>"),
                      timePlotFormattingUI(id = "timePlotFormat")
                    ),
                    tabPanel(

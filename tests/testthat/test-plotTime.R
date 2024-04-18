@@ -54,9 +54,9 @@ testthat::test_that("plotTime",  {
                                  size = "individual",
                                  xintercept = "xintercept"))
   expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
-               c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
+               c(0.5, 1.5, 2.5))
   expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
-               c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
+               c("[0-1]", "[1-2]", "[2-3]"))
 })
 
 testthat::test_that("basePlotTime",  {

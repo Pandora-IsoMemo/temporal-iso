@@ -1,8 +1,11 @@
-# OsteoBioR
+# OsteoBioR 24.04.1
 
-## OsteoBioR 24.04.2
-
-### New Features
+## New Features
+- when generating multiple plots in Credible intervals over time have the option to select which 
+ones to show/hide (#45)
+- when having two y-axes (one on the left and another one on the right of the plot). Have the option
+to switch their positions. (#43)
+- option to add/edit plot(s) legend
 - table output of data for the "Credible intervals over time" plot (#43)
 - option to export values for displayed graph under "Credibility intervals over time" (#43)
 - option to export data for single plots or batch export (#43)
@@ -11,114 +14,106 @@
   - individual ID’s are given in a first column and for all x values
   - a column gives row number (1,2,3…) for each estimate
 
-## OsteoBioR 24.04.1
+# OsteoBioR 24.04.0
 
-### New Features
-- when generating multiple plots in Credible intervals over time have the option to select which 
-ones to show/hide (#45)
-- when having two y-axes (one on the left and another one on the right of the plot). Have the option
-to switch their positions. (#43)
-
-## OsteoBioR 24.04.0
-
-### New Features
+## New Features
 - option to change symbol, color, size of points in "Model: Credibility intervals over time" (#43)
 
-## OsteoBioR 24.01.1
+# OsteoBioR 24.01.1
 
-### New Features
+## New Features
 - option to use rownames of data as individual variable. This allows to use non-numeric values for 
   individuals since rownames do not need to be numeric (#35)
 
-## OsteoBioR 24.01.0
+# OsteoBioR 24.01.0
 
-### Bug Fixes
+## Bug Fixes
 - fix a bug that prevented the usage of multiple cores during model estimation. In essence only a
  single core was used.
 
-## OsteoBioR 23.12.2
+# OsteoBioR 23.12.2
 
-### New Features
+## New Features
 - _Import of models from Pandora_: 
   - display of "About" information that is associated to a selected Pandora Repository
 
-### Bug Fixes
+## Bug Fixes
 - _Import of models from Pandora_: 
   - an error message occurred when trying to load a model from pandora.
   - fix: adding the missing download of the zip file from the url before unpacking the zip
 
-## OsteoBioR 23.12.0
+# OsteoBioR 23.12.0
 
-#### New Features
+## New Features
 - option to use a fixed seed when fitting the model (#37)
 
-## OsteoBioR 23.10.1
+# OsteoBioR 23.10.1
 
-### Bug Fixes
+## Bug Fixes
 - fix for model down- and upload: add missing export to package functions
 
-## OsteoBioR 23.10.0
+# OsteoBioR 23.10.0
 
-### New Features
+## New Features
 - _Import of models_:
   - option to import models from Pandora platform
 
-## OsteoBioR 23.09.1
+# OsteoBioR 23.09.1
 
-### New Features
+## New Features
 - tab _Model_, section _Credibility intervals over time_: new checkbox to extend the x-axis labels
 to the _lower_ and _upper x limit_ (#26)
 
-## OsteoBioR 23.04.1
+# OsteoBioR 23.04.1
 
-### Bug Fixes
+## Bug Fixes
 - add missing logic for default values if "Use renewal rates uncertainty" is unchecked (#24)
 - add an error message if the number of rows or columns do not match between renewal rates and their
 uncertainties
 - add tests to check new logic
 
-## OsteoBioR 23.03.2
+# OsteoBioR 23.03.2
 
-### Updates
+## Updates
 - remote models are loaded from the github folder `inst/app/predefinedModels` of the respective 
 repository
 - if there is no internet connection remote models are taken from the models that were saved with
   the last deployed app version
 
-## OsteoBioR 23.03.1
+# OsteoBioR 23.03.1
 
-### Bug fixes
+## Bug fixes
 - add remote package to enable the _Import Data_ module
 
-## OsteoBioR 23.02.2
+# OsteoBioR 23.02.2
 
-### Updates
+## Updates
 - add more tryCatch statements
 
-## OsteoBioR 23.02.1
+# OsteoBioR 23.02.1
 
-### New Features
+## New Features
 - the _Import Data_ module is now imported from the new package DataTools (#15, PR #16)
   - additionally to file import, now import from _URL_ or from _Pandora Platform_ is possible
   - all redundant code was removed
   - using "file" as default source in _Import Data_
 - now, sidebars are fixed with auto scroll in all tabs (iso-app #4)
 
-## OsteoBioR 23.01.1
+# OsteoBioR 23.01.1
 
-### New Features
+## New Features
 - option to use renewal rates uncertainties
 
-## OsteoBioR 22.11.1
+# OsteoBioR 22.11.1
 
-### Updates
+## Updates
 - added column names to exported interval data
 - shifted the UI to load/save a model from the right sidebar to the main panel above the tabs
 - the content of the input _Individual varaible_ is now used to create default model names instead 
 of "Current"
 - new model name and note in remote Test data containing only model inputs and data
     
-### Bug Fixes
+## Bug Fixes
 - fixed export of interval data (#12)
 - fixed reactive behavior after model upload in the tab _Credibility intervals over time_ (#12)
 - fixed error when trying to export credibility interval plot 

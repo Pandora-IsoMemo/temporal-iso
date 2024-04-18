@@ -145,13 +145,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                    "plotLabels",
                    type = "ggplot", 
                    availableElements = c("title", "axis", "legend"),
-                   initText = list(legendTitle  = config()[["defaultIntervalTimePlotTitle"]],
-                                   legendText  = config()[["defaultIntervalTimePlotText"]],
-                                   plotTitle  = config()[["defaultIntervalTimePlotTitle"]],
-                                   xAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
-                                   yAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
-                                   xAxisText  = config()[["defaultIntervalTimePlotText"]],
-                                   yAxisText  = config()[["defaultIntervalTimePlotText"]])
+                   initText = getDefaultTextFormat()
                  )
                  plotRanges <- shinyTools::plotRangesServer(
                    "plotRanges",
@@ -171,27 +165,14 @@ timePlotFormattingServer <- function(id, savedModels) {
                  
                  observe({
                    req(length(savedModels()) > 0)
-                   modelChoices <- names(savedModels())
+                   modelNames <- names(savedModels())
                    
-                   # default colours
-                   defaultColours <- ggplot2::scale_color_discrete()$palette(n = length(savedModels()))
-                   names(defaultColours) <- modelChoices
+                   pointStyleList <- pointStyleList %>%
+                     getDefaultPointFormatForModels(modelNames = modelNames)
                    
-                   # setup lists with default values for style specs
-                   for (i in modelChoices) {
-                     if (is.null(pointStyleList[[i]])) 
-                       pointStyleList[[i]] <- config()[["defaultPointStyle"]][["dataPoints"]]
-                     # use default colour per model
-                     pointStyleList[[i]]["color"] <- defaultColours[i]
-                   }
-                   
-                   selectedModel <- names(savedModels())[length(savedModels())]
-                   
-                   #fit(savedModels()[[selectedModel]]$fit)
-                   
-                   # inputs in tab "Credibility intervals over time"
                    updateSelectizeInput(session, "plotTimeModels", 
-                                        choices = modelChoices, selected = selectedModel)
+                                        choices = modelNames, 
+                                        selected = modelNames[length(modelNames)])
                  }) %>%
                    bindEvent(savedModels())
                  

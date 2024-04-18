@@ -16,8 +16,10 @@
 #'  importDataUI importDataServer importOptions renameExistingNames tryCatchWithWarningsAndErrors
 #' @importFrom dplyr arrange bind_cols bind_rows cur_group_id distinct do group_by mutate n select
 #'  slice ungroup
-#' @importFrom ggplot2 aes element_line element_text ggplot geom_line geom_point geom_ribbon 
-#' labs scale_x_continuous theme ggtitle scale_y_continuous geom_vline coord_cartesian sec_axis
+#' @importFrom ggplot2 aes coord_cartesian element_line element_text 
+#'  geom_line geom_point geom_ribbon geom_vline ggplot ggtitle labs    
+#'  scale_colour_manual scale_fill_manual scale_shape_manual scale_size_manual 
+#'  scale_x_continuous scale_y_continuous sec_axis theme
 #' @importFrom htmltools save_html
 #' @importFrom jsonlite toJSON
 #' @importFrom magrittr %>%

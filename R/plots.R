@@ -41,7 +41,7 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   x$individual <- "current"
   pointStyleList <- list()
   pointStyleList[["current"]] <- config()[["defaultPointStyle"]][["dataPoints"]]
-  pointStyleList[["current"]]["color"] <- colorL
+  pointStyleList[["current"]]["color"] <- color
   
   p <- basePlotTime(x = x,
                       xLim = xLim, yLim = yLim,
@@ -235,7 +235,7 @@ setTitles <- function(plot, prop, xAxisLabel = "Time", yAxisLabel = "Estimate") 
          x = xAxisLabel, y = yAxisLabel)
 }
 
-setXAxisLabels <- function(plot, xAxisData, extendLabels, xLim, deriv, plotShifts = FALSE, ...) {
+setXAxisLabels <- function(plot, xAxisData, extendLabels, deriv, xLim = NULL, plotShifts = FALSE, ...) {
   xPlotLim <- xLabelLim <- range(xAxisData)
   
   if (length(xLim) == 2) xPlotLim <- xLim

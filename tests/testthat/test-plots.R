@@ -1,5 +1,5 @@
-load("testObjectDefault.RData")
-load("testObjectGap.RData")
+load(testthat::test_path("testdata/testObjectDefault.RData"))
+load(testthat::test_path("testdata/testObjectGap.RData"))
 
 testthat::test_that("getPlotData: two date inputs",  {
   plotData1 <- getPlotData(testObjectDefault1, prop = 0.8, time = NULL, deriv = "1")

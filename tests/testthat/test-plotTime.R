@@ -1,158 +1,254 @@
-load("testObjectDefault.RData")
-load("testObjectGap.RData")
+load(testthat::test_path("testdata/testObjectDefault.RData"))
+load(testthat::test_path("testdata/testObjectGap.RData"))
 
 testthat::test_that("plotTime",  {
-  plot1 <- plotTime(object = testObjectDefault1, prop = 0.8, yLim = c(-10,-5), xLim = c(0, 8),
-                    colorL = "#002350", colorU = "#002350")
+  plot <- plotTime(object = testObjectDefault1, prop = 0.8, 
+                    plotShifts = FALSE,
+                    deriv = "1", 
+                    yLim = c(-10,-5), xLim = c(0, 8),
+                    color = "#002350")
   
-  expect_equal(plot1$labels, list(x = "Time", y = "Estimate", 
+  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
                                   title = "80%-Credibility-Interval for isotopic values over time", 
-                                  ymin = "lower", ymax = "upper"))
+                                  colour = "individual",
+                                  ymin = "lower", ymax = "upper",
+                                  fill = "individual",
+                                  shape = "individual",
+                                  size = "individual"))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
   
-  plot2 <- plotTime(object = testObjectGap1, prop = 0.8, yLim = c(-10,-5), xLim = c(0, 4),
-                    colorL = "#002350", colorU = "#002350")
-  
-  expect_equal(plot2$labels, list(x = "Time", y = "Estimate", 
-                                  title = "80%-Credibility-Interval for isotopic values over time", 
-                                  ymin = "lower", ymax = "upper"))
-  
-  
-  xAxisData1 <- getXAxisData(object = testObjectDefault1)
-  oldXAxisData <- getXAxisData(object = testObjectGap1, oldXAxisData = xAxisData1)
-  
-  plot <- plotTime(object = testObjectGap1, prop = 0.8, yLim = c(-10,-5), xLim = c(0, 8),
-                   oldPlot = plot1, oldXAxisData = oldXAxisData,
-                   colorL = "#002350", colorU = "#002350")
+  # second derivation
+  plot <- plotTime(object = testObjectDefault1, prop = 0.8, 
+                    plotShifts = FALSE,
+                    deriv = "2", 
+                    yLim = c(-4,4), xLim = c(0, 8),
+                    color = "#002350")
   
   expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
                                  title = "80%-Credibility-Interval for isotopic values over time", 
-                                 ymin = "lower", ymax = "upper"))
-  expect_equal(plot$coordinates$limits, list(x = c(0, 8), y = c(-10, -5)))
+                                 colour = "individual",
+                                 ymin = "lower", ymax = "upper",
+                                 fill = "individual",
+                                 shape = "individual",
+                                 size = "individual"))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "", "[1-2]", "", "[2-3]", "", "[3-4]", "", "[4-5]", "", "[5-6]"))
+  
+  # shifts
+  plot <- plotTime(object = testObjectGap1, prop = 0.8, 
+                   plotShifts = TRUE,
+                   yLim = c(-10,-5), xLim = c(0, 4),
+                   color = "#002350")
+  
+  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
+                                 title = "80%-Credibility-Interval for isotopic values over time", 
+                                 colour = "individual",
+                                 ymin = "lower", ymax = "upper",
+                                 fill = "individual",
+                                 shape = "individual",
+                                 size = "individual",
+                                 xintercept = "xintercept"))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1.5, 2.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "[1-2]", "[2-3]"))
 })
 
 testthat::test_that("basePlotTime",  {
   plotData <- getPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1") %>%
     updateTime(object = testObjectDefault1, deriv = "1")
+  plotDataDF <- list(ind_1 = plotData) %>%
+    extractPlotDataDF(models = "ind_1",
+                      credInt = 0.8) %>%
+    na.omit()
+  
+  pointStyleList <- list() %>%
+    getDefaultPointFormatForModels(modelNames = c("ind_1"))
+  
   # specify x, y limits
-  plot <- basePlotTime(x = plotData,
-                       yLim = c(-10,-5), xLim = c(0, 8)) %>%
-    drawLinesAndRibbon(x = plotData,
-                       colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
-    formatPointsOfGGplot(data = plotData,
-                         aes(x = .data[["time"]], y = .data[["median"]]), 
-                         pointStyle = config()[["defaultPointStyle"]]) %>%
-    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
-    setXAxisLabels(xAxisData = plotData %>% extractAllXAxisData(),
-                extendLabels = TRUE, 
-                xLim = c(0, 8), 
-                deriv = "1",
-                plotShifts = FALSE)
-  
-  expect_equal(plot$labels, list(x = "Time", y = "Estimate",
-                                 title = "80%-Credibility-Interval for isotopic values over time", 
-                                 ymin = "lower", ymax = "upper"))
-  expect_equal(plot$coordinates$limits, list(x = c(0, 8), y = c(-10, -5)))
-  
-  # default x, y limits
-  plot <- basePlotTime(x = plotData) %>%
-    drawLinesAndRibbon(x = plotData,
-                       colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
-    formatPointsOfGGplot(data = plotData,
-                         aes(x = .data[["time"]], y = .data[["median"]]), 
-                         pointStyle = config()[["defaultPointStyle"]]) %>%
-    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
-    setXAxisLabels(xAxisData = plotData %>% extractAllXAxisData(),
+  plot <- basePlotTime(x = plotDataDF,
+                       yLim = c(-10,-5),
+                       xLim = c(0, 8)) %>%
+    setDefaultTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
+    setXAxisLabels(xAxisData = list(ind_1 = plotData) %>%
+                     extractAllXAxisData(), # labels for all x axis data
                    extendLabels = FALSE, 
                    xLim = c(0, 8), 
-                   deriv = "1",
-                   plotShifts = FALSE)
+                   deriv = FALSE) %>%
+    drawLinesAndRibbon(
+      pointStyleList = pointStyleList,
+      alphaL = 0.7,
+      alphaU = 0.1,
+      legendName = "testLegend"
+      ) %>%
+    setLegendPosition(hideLegend = FALSE,
+                      legendPosition = "top")
   
-  expect_equal(plot$labels, list(x = "Time", y = "Estimate",
-                                 title = "80%-Credibility-Interval for isotopic values over time", 
-                                 ymin = "lower", ymax = "upper"))
-  expect_equal(plot$coordinates$limits, 
-               list(x = c(xmin = 0.5, xmax = 5.5), 
-                    y = c(ymin = -12.7512327337153, ymax = -4.60003088235379)))
+  expect_equal(
+    plot$labels,
+    list(
+      x = "Time",
+      y = "Estimate",
+      title = "80%-Credibility-Interval for isotopic values over time",
+      colour = "individual",
+      ymin = "lower",
+      ymax = "upper",
+      fill = "individual",
+      shape = "individual",
+      size = "individual"
+    )
+  )
+  expect_equal(plot$coordinates$limits, list(x = c(0, 8), y = c(-10, -5)))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
+  
+  # default x, y limits
+  plot <- basePlotTime(x = plotDataDF) %>%
+    setXAxisLabels(xAxisData = list(ind_1 = plotData) %>%
+                     extractAllXAxisData(), # labels for all x axis data
+                   extendLabels = FALSE, 
+                   deriv = FALSE) %>%
+    drawLinesAndRibbon(
+      pointStyleList = pointStyleList,
+      alphaL = 0.7,
+      alphaU = 0.1,
+      legendName = "testLegend"
+    )
+  
+  expect_equal(
+    plot$labels,
+    list(
+      x = "time",
+      y = "median",
+      colour = "individual",
+      ymin = "lower",
+      ymax = "upper",
+      fill = "individual",
+      shape = "individual",
+      size = "individual"
+    )
+  )
+  expect_equal(plot$coordinates$limits,
+               list(
+                 x = c(xmin = 0.5, xmax = 5.5),
+                 y = c(
+                   ymin = -12.7512327337153,
+                   ymax = -4.60003088235379
+                 )
+               ))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
+})
+
+testthat::test_that("drawLinesAndRibbon",  {
+  # second derivation
+  plotData1 <- getPlotData(object = testObjectDefault1, prop = 0.8, deriv = "2") %>%
+    updateTime(object = testObjectDefault1, deriv = "2")
+  plotData2 <- getPlotData(object = testObjectGap1, prop = 0.8, deriv = "2") %>%
+    updateTime(object = testObjectGap1, deriv = "2")
+  allPlotDataDF <- list(ind_1 = plotData1,
+                        ind_2 = plotData2) %>%
+    extractPlotDataDF(models = c("ind_1", "ind_2"),
+                      credInt = 0.8) %>%
+    na.omit()
+  
+  pointStyleList <- list() %>%
+    getDefaultPointFormatForModels(modelNames = c("ind_1", "ind_2"))
+  
+  plot <- basePlotTime(x = allPlotDataDF) %>%
+    setXAxisLabels(xAxisData = list(ind_1 = plotData1,
+                                    ind_2 = plotData2) %>%
+                     extractAllXAxisData(), # labels for all x axis data
+                   extendLabels = FALSE, 
+                   deriv = "2") %>% # if "1" is set here, breaks in-between are left out
+    drawLinesAndRibbon(
+      pointStyleList = pointStyleList,
+      alphaL = 0.7,
+      alphaU = 0.1,
+      legendName = "testLegend"
+    )
+  
+  expect_equal(
+    plot$labels,
+    list(
+      x = "time",
+      y = "median",
+      colour = "individual",
+      ymin = "lower",
+      ymax = "upper",
+      fill = "individual",
+      shape = "individual",
+      size = "individual"
+    )
+  )
+  expect_equal(plot$coordinates$limits,
+               list(x = c(xmin = 1, xmax = 5), y = c(ymin = -4.17929722147457, 
+                                                     ymax = 3.35841030846769)))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0.5-1.5]", "", "[1.5-2.5]", "", "[2.5-3.5]", "", "[3.5-4.5]", "", "[4.5-5.5]"))
 })
 
 testthat::test_that("setSecondYAxis",  {
-  allModels <- list(
-    list(fit = testObjectDefault1),
-    list(fit = testObjectGap1),
-    list(fit = testObjectGap11)
-  )
-  
   plotData1 <- getPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1") %>%
     updateTime(object = testObjectDefault1, deriv = "1")
   plotData2 <- getPlotData(object = testObjectGap1, prop = 0.8, deriv = "1") %>%
     updateTime(object = testObjectGap1, deriv = "1")
+  allPlotDataDF <- list(ind_1 = plotData1,
+                        ind_2 = plotData2) %>%
+    extractPlotDataDF(models = c("ind_1", "ind_2"),
+                      credInt = 0.8) %>%
+    na.omit()
   
-  plot1 <- basePlotTime(x = plotData1,
-                        yLim = c(-10,-5), xLim = c(0, 8)) %>%
-    drawLinesAndRibbon(x = plotData1,
-                       colorL = "#002350", colorU = "#002350", alphaL = 0.9, alphaU = 0.1) %>%
-    formatPointsOfGGplot(data = plotData1,
-                         aes(x = .data[["time"]], y = .data[["median"]]), 
-                         pointStyle = config()[["defaultPointStyle"]]) %>%
-    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
-    setXAxisLabels(xAxisData = list(plotData1, plotData2) %>%
-                     extractAllXAxisData(),
-                   extendLabels = FALSE, 
-                   xLim = c(0, 8), 
-                   deriv = "1",
-                   plotShifts = FALSE)
+  pointStyleList <- list() %>%
+    getDefaultPointFormatForModels(modelNames = c("ind_1", "ind_2"))
+  plotTexts <- getDefaultTextFormat()
   
-  expect_equal(plot1$labels, list(x = "Time", y = "Estimate", 
-                                  title = "80%-Credibility-Interval for isotopic values over time", 
-                                  ymin = "lower", ymax = "upper"))
-  expect_equal(plot1$coordinates$limits, list(x = c(0, 8), y = c(-10, -5)))
-  
-  # add another plot
-  rescaling <- getRescaleParams(oldLimits = plot1$coordinates$limits$y,
-                                newLimits = getYRange(plotData2) %>% unlist(),
-                                secAxis = FALSE)
-  plotData2Re <- plotData2 %>%
-    rescaleLayerData(rescaling = rescaling)
-  plot <- plot1 %>%
-    setSecondYAxis(rescaling = rescaling) %>%
-    setPlotLimits(newData = plotData2Re, yLim = c(-10,-5), xLim = c(0, 8)) %>%
-    drawLinesAndRibbon(x = plotData2Re,
-                       colorL = "#000000", colorU = "#000000", alphaL = 0.9, alphaU = 0.1) %>%
-    formatPointsOfGGplot(data = plotData2,
-                         aes(x = .data[["time"]], y = .data[["median"]]), 
-                         pointStyle = list(dataPoints = list(symbol = 1, color = "#002350", 
-                                                             colorBg = "#002350",  size = 5L,
-                                                             alpha = 1L, lineWidthBg = 2L, 
-                                                             hide = FALSE)))
-  
-  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
-                                 title = "80%-Credibility-Interval for isotopic values over time", 
-                                 ymin = "lower", ymax = "upper"))
-  expect_equal(plot$coordinates$limits, 
-               list(x = c(0, 8), y = c(-10, -5)))
-  
-  # add rescaling for second axis
-  ## use always data-based new y limits! We now only set global limits not(!) per model
-  rescaling <- getRescaleParams(oldLimits = plot1$coordinates$limits$y,
-                                newLimits = getYRange(plotData2) %>% unlist(),
+  index <- allPlotDataDF$individual == "ind_2"
+  rescaling <- getRescaleParams(oldLimits = getYRange(allPlotDataDF) %>% unlist(),
+                                newLimits = getYRange(allPlotDataDF[index, ]) %>% unlist(),
                                 secAxis = TRUE)
-  plotData2Re <- plotData2 %>%
-    rescaleLayerData(rescaling = rescaling)
-  plot <- plot1 %>%
-    setSecondYAxis(rescaling = rescaling,
-                   yAxisLabel = "Estimate 2") %>%
-    setPlotLimits(newData = plotData2Re) %>%
-    drawLinesAndRibbon(x = plotData2Re,
-                       colorL = "#000000", colorU = "#000000", alphaL = 0.9, alphaU = 0.1) %>%
-    formatPointsOfGGplot(data = plotData2Re,
-                         aes(x = .data[["time"]], y = .data[["median"]]), 
-                         pointStyle = config()[["defaultPointStyle"]])
   
-  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
-                                 title = "80%-Credibility-Interval for isotopic values over time", 
-                                 ymin = "lower", ymax = "upper"))
+  plot <- allPlotDataDF %>%
+    rescaleSecondAxisData(individual = "ind_2",
+                          rescaling = rescaling) %>%
+    basePlotTime() %>%
+    setXAxisLabels(xAxisData = list(ind_1 = plotData1,
+                                    ind_2 = plotData2) %>%
+                     extractAllXAxisData(), # labels for all x axis data
+                   extendLabels = FALSE, 
+                   deriv = FALSE) %>%
+    shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
+    drawLinesAndRibbon(
+      pointStyleList = pointStyleList,
+      alphaL = 0.7,
+      alphaU = 0.1,
+      legendName = "testLegend"
+    ) %>%
+    setSecondYAxis(rescaling = rescaling,
+                   titleFormat = plotTexts[["yAxisTitle"]],
+                   textFormat = plotTexts[["yAxisText"]],
+                   yAxisLabel = "axis2Test",
+                   yAxisTitleColor = "#002350")
+  
+  expect_equal(plot$labels, list(x = "time", y = "median", colour = "individual", ymin = "lower", 
+                                 ymax = "upper", fill = "individual", shape = "individual", 
+                                 size = "individual"))
   expect_equal(plot$coordinates$limits, 
                list(x = c(xmin = 0.5, xmax = 5.5), 
                     y = c(ymin = -12.7512327337153, ymax = -4.60003088235379)))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
 })
-

@@ -39,9 +39,7 @@ timePlotFormattingUI <- function(id) {
              tags$h4("Data"),
              radioButtons(ns("deriv"), 
                           "Type", 
-                          choices = c("Absolute values" = "1", "First derivate" = "2"),
-                          inline = TRUE,
-                          width = "100%"), 
+                          choices = c("Absolute values" = "1", "First derivate" = "2")), 
              sliderInput(ns("modCredInt"),
                          "Credibility interval:",
                          min = 0,
@@ -50,10 +48,52 @@ timePlotFormattingUI <- function(id) {
                          step = .05,
                          width = "100%"),
              tags$br(),
-             tags$h4("Secondary Y Axis"),
-             selectizeInput(ns("secAxisModel"), "Add a new secondary axis",
+             sliderInput(ns("alphaU"),
+                         "Transparency of uncertainty region",
+                         min = 0,
+                         max = 1,
+                         value = 0.1,
+                         step = 0.05),
+             sliderInput(ns("alphaL"), 
+                         "Transparency of points / lines",
+                         min = 0, 
+                         max = 1, 
+                         value = 0.9,
+                         step = 0.05),
+             tags$br(),
+             fluidRow(
+               column(6, selectInput(inputId = ns("legendPosition"),
+                                     label = "Legend position",
+                                     choices = c("right", "top", "bottom", "left"))),
+               column(6, 
+                      style = "margin-top: 1.5em;",
+                      checkboxInput(inputId = ns("hideLegend"),
+                                    label = "Hide legend",
+                                    value = FALSE))
+             )
+      ),
+      column(3,
+             shinyTools::plotTitlesUI(
+               id = ns("plotLabels"),
+               title = "Text",
+               type = "ggplot",
+               initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]])
+               )
+      ),
+      column(3,
+             shinyTools::plotRangesUI(
+               id = ns("plotRanges"), 
+               title = "Axis",
+               initRanges = list(xAxis = config()[["plotRange"]],
+                                 yAxis = config()[["plotRange"]])
+             ),
+             checkboxInput(inputId = ns("extendLabels"),
+                           label = "Extend x-axis labels to full range",
+                           value = FALSE),
+             tags$br(),
+             selectizeInput(ns("secAxisModel"), "Add a new secondary y axis",
                             choices = c("Choose one Model / Individual ..." = "")),
-             helpText("The first element from 'Display Models / Individuals' is always used for the first (left) axis."),
+             helpText("The first element of 'Display Models / Individuals' is always used for the first (left) axis."),
              conditionalPanel(
                ns = ns,
                condition = "input.secAxisModel != ''",
@@ -64,40 +104,8 @@ timePlotFormattingUI <- function(id) {
                  column(6, colourInput(ns("secAxisColor"),
                                        label = "Title color",
                                        value = config()[["defaultIntervalTimePlotTitle"]][["color"]]))
-               ))
-      ),
-      column(2,
-             shinyTools::plotTitlesUI(
-               id = ns("plotLabels"),
-               title = "Text",
-               type = "ggplot",
-               initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]])
-               )
-      ),
-      column(2,
-             shinyTools::plotRangesUI(
-               id = ns("plotRanges"), 
-               title = "Axis Range",
-               initRanges = list(xAxis = config()[["plotRange"]],
-                                 yAxis = config()[["plotRange"]])
-             ),
-             checkboxInput(inputId = ns("extendLabels"),
-                           label = "Extend x-axis labels to lower and upper limits",
-                           value = FALSE)
-      ),
-      column(2,
-             tags$h4("Transparency"),
-             sliderInput(ns("alphaL"), "Points / Lines", min = 0, max = 1, value = 0.9),
-             sliderInput(ns("alphaU"),
-                         "Uncertainty Region",
-                         min = 0,
-                         max = 1,
-                         value = 0.1),
-             tags$br(),
-             tags$h4("Legend"),
-             checkboxInput(inputId = ns("hideLegend"),
-                           label = "Hide legend",
-                           value = FALSE)
+               )),
+             
       ),
       column(3,
              shinyTools::plotPointsUI(id = ns("pointStyle"),
@@ -105,7 +113,10 @@ timePlotFormattingUI <- function(id) {
                                       initStyle = config()[["defaultPointStyle"]])
       )
     ),
-    fluidRow(column(12, align = "right", plotExportButton(ns("exportCredIntTimePlot")))),
+    fluidRow(column(12, 
+                    style = "margin-top: -3em;",
+                    align = "right",
+                    plotExportButton(ns("exportCredIntTimePlot")))),
     tags$hr(),
     tags$h4("Plot Data"),
     tableOutput(ns("plotData")),
@@ -133,7 +144,10 @@ timePlotFormattingServer <- function(id, savedModels) {
                  plotTexts <- shinyTools::plotTitlesServer(
                    "plotLabels",
                    type = "ggplot", 
-                   initText = list(plotTitle  = config()[["defaultIntervalTimePlotTitle"]],
+                   availableElements = c("title", "axis", "legend"),
+                   initText = list(legendTitle  = config()[["defaultIntervalTimePlotTitle"]],
+                                   legendText  = config()[["defaultIntervalTimePlotText"]],
+                                   plotTitle  = config()[["defaultIntervalTimePlotTitle"]],
                                    xAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
                                    yAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
                                    xAxisText  = config()[["defaultIntervalTimePlotText"]],
@@ -271,7 +285,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                  
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
-                   
                    p <- extractedPlotDataDF() %>%
                      na.omit() %>%
                      rescaleSecondAxisData(individual = input[["secAxisModel"]],
@@ -290,16 +303,15 @@ timePlotFormattingServer <- function(id, savedModels) {
                      drawLinesAndRibbon(
                        pointStyleList = pointStyleList,
                        alphaL = input[["alphaL"]],
-                       alphaU = input[["alphaU"]]) %>%
+                       alphaU = input[["alphaU"]],
+                       legendName = plotTexts[["legendTitle"]][["text"]]) %>%
                      setSecondYAxis(rescaling = rescalingSecAxis(),
                                     titleFormat = plotTexts[["yAxisTitle"]],
                                     textFormat = plotTexts[["yAxisText"]],
                                     yAxisLabel = input[["secAxisText"]],
-                                    yAxisTitleColor = input[["secAxisColor"]])
-                   
-                   if (input[["hideLegend"]]) {
-                     p <- p + theme(legend.position = "none")
-                   }
+                                    yAxisTitleColor = input[["secAxisColor"]]) %>%
+                     setLegendPosition(hideLegend = input[["hideLegend"]],
+                                       legendPosition = input[["legendPosition"]])
                    
                    formattedPlot(p)
                  }) %>%

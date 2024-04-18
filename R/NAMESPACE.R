@@ -27,8 +27,8 @@
 #' @importFrom rstan sampling extract
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom shinyjs alert
-#' @importFrom shinyTools dataExportButton dataExportServer plotExportButton plotExportServer
-#'  formatPointsOfGGplot formatRangesOfGGplot formatTitlesOfGGplot
+#' @importFrom shinyTools dataExportButton dataExportServer formatPointsOfGGplot
+#'  formatRangesOfGGplot formatTitlesOfGGplot plotExportButton plotExportServer
 #'  plotPointsServer plotPointsUI plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
 #' @importFrom shinyWidgets pickerInput updatePickerInput
 #' @importFrom stats approx dnorm lm median quantile sd

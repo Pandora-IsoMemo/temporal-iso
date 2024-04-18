@@ -184,7 +184,6 @@ tagList(
                    tabPanel(
                      "Credibility intervals over time",
                      value = "credibilityIntervalsOverTimeTab",
-                     HTML("<br>"),
                      timePlotFormattingUI(id = "timePlotFormat")
                    ),
                    tabPanel(

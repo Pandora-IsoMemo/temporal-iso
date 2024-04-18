@@ -156,7 +156,19 @@ getRescaleParams <- function(oldLimits, newLimits = NULL, secAxis = FALSE) {
        center = res$coefficients[1])
 }
 
-drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU) {
+setLegendPosition <- function(plot, hideLegend, legendPosition) {
+  if (hideLegend) {
+    legendPosition <- "none"
+  }
+  
+  plot + 
+    theme(legend.position = legendPosition)
+}
+
+drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legendName = "individual") {
+  # default legend name
+  if (legendName == "") legendName <- "individual"
+  
   # draw lines "upper", "mdeian", "lower"
   if (nrow(plot$data) > 1) {
     plot <- plot +
@@ -200,10 +212,10 @@ drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU) {
   pointSize <- getStyleForIndividuals(pointStyleList, input = "size")
   
   plot + 
-    scale_colour_manual(name = "individual", values = lineColors) +  # former colorL
-    scale_fill_manual(name = "individual", values = fillColors)+  # former colorU
-    scale_shape_manual(name = "individual", values = pointShapes) +
-    scale_size_manual(name = "individual", values = pointSize)
+    scale_colour_manual(name = legendName, values = lineColors) +  # former colorL
+    scale_fill_manual(name = legendName, values = fillColors)+  # former colorU
+    scale_shape_manual(name = legendName, values = pointShapes) +
+    scale_size_manual(name = legendName, values = pointSize)
 }
 
 getStyleForIndividuals <- function(pointStyleList, input) {

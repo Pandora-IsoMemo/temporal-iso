@@ -272,15 +272,16 @@ timePlotFormattingServer <- function(id, savedModels) {
                                            rescaling = rescalingSecAxis()) %>%
                      basePlotTime(xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
                                   yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
-                     setTitles(prop = input$modCredInt) %>%
+                     setDefaultTitles(prop = input$modCredInt) %>%
                      shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
                      shinyTools::formatRangesOfGGplot(ranges = plotRanges) %>%
-                     setXAxisLabels(xAxisData = extractedPlotDataList() %>%
-                                      extractAllXAxisData(), # labels for all x axis data
-                                    extendLabels = input$extendLabels, 
-                                    xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
-                                    deriv = input$deriv,
-                                    plotShifts = FALSE) %>%
+                     setXAxisLabels(
+                       xAxisData = extractedPlotDataList() %>%
+                         extractAllXAxisData(), # labels for all x axis data
+                       extendLabels = input$extendLabels, 
+                       xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
+                       deriv = "1" # input$deriv already included within extractedPlotDataList()
+                     ) %>%
                      drawLinesAndRibbon(
                        pointStyleList = pointStyleList,
                        alphaL = input[["alphaL"]],

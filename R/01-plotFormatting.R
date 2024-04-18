@@ -1,3 +1,12 @@
+getStyleForIndividuals <- function(pointStyleList, input) {
+  # pointStyleList are reactive values -> lapply over the names and not(!) the list itself
+  style <- lapply(names(pointStyleList), function(x) {pointStyleList[[x]][input]}) %>% 
+    unlist()
+  names(style) <- names(pointStyleList)
+  
+  style
+}
+
 getDefaultPointFormatForModels <- function(pointStyleList, modelNames) {
   # default colours
   defaultColours <- ggplot2::scale_color_discrete()$palette(n = length(modelNames))
@@ -22,4 +31,13 @@ getDefaultTextFormat <- function() {
        yAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
        xAxisText  = config()[["defaultIntervalTimePlotText"]],
        yAxisText  = config()[["defaultIntervalTimePlotText"]])
+}
+
+setLegendPosition <- function(plot, hideLegend, legendPosition) {
+  if (hideLegend) {
+    legendPosition <- "none"
+  }
+  
+  plot + 
+    theme(legend.position = legendPosition)
 }

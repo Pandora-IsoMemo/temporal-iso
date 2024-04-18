@@ -47,13 +47,15 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
                       xLim = xLim, yLim = yLim,
                       sizeTextX = sizeTextX, sizeTextY = sizeTextY,
                       sizeAxisX = sizeAxisX, sizeAxisY = sizeAxisY) %>%
-      setTitles(prop, xAxisLabel, yAxisLabel)
+      setDefaultTitles(prop, xAxisLabel, yAxisLabel)
   
   p <- p %>%
     drawLinesAndRibbon(pointStyleList = pointStyleList, alphaL = alphaL, alphaU = alphaU) %>%
     setXAxisLabels(xAxisData = getXAxisData(object = object),
                    extendLabels = extendLabels, 
                    xLim = xLim, 
+                   deriv = deriv) %>%
+    drawShiftLines(object = object, 
                    deriv = deriv,
                    plotShifts = plotShifts,
                    ...)
@@ -78,92 +80,7 @@ basePlotTime <- function(x,
   p
 }
 
-setPlotLimits <- function(plot, newData = NULL, xLim = NULL, yLim = NULL) {
-  allData <- plot$data
-  if(!is.null(newData)) allData <- bind_rows(plot$data, newData) %>% distinct()
-  
-  if (length(xLim) == 0) xLim <- getXRange(allData) %>% unlist()
-  if (length(yLim) == 0) yLim <- getYRange(allData) %>% unlist()
-  
-  plot + coord_cartesian(ylim = yLim, xlim = xLim)
-}
 
-setSecondYAxis <- function(plot, 
-                           rescaling,
-                           titleFormat = NULL,
-                           textFormat = NULL,
-                           yAxisLabel = "Estimate",
-                           yAxisTitleColor = NULL) {
-  if (identical(rescaling, list(scale = 1, center = 0))) return(plot)
-  
-  scale <- rescaling$scale
-  center <- rescaling$center
-
-  # format equal to first axis:
-  if (is.null(titleFormat)) titleFormat <- config()[["defaultIntervalTimePlotTitle"]]
-  if (is.null(textFormat)) textFormat <- config()[["defaultIntervalTimePlotText"]]
-  # custom format for second axis:
-  if (is.null(yAxisTitleColor)) yAxisTitleColor <- config()[["defaultIntervalTimePlotTitle"]][["color"]]
-  
-  plot <- plot + 
-    theme(axis.title.y.right = element_text(family = "Arial",
-                                            size = titleFormat[["size"]],
-                                            face = titleFormat[["fontType"]],
-                                            color = yAxisTitleColor,
-                                            hjust = 0.5),
-          axis.text.y.right = element_text(family = "Arial",
-                                           size = textFormat[["size"]],
-                                           face = textFormat[["fontType"]],
-                                           color = textFormat[["color"]],
-                                           hjust = 0.5)) +
-    scale_y_continuous(
-      # Features of the first axis
-      # Add a second axis and specify its features
-      sec.axis = sec_axis(~(.* scale) + center, name = yAxisLabel)
-    )
-  
-  plot
-}
-
-rescaleSecondAxisData <- function(plotData, individual, rescaling) {
-  if (is.null(individual) || individual == "") return(plotData)
-  
-  # get index for filter
-  index <- plotData$individual == individual
-  
-  if (nrow(plotData[index, ]) == 0 ||
-      identical(rescaling, list(scale = 1, center = 0))) return(plotData)
-  
-  # rescale data
-  scale <- rescaling$scale
-  center <- rescaling$center
-  
-  plotData[index, ]$median <- (plotData[index, ]$median  - center ) / scale
-  plotData[index, ]$lower <- (plotData[index, ]$lower - center ) / scale
-  plotData[index, ]$upper <- (plotData[index, ]$upper  - center ) / scale
-  
-  plotData
-}
-
-getRescaleParams <- function(oldLimits, newLimits = NULL, secAxis = FALSE) {
-  if (length(newLimits) == 0 || !secAxis) return(list(scale = 1, center = 0))
-  
-  b <- seq(min(newLimits),max(newLimits), length.out = 100)
-  a <- seq(min(oldLimits),max(oldLimits), length.out = 100)
-  res <- lm(b~a)
-  
-  list(scale = res$coefficients[2],
-       center = res$coefficients[1])
-}
-
-setLegendPosition <- function(plot, hideLegend, legendPosition) {
-  if (hideLegend) {
-    legendPosition <- "none"
-  }
-  
-  plot + 
-    theme(legend.position = legendPosition)
-}
 
 drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legendName = "individual") {
   # default legend name
@@ -218,16 +135,7 @@ drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legendName 
     scale_size_manual(name = legendName, values = pointSize)
 }
 
-getStyleForIndividuals <- function(pointStyleList, input) {
-  # pointStyleList are reactive values -> lapply over the names and not(!) the list itself
-  style <- lapply(names(pointStyleList), function(x) {pointStyleList[[x]][input]}) %>% 
-    unlist()
-  names(style) <- names(pointStyleList)
-  
-  style
-}
-
-setTitles <- function(plot, prop, xAxisLabel = "Time", yAxisLabel = "Estimate") {
+setDefaultTitles <- function(plot, prop, xAxisLabel = "Time", yAxisLabel = "Estimate") {
   stopifnot(prop < 1)
   
   plot +
@@ -235,22 +143,9 @@ setTitles <- function(plot, prop, xAxisLabel = "Time", yAxisLabel = "Estimate") 
          x = xAxisLabel, y = yAxisLabel)
 }
 
-setXAxisLabels <- function(plot, xAxisData, extendLabels, deriv, xLim = NULL, plotShifts = FALSE, ...) {
-  xPlotLim <- xLabelLim <- range(xAxisData)
-  
-  if (length(xLim) == 2) xPlotLim <- xLim
-  
-  if (extendLabels && length(xLim) == 2) {
-    xLabelLim <- xLim
-    xAxisData <- xAxisData %>%
-      extendXAxis(xLabelLim = xLabelLim)
-  }
-  
-  breaks <- getBreaks(time = xAxisData$time, deriv = deriv)
-  labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
-  
-  plot <- plot + 
-    scale_x_continuous(breaks = breaks, labels = labels, limits = xPlotLim) 
+drawShiftLines <- function(plot, object, deriv, plotShifts, ...) {
+  # breaks within data range
+  breaks <- getBreaks(time = object@time, deriv = deriv)
   
   if (plotShifts){
     index <- getShiftIndex(object, ...)
@@ -258,14 +153,6 @@ setXAxisLabels <- function(plot, xAxisData, extendLabels, deriv, xLim = NULL, pl
   }
   
   plot
-}
-
-getLim <- function(plotRanges, axis = c("xAxis", "yAxis")) {
-  axis <- match.arg(axis)
-  
-  if (plotRanges[[axis]][["fromData"]]) return(numeric(0))
-  
-  c(plotRanges[[axis]][["min"]], plotRanges[[axis]][["max"]])
 }
 
 extractPlotDataDF <- function(plotDataList, models, credInt) {
@@ -357,12 +244,14 @@ adjustTimeColumn <- function(objectTime, deriv){
   res
 }
 
-extractAllXAxisData <- function(extractedPlotDataList) {
-  extractedPlotDataList %>%
-    bind_rows() %>%
-    select("time", "time_lower", "time_upper") %>% 
-    distinct() %>%
-    arrange(.data$time)
+#' Get Breaks for Derivation
+#' 
+#' Get the time for the x axis of the plot in case of showing the derivation
+#' 
+#' @param time (numeric) time points of x axis
+joinTimeForDerivation <- function(time){
+  as.numeric(time)[1:(length(time) - 1)] + 
+    diff(as.numeric(time)) / 2
 }
 
 #' Get X-Axis Data
@@ -387,106 +276,23 @@ getXAxisData <- function(object, oldXAxisData = data.frame()){
   xAxisData
 }
 
-#' Extend X Axis
-#' 
-#' Add breaks and labels for x axis
-#' 
-#' @param xAxisData (data.frame) data.frame containing "time", "lower" and "upper" columns used for
-#'  the x axis.
-#' @param xLabelLim numeric vector of length 2: range of labels of x axis
-extendXAxis <- function(xAxisData, xLabelLim) {
-  if (min(xLabelLim) < min(xAxisData[["time_lower"]])) {
-    # add new row at the beginning
-    newFirstRow <- data.frame(
-      "time" = mean(c(min(xLabelLim), min(xAxisData[["time_lower"]]))),
-      "time_lower" = min(xLabelLim),
-      "time_upper" = min(xAxisData[["time_lower"]])
-    )
-    
-    xAxisData <- rbind(newFirstRow, 
-                       xAxisData)
-  }
+setPlotLimits <- function(plot, newData = NULL, xLim = NULL, yLim = NULL) {
+  allData <- plot$data
+  if(!is.null(newData)) allData <- bind_rows(plot$data, newData) %>% distinct()
   
-  if (max(xLabelLim) > max(xAxisData[["time_upper"]])) {
-    # add new row at the end
-    newLastRow <- data.frame(
-      "time" = mean(c(max(xAxisData[["time_upper"]]), max(xLabelLim))),
-      "time_lower" = max(xAxisData[["time_upper"]]),
-      "time_upper" = max(xLabelLim)
-    )
-    
-    xAxisData <- rbind(xAxisData,
-                       newLastRow)
-  }
+  if (length(xLim) == 0) xLim <- getXRange(allData) %>% unlist()
+  if (length(yLim) == 0) yLim <- getYRange(allData) %>% unlist()
   
-  xAxisData
+  plot + coord_cartesian(ylim = yLim, xlim = xLim)
 }
 
-#' Get Label
-#' 
-#' @param xAxisData data.frame of time data of object, output of getXAxisData
-#' @inheritParams plotTime
-#' @param hidePastedLabels (logical) if TRUE then dont't show pasted labels 
-getLabel <- function(xAxisData, deriv, hidePastedLabels = TRUE){
-  if(any(xAxisData$time_lower != xAxisData$time_upper)){
-    labels <- c(paste0("[", as.character(xAxisData$time_lower),"-", as.character(xAxisData$time_upper), "]"))
-  } else {
-    labels <- unique(sort(as.numeric(c(xAxisData$time_lower, xAxisData$time, xAxisData$time_upper))))
-  }
+getLim <- function(plotRanges, axis = c("xAxis", "yAxis")) {
+  axis <- match.arg(axis)
   
-  if(deriv == "2"){
-    labels <- pasteLabelForDerivation(labels, hidePastedLabels = hidePastedLabels)
-  }
+  if (plotRanges[[axis]][["fromData"]]) return(numeric(0))
   
-  labels
+  c(plotRanges[[axis]][["min"]], plotRanges[[axis]][["max"]])
 }
-
-
-#' Paste Label for Derivation Plot
-#' 
-#' Get the labels for the x axis of the plot in case of showing the derivation
-#' 
-#' @param axesLabel (character) output of \code{\link{getLabel}}
-#' @inheritParams getLabel
-pasteLabelForDerivation <- function(axesLabel, hidePastedLabels){
-  n <- length(axesLabel)
-  pastedLabels <- paste0(axesLabel[1:(n - 1)], ",", axesLabel[2:n])
-  pastedLabels <- lapply(pastedLabels, function(x) gsub("\\],\\[", ",", x)) %>% unlist(use.names = FALSE)
-  
-  if (hidePastedLabels) {
-    pastedLabels <- rep("", length(pastedLabels))
-  }
-  
-  # order both vectors with alternating indices
-  c(axesLabel, pastedLabels)[order(c(seq_along(axesLabel), seq_along(pastedLabels)))]
-}
-
-
-#' Get Breaks
-#' 
-#' @param time (numeric) time points of x axis
-#' @inheritParams plotTime
-getBreaks <- function(time, deriv){
-  breaks <- time
-  
-  if(deriv == "2"){
-    breaks <- c(breaks, joinTimeForDerivation(breaks)) %>% sort()
-  }
-  
-  breaks
-}
-
-
-#' Get Breaks for Derivation
-#' 
-#' Get the time for the x axis of the plot in case of showing the derivation
-#' 
-#' @param time (numeric) time points of x axis
-joinTimeForDerivation <- function(time){
-  as.numeric(time)[1:(length(time) - 1)] + 
-    diff(as.numeric(time)) / 2
-}
-
 
 getXRange <- function(dat) {
   if (nrow(dat) == 0) return(list(xmin = defaultInputsForUI()$xmin,

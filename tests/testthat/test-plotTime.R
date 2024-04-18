@@ -2,27 +2,61 @@ load(testthat::test_path("testdata/testObjectDefault.RData"))
 load(testthat::test_path("testdata/testObjectGap.RData"))
 
 testthat::test_that("plotTime",  {
-  plot1 <- plotTime(object = testObjectDefault1, prop = 0.8, yLim = c(-10,-5), xLim = c(0, 8),
+  plot <- plotTime(object = testObjectDefault1, prop = 0.8, 
+                    plotShifts = FALSE,
+                    deriv = "1", 
+                    yLim = c(-10,-5), xLim = c(0, 8),
                     color = "#002350")
   
-  expect_equal(plot1$labels, list(x = "Time", y = "Estimate", 
+  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
                                   title = "80%-Credibility-Interval for isotopic values over time", 
                                   colour = "individual",
                                   ymin = "lower", ymax = "upper",
                                   fill = "individual",
                                   shape = "individual",
                                   size = "individual"))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
   
-  plot2 <- plotTime(object = testObjectGap1, prop = 0.8, yLim = c(-10,-5), xLim = c(0, 4),
+  # second derivation
+  plot <- plotTime(object = testObjectDefault1, prop = 0.8, 
+                    plotShifts = FALSE,
+                    deriv = "2", 
+                    yLim = c(-4,4), xLim = c(0, 8),
                     color = "#002350")
   
-  expect_equal(plot2$labels, list(x = "Time", y = "Estimate", 
-                                  title = "80%-Credibility-Interval for isotopic values over time", 
-                                  colour = "individual",
-                                  ymin = "lower", ymax = "upper",
-                                  fill = "individual",
-                                  shape = "individual",
-                                  size = "individual"))
+  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
+                                 title = "80%-Credibility-Interval for isotopic values over time", 
+                                 colour = "individual",
+                                 ymin = "lower", ymax = "upper",
+                                 fill = "individual",
+                                 shape = "individual",
+                                 size = "individual"))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "", "[1-2]", "", "[2-3]", "", "[3-4]", "", "[4-5]", "", "[5-6]"))
+  
+  # shifts
+  plot <- plotTime(object = testObjectGap1, prop = 0.8, 
+                   plotShifts = TRUE,
+                   yLim = c(-10,-5), xLim = c(0, 4),
+                   color = "#002350")
+  
+  expect_equal(plot$labels, list(x = "Time", y = "Estimate", 
+                                 title = "80%-Credibility-Interval for isotopic values over time", 
+                                 colour = "individual",
+                                 ymin = "lower", ymax = "upper",
+                                 fill = "individual",
+                                 shape = "individual",
+                                 size = "individual",
+                                 xintercept = "xintercept"))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
 })
 
 testthat::test_that("basePlotTime",  {
@@ -40,13 +74,12 @@ testthat::test_that("basePlotTime",  {
   plot <- basePlotTime(x = plotDataDF,
                        yLim = c(-10,-5),
                        xLim = c(0, 8)) %>%
-    setTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
+    setDefaultTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
     setXAxisLabels(xAxisData = list(ind_1 = plotData) %>%
                      extractAllXAxisData(), # labels for all x axis data
                    extendLabels = FALSE, 
                    xLim = c(0, 8), 
-                   deriv = FALSE,
-                   plotShifts = FALSE) %>%
+                   deriv = FALSE) %>%
     drawLinesAndRibbon(
       pointStyleList = pointStyleList,
       alphaL = 0.7,
@@ -71,14 +104,17 @@ testthat::test_that("basePlotTime",  {
     )
   )
   expect_equal(plot$coordinates$limits, list(x = c(0, 8), y = c(-10, -5)))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
   
   # default x, y limits
   plot <- basePlotTime(x = plotDataDF) %>%
     setXAxisLabels(xAxisData = list(ind_1 = plotData) %>%
                      extractAllXAxisData(), # labels for all x axis data
                    extendLabels = FALSE, 
-                   deriv = FALSE,
-                   plotShifts = FALSE) %>%
+                   deriv = FALSE) %>%
     drawLinesAndRibbon(
       pointStyleList = pointStyleList,
       alphaL = 0.7,
@@ -107,13 +143,18 @@ testthat::test_that("basePlotTime",  {
                    ymax = -4.60003088235379
                  )
                ))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
 })
 
 testthat::test_that("drawLinesAndRibbon",  {
-  plotData1 <- getPlotData(object = testObjectDefault1, prop = 0.8, deriv = "1") %>%
-    updateTime(object = testObjectDefault1, deriv = "1")
-  plotData2 <- getPlotData(object = testObjectGap1, prop = 0.8, deriv = "1") %>%
-    updateTime(object = testObjectGap1, deriv = "1")
+  # second derivation
+  plotData1 <- getPlotData(object = testObjectDefault1, prop = 0.8, deriv = "2") %>%
+    updateTime(object = testObjectDefault1, deriv = "2")
+  plotData2 <- getPlotData(object = testObjectGap1, prop = 0.8, deriv = "2") %>%
+    updateTime(object = testObjectGap1, deriv = "2")
   allPlotDataDF <- list(ind_1 = plotData1,
                         ind_2 = plotData2) %>%
     extractPlotDataDF(models = c("ind_1", "ind_2"),
@@ -124,6 +165,11 @@ testthat::test_that("drawLinesAndRibbon",  {
     getDefaultPointFormatForModels(modelNames = c("ind_1", "ind_2"))
   
   plot <- basePlotTime(x = allPlotDataDF) %>%
+    setXAxisLabels(xAxisData = list(ind_1 = plotData1,
+                                    ind_2 = plotData2) %>%
+                     extractAllXAxisData(), # labels for all x axis data
+                   extendLabels = FALSE, 
+                   deriv = "2") %>% # if "1" is set here, breaks in-between are left out
     drawLinesAndRibbon(
       pointStyleList = pointStyleList,
       alphaL = 0.7,
@@ -145,13 +191,12 @@ testthat::test_that("drawLinesAndRibbon",  {
     )
   )
   expect_equal(plot$coordinates$limits,
-               list(
-                 x = c(xmin = 0.5, xmax = 5.5),
-                 y = c(
-                   ymin = -12.7512327337153,
-                   ymax = -4.60003088235379
-                 )
-               ))
+               list(x = c(xmin = 1, xmax = 5), y = c(ymin = -4.17929722147457, 
+                                                     ymax = 3.35841030846769)))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0.5-1.5]", "", "[1.5-2.5]", "", "[2.5-3.5]", "", "[3.5-4.5]", "", "[4.5-5.5]"))
 })
 
 testthat::test_that("setSecondYAxis",  {
@@ -178,6 +223,11 @@ testthat::test_that("setSecondYAxis",  {
     rescaleSecondAxisData(individual = "ind_2",
                           rescaling = rescaling) %>%
     basePlotTime() %>%
+    setXAxisLabels(xAxisData = list(ind_1 = plotData1,
+                                    ind_2 = plotData2) %>%
+                     extractAllXAxisData(), # labels for all x axis data
+                   extendLabels = FALSE, 
+                   deriv = FALSE) %>%
     shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
     drawLinesAndRibbon(
       pointStyleList = pointStyleList,
@@ -197,4 +247,8 @@ testthat::test_that("setSecondYAxis",  {
   expect_equal(plot$coordinates$limits, 
                list(x = c(xmin = 0.5, xmax = 5.5), 
                     y = c(ymin = -12.7512327337153, ymax = -4.60003088235379)))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
+               c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
+  expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 
+               c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
 })

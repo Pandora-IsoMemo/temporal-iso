@@ -33,7 +33,7 @@
 #'  formatRangesOfGGplot formatTitlesOfGGplot plotExportButton plotExportServer
 #'  plotPointsServer plotPointsUI plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
 #' @importFrom shinyWidgets pickerInput updatePickerInput
-#' @importFrom stats approx dnorm lm median quantile sd
+#' @importFrom stats approx dnorm lm median na.omit quantile sd
 #' @importFrom utils write.csv write.table combn
 #' @importFrom yaml read_yaml
 #' @references

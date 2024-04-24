@@ -70,7 +70,7 @@ basePlotTime <- function(df,
                          sizeTextX = 12, sizeTextY = 12, 
                          sizeAxisX = 12, sizeAxisY = 12) {
   p <- ggplot(df, aes(x = .data[["time"]])) + 
-    theme(panel.grid.major.x = element_line(linewidth = 0.1)) + 
+    theme(panel.grid.major.x = element_line(size = 0.1)) + # no error only in most recent version: element_line(linewidth = 0.1)
     theme(axis.title.x = element_text(size = sizeTextX),
           axis.text.x = element_text(size = sizeAxisX),
           axis.title.y = element_text(size = sizeTextY),

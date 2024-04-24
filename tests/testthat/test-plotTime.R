@@ -71,7 +71,7 @@ testthat::test_that("basePlotTime",  {
     getDefaultPointFormatForModels(modelNames = c("ind_1"))
   
   # specify x, y limits
-  plot <- basePlotTime(x = plotDataDF,
+  plot <- basePlotTime(df = plotDataDF,
                        yLim = c(-10,-5),
                        xLim = c(0, 8)) %>%
     setDefaultTitles(prop = 0.8, xAxisLabel = "Time", yAxisLabel = "Estimate") %>%
@@ -110,7 +110,7 @@ testthat::test_that("basePlotTime",  {
                c("[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]"))
   
   # default x, y limits
-  plot <- basePlotTime(x = plotDataDF) %>%
+  plot <- basePlotTime(df = plotDataDF) %>%
     setXAxisLabels(xAxisData = list(ind_1 = plotData) %>%
                      extractAllXAxisData(), # labels for all x axis data
                    extendLabels = FALSE, 
@@ -164,7 +164,7 @@ testthat::test_that("drawLinesAndRibbon",  {
   pointStyleList <- list() %>%
     getDefaultPointFormatForModels(modelNames = c("ind_1", "ind_2"))
   
-  plot <- basePlotTime(x = allPlotDataDF) %>%
+  plot <- basePlotTime(df = allPlotDataDF) %>%
     setXAxisLabels(xAxisData = list(ind_1 = plotData1,
                                     ind_2 = plotData2) %>%
                      extractAllXAxisData(), # labels for all x axis data

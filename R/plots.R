@@ -45,11 +45,11 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   pointStyleList[["current"]] <- config()[["defaultPointStyle"]][["dataPoints"]]
   pointStyleList[["current"]]["color"] <- color
   
-  p <- basePlotTime(x = x,
-                      xLim = xLim, yLim = yLim,
-                      sizeTextX = sizeTextX, sizeTextY = sizeTextY,
-                      sizeAxisX = sizeAxisX, sizeAxisY = sizeAxisY) %>%
-      setDefaultTitles(prop, xAxisLabel, yAxisLabel)
+  p <- basePlotTime(df = x,
+                    xLim = xLim, yLim = yLim,
+                    sizeTextX = sizeTextX, sizeTextY = sizeTextY,
+                    sizeAxisX = sizeAxisX, sizeAxisY = sizeAxisY) %>%
+    setDefaultTitles(prop, xAxisLabel, yAxisLabel)
   
   p <- p %>%
     drawLinesAndRibbon(pointStyleList = pointStyleList, alphaL = alphaL, alphaU = alphaU) %>%
@@ -65,11 +65,11 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
   p + theme(legend.position = "none")
 }
 
-basePlotTime <- function(x,
+basePlotTime <- function(df,
                          xLim = NULL, yLim = NULL, 
                          sizeTextX = 12, sizeTextY = 12, 
                          sizeAxisX = 12, sizeAxisY = 12) {
-  p <- ggplot(x, aes(x = .data[["time"]])) + 
+  p <- ggplot(df, aes(x = .data[["time"]])) + 
     theme(panel.grid.major.x = element_line(linewidth = 0.1)) + 
     theme(axis.title.x = element_text(size = sizeTextX),
           axis.text.x = element_text(size = sizeAxisX),

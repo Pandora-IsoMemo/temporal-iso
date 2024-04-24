@@ -25,6 +25,7 @@
 #' @param extendLabels boolean if TRUE, extend the labels of the x-axis to the x-axis limits. 
 #'  If FALSE, the range of the data defines the range of x-axis labels.
 #' @param ... arguments handed to \code{\link{getShiftTime}}
+#' @inheritParams shinyTools::formatPointsOfGGplot
 #' 
 #' @return a \link[ggplot2]{ggplot} object.
 #' 
@@ -35,6 +36,7 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
                      colorU = NULL, alphaL = 0.9, alphaU = 0.1,
                      sizeTextY = 12, sizeTextX = 12, sizeAxisX = 12, sizeAxisY = 12, secAxis = FALSE,
                      xAxisLabel = "Time", yAxisLabel = "Estimate", extendLabels = FALSE,
+                     pointStyle = config()[["defaultPointStyle"]],
                      ...){
   stopifnot(prop < 1)
 
@@ -47,13 +49,14 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
       lineFct(aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
       lineFct(aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
       lineFct(aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL) +
-      geom_point(aes(x = .data[["time"]], y = .data[["median"]]), colour = colorL, alpha = alphaL) +
       coord_cartesian(ylim = yLim, xlim = xLim) +
       theme(panel.grid.major.x = element_line(size = 0.1)) + 
       theme(axis.title.x = element_text(size = sizeTextX),
             axis.title.y = element_text(size = sizeTextY),
             axis.text.x = element_text(size = sizeAxisX),
             axis.text.y = element_text(size = sizeAxisY))
+    p <- p %>%
+      formatPointsOfGGplot(data = x, aes(x = .data[["time"]], y = .data[["median"]]), pointStyle = pointStyle)
     if (nrow(x) > 1) p <- p + geom_ribbon(aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), 
                                           linetype = 2, alpha = alphaU, fill = colorU) 
   } else {
@@ -72,8 +75,9 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
     p <- oldPlot  + geom_line(data = x, aes(y = .data[["median"]]), colour = colorL, alpha = alphaL) +
       geom_line(data = x, aes(y = .data[["lower"]]), size = 0.05, colour = colorL, alpha = alphaL) +
       geom_line(data = x, aes(y = .data[["upper"]]), size = 0.05, colour = colorL, alpha = alphaL) +
-      geom_ribbon(data = x, aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), linetype = 2, alpha = alphaU, fill = colorU) +
-      geom_point(data = x, aes(x = .data[["time"]], y = .data[["median"]]), colour = colorL, alpha = alphaL)
+      geom_ribbon(data = x, aes(ymin = .data[["lower"]], ymax = .data[["upper"]]), linetype = 2, alpha = alphaU, fill = colorU)
+    p <- p %>%
+      formatPointsOfGGplot(data = x, aes(x = .data[["time"]], y = .data[["median"]]), pointStyle = pointStyle)
     
     if(secAxis){
       p <- p + 

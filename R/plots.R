@@ -22,6 +22,7 @@
 #' @param extendLabels boolean if TRUE, extend the labels of the x-axis to the x-axis limits. 
 #'  If FALSE, the range of the data defines the range of x-axis labels.
 #' @param ... arguments handed to \code{\link{getShiftTime}}
+#' @inheritParams shinyTools::formatPointsOfGGplot
 #' 
 #' @return a \link[ggplot2]{ggplot} object.
 #' 
@@ -32,13 +33,14 @@ plotTime <- function(object, prop = 0.8, plotShifts = FALSE,
                      color = NULL, alphaL = 0.9, alphaU = 0.1,
                      sizeTextY = 12, sizeTextX = 12, sizeAxisX = 12, sizeAxisY = 12, secAxis = FALSE,
                      xAxisLabel = "Time", yAxisLabel = "Estimate", extendLabels = FALSE,
+                     pointStyle = config()[["defaultPointStyle"]],
                      ...){
   stopifnot(prop < 1)
 
   x <- getPlotData(object, prop = prop, deriv = deriv) %>%
     updateTime(object = object, deriv = deriv)
   
-  x$individual <- "current"
+  x$individual <- "current"  
   pointStyleList <- list()
   pointStyleList[["current"]] <- config()[["defaultPointStyle"]][["dataPoints"]]
   pointStyleList[["current"]]["color"] <- color

@@ -6,6 +6,7 @@ library(shinyMatrix)
 library(dplyr)
 library(ggplot2)
 library(rstan)
+library(stats)
 
 options(shiny.maxRequestSize = 200*1024^2
         # Set mc.cores option
@@ -284,40 +285,18 @@ shinyServer(function(input, output, session) {
   
   output$fittingTimeTxt <- renderUI(HTML(modelFittingTimeTxt()))
   
-  allXAxisData <- reactiveVal(data.frame())
-  
   observeEvent(savedModels(), {
     req(length(savedModels()) > 0)
     
     modelChoices <- names(savedModels())
+    
     selectedModel <- names(savedModels())[length(savedModels())]
     updateSelectInput(session, "savedModels", choices = modelChoices, selected = selectedModel)
     
-    fit(savedModels()[[length(savedModels())]]$fit)
+    fit(savedModels()[[selectedModel]]$fit)
     
-    # inputs in tab "Credibility intervals over time"
-    updateSelectizeInput(session, "credIntTimePlot", 
-                         choices = modelChoices, selected = selectedModel)
-    
-    updateNumericInput(session, "xmin", 
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$xmin)
-    updateNumericInput(session, "xmax", 
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$xmax)
-    updateNumericInput(session, "ymin",
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$ymin)
-    updateNumericInput(session, "ymax",
-                       value = getDefaultPlotRange(savedModels(), deriv = "1")$ymax)
-    
-    # to draw x axis ticks and labels at all possible points in time present in savedModls()
-    for (i in 1:length(savedModels())) {
-      allXAxisData(getXAxisData(savedModels()[[i]]$fit, oldXAxisData = allXAxisData()))
-    }
-    
-    # other tabs
-    updatePickerInput(session, "savedModelsShift", 
-                      choices = modelChoices, selected = selectedModel)
-    updatePickerInput(session, "savedModelsTime", 
-                      choices = modelChoices, selected = selectedModel)
+    updatePickerInput(session, "savedModelsShift", choices = modelChoices, selected = selectedModel)
+    updatePickerInput(session, "savedModelsTime", choices = modelChoices, selected = selectedModel)
     updatePickerInput(session, "savedModelsUserDefined", 
                       choices = modelChoices, selected = selectedModel)
   })
@@ -406,6 +385,8 @@ shinyServer(function(input, output, session) {
     } else {
       fitToSave <- fit()
     }
+    # plot format cannot be saved, this would require refactoring of select inputs to save/load a
+    # single model, or download a list of models, selecting models for the timePlot
     newModel <- setNames(list(
       list(modelSpecifications = reactiveValuesToList(modelSpecInputs()),
            inputDataMatrix = input$dataMatrix,
@@ -428,7 +409,8 @@ shinyServer(function(input, output, session) {
     uploadedModelSpecInputs(currentModel$modelSpecifications)
     fit(currentModel$fit)
     
-    updateSelectizeInput(session, "credIntTimePlot", selected = input$savedModels)
+    updateSelectizeInput(session, "timePlotFormat-plotTimeModels", selected = input$savedModels)
+    updateSelectizeInput(session, "timePlotFormat-formatTimePlot", selected = input$savedModels)
     updatePickerInput(session, "savedModelsShift", selected = input$savedModels)
     updatePickerInput(session, "savedModelsTime", selected = input$savedModels)
     updatePickerInput(session, "savedModelsUserDefined", selected = input$savedModels)
@@ -459,7 +441,6 @@ shinyServer(function(input, output, session) {
                                                 ckanFileTypes = config()[["ckanModelTypes"]],
                                                 ignoreWarnings = TRUE,
                                                 defaultSource = config()[["defaultSourceModel"]],
-                                                mainFolder = config()[["mainFolder"]],
                                                 fileExtension = config()[["fileExtension"]],
                                                 options = DataTools::importOptions(rPackageName = config()[["rPackageName"]]))
   
@@ -545,125 +526,15 @@ shinyServer(function(input, output, session) {
     }
   )
   
-  observeEvent(input$deriv,{
-    req(input$savedModels, input$deriv)
-    req((savedModels()[[input$savedModels]])$fit)
-    
-    updateNumericInput(session, "xmin", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$xmin)
-    updateNumericInput(session, "xmax", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$xmax)
-    updateNumericInput(session, "ymin", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$ymin)
-    updateNumericInput(session, "ymax", value = getDefaultPlotRange(savedModels(), deriv = input$deriv)$ymax)
-  })
-  
-  # observeEvent(input$ymin,
-  #              {
-  #   ymin <- input$ymin
-  #   if(!exists("ymax") || ymax == c()){
-  #     ymax <- input$ymax
-  #   } 
-  #   yLim <- c(ymin, ymax)
-  # })
-  # observeEvent(input$ymax,
-  #              {
-  #                if(!exists("ymin") || ymin == c()){
-  #                  ymin <- input$ymin
-  #                } 
-  #                ymax <- input$ymax
-  #                yLim <- c(ymin, ymax)
-  #              })
-  
   output$plot <- renderPlot({ 
     req(fit())
     #OsteoBioR::plot(fit(), prop = input$modCredInt) 
     plot(fit(), prop = input$modCredInt) 
     })
     
-  fitForTimePlot <- reactiveVal()
-  savedPlot <- reactiveVal(list())
-  #savedXAxisData <- reactiveVal(data.frame())
-  
-  pointStyle <- shinyTools::plotPointsServer("pointStyle", type = "ggplot", initStyle = config()[["defaultPointStyle"]])
-  
-  observeEvent(input$credIntTimePlot, {
-    req(savedModels(), input$credIntTimePlot)
-    fits <- getEntry(savedModels()[input$credIntTimePlot], "fit")
-    req(length(fits) > 0)
-    fitForTimePlot(fits[[length(fits)]])
-    
-    # show default plot if plot is empty but data received
-    req(is.null(intervalTimePlot()), fitForTimePlot())
-    p <- plotTime(fitForTimePlot(), prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
-                  xLim = c(input$xmin, input$xmax), deriv = input$deriv,
-                  oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
-                  colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
-                  xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
-                  sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
-                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY,
-                  extendLabels = input$extendLabels,
-                  pointStyle = pointStyle)
-    intervalTimePlot(p)
-    savedPlot(p)
-    #savedXAxisData(getXAxisData(fitForTimePlot()))
-  })
-  
-  observeEvent(fit(), {
-    # not as default plot, when fit() is ready, xLim & yLim are not
-    req(fit(), intervalTimePlot())
-
-    p <- plotTime(fit(), prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
-                  xLim = c(input$xmin, input$xmax), deriv = input$deriv,
-                  oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
-                  colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
-                  xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
-                  sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
-                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY,
-                  extendLabels = input$extendLabels,
-                  pointStyle = pointStyle)
-    intervalTimePlot(p)
-    savedPlot(p)
-    #savedXAxisData(getXAxisData(fitForTimePlot()))
-  })
-  
-  observeEvent(input$newPlot, {
-    req(fitForTimePlot())
-    p <- plotTime(fitForTimePlot(), prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
-                  xLim = c(input$xmin, input$xmax), deriv = input$deriv,
-                  oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
-                  colorL = input$colorL, colorU = input$colorU, alphaL = input$alphaL, alphaU =  input$alphaU,
-                  xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
-                  sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
-                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY,
-                  extendLabels = input$extendLabels,
-                  pointStyle = pointStyle)
-    intervalTimePlot(p)
-    savedPlot(p)
-    #savedXAxisData(getXAxisData(fitForTimePlot()))
-  })
-  
-  observeEvent(input$addPlot, {
-    req(fitForTimePlot(), length(savedPlot()) > 0)
-    oldPlot <- savedPlot()
-    #oldXAxisData <- savedXAxisData()
-    p <- plotTime(fitForTimePlot(), prop = input$modCredInt, yLim = c(input$ymin, input$ymax),
-                  xLim = c(input$xmin, input$xmax), deriv = input$deriv, oldPlot = oldPlot, 
-                  #oldXAxisData = oldXAxisData,
-                  oldXAxisData = allXAxisData(), # draws ticks at all data's times of x axis
-                  colorL = input$colorL, colorU = input$colorU,
-                  alphaL = input$alphaL, alphaU =  input$alphaU,
-                  sizeTextY =  input$sizeTextY , sizeTextX = input$sizeTextX,
-                  xAxisLabel = input$xAxisLabel, yAxisLabel = input$yAxisLabel,
-                  sizeAxisX = input$sizeAxisX, sizeAxisY = input$sizeAxisY, secAxis = input$secAxis,
-                  extendLabels = input$extendLabels,
-                  pointStyle = pointStyle)
-    intervalTimePlot(p)
-    savedPlot(p)
-    #savedXAxisData(getXAxisData(object = fitForTimePlot(), oldXAxisData = oldXAxisData))
-  })
-  
-  output$plotTime <- renderPlot({
-    req(intervalTimePlot())
-    intervalTimePlot()
-  })
+  # create plotTime ----
+  formattedTimePlot <- timePlotFormattingServer(id = "timePlotFormat", 
+                                                savedModels = savedModels)
   
   observe({
     updateNumericInput(session, "from", 
@@ -874,45 +745,6 @@ shinyServer(function(input, output, session) {
       }
     )
   })
-  
-  observeEvent(input$exportCredIntTimePlot, {
-
-    plotOutputElement <- renderPlot({ savedPlot() })
-    exportTypeChoices <- c("png", "pdf", "svg", "tiff")
-
-    showModal(modalDialog(
-      title = "Export Graphic",
-      footer = modalButton("OK"),
-      plotOutputElement,
-      selectInput(
-        "exportType", "Filetype",
-        choices = exportTypeChoices
-      ),
-      numericInput("width", "Width (px)", value = 1280),
-      numericInput("height", "Height (px)", value = 800),
-      downloadButton("exportExecute", "Export"),
-      easyClose = TRUE
-    ))
-  
-  output$exportExecute <- downloadHandler(
-    filename = function(){
-      paste0(gsub("-", "", Sys.Date()), "_", "Credibility_Intervals_Over_Time", ".", input$exportType)
-    },
-    content = function(file){
-      switch(
-        input$exportType,
-        png = png(file, width = input$width, height = input$height),
-        pdf = pdf(file, width = input$width / 72, height = input$height / 72),
-        tiff = tiff(file, width = input$width, height = input$height),
-        svg = svg(file, width = input$width / 72, height = input$height / 72)
-      )
-      print( savedPlot() )
-
-      dev.off()
-    }
-  )
-  })
-  
   
   # RESIDING TIME ------------------------------------------
   datStayTime <- reactiveValues()

@@ -1,5 +1,5 @@
-load("testObjectDefault.RData")
-load("testObjectGap.RData")
+load(testthat::test_path("testdata/testObjectDefault.RData"))
+load(testthat::test_path("testdata/testObjectGap.RData"))
 
 testthat::test_that("getPlotData: two date inputs",  {
   plotData1 <- getPlotData(testObjectDefault1, prop = 0.8, time = NULL, deriv = "1")
@@ -15,6 +15,8 @@ testthat::test_that("getPlotData: two date inputs",  {
     upper = c(-6.42936455233924,-7.75138719574058,
               -7.33261350484481,-6.06113063226461,-5.50042606430566,
               -5.27929770330058),
+    sd = c(1.33713829843568, 1.38779685928719, 
+           1.61491770752276, 2.2435686892909, 2.59687117559807, 2.70290343638949),
     time = c(1L, 2L, 3L, 4L, 5L, 6L)
   )
   
@@ -25,6 +27,8 @@ testthat::test_that("getPlotData: two date inputs",  {
                0.419012970657708,0.166373227374931,0.0766007232233719),
     upper = c(0.541802095090819,2.13142150909996,
               2.73026801430583,2.30758491892875,2.34360361651566),
+    sd = c(1.64719396911037, 
+           1.62120832948596, 1.83064197559426, 1.81419080780957, 1.88032877584619),
     time = c(1L, 2L, 3L, 4L, 5L)
   )
   
@@ -47,6 +51,9 @@ testthat::test_that("getPlotData: one date input",  {
     upper = c(-6.4244288140299,-7.81582599339432,
               -7.38509654640456,-6.30377374939198,-5.64332388194448,
               -5.54158337328692),
+    sd = c(1.34885080466708, 1.35703875903698, 
+           1.5895692220176, 2.20307418350219, 2.52256867044183, 2.66143079125866
+    ),
     time = c(1L, 2L, 3L, 4L, 5L, 6L)
   )
   
@@ -57,6 +64,9 @@ testthat::test_that("getPlotData: one date input",  {
                0.372613606234133,0.142404333952154,0.0421910046768903),
     upper = c(0.584632457040193,2.11626139721327,
               2.58128427989846,2.40079211685847,2.29467532444726),
+    sd = c(1.63417082215553, 
+           1.58450922848466, 1.79798685302716, 1.81358388856865, 1.89855532316841
+    ),
     time = c(1L, 2L, 3L, 4L, 5L)
   )
   
@@ -91,33 +101,33 @@ testthat::test_that("getXAxisData", {
   
   testthat::expect_equal(xAxisData1, data.frame(
     time = c(0.5, 1.5, 2.5),
-    lower = c(0, 1, 2),
-    upper = c(1, 2, 3)
+    time_lower = c(0, 1, 2),
+    time_upper = c(1, 2, 3)
   ))
   testthat::expect_equal(xAxisData2, data.frame(
     time = c(0.5, 1.5, 2.5, 4.5, 5.5),
-    lower = c(0, 1, 2, 4, 5),
-    upper = c(1, 2, 3, 5, 6)
+    time_lower = c(0, 1, 2, 4, 5),
+    time_upper = c(1, 2, 3, 5, 6)
   ))
 })
 
 
 testthat::test_that("getLabel, deriv = 1",  {
   label1 <- getLabel(xAxisData = data.frame(time = c(0.5, 1.5, 2.5),
-                                            lower = c(0, 1, 2),
-                                            upper = c(1, 2, 3)),
+                                            time_lower = c(0, 1, 2),
+                                            time_upper = c(1, 2, 3)),
                      deriv = "1")
   label2 <- getLabel(xAxisData = data.frame(time = c(0.5, 1.5, 2.5, 4.5, 5.5),
-                                            lower = c(0, 1, 2, 4, 5),
-                                            upper = c(1, 2, 3, 5, 6)),
+                                            time_lower = c(0, 1, 2, 4, 5),
+                                            time_upper = c(1, 2, 3, 5, 6)),
                      deriv = "1")
   label3 <- getLabel(xAxisData = data.frame(time = c(0, 1, 2, 3, 4, 5),
-                                            lower = c(0, 1, 2, 3, 4, 5),
-                                            upper = c(0, 1, 2, 3, 4, 5)),
+                                            time_lower = c(0, 1, 2, 3, 4, 5),
+                                            time_upper = c(0, 1, 2, 3, 4, 5)),
                      deriv = "1")
   label4 <- getLabel(xAxisData = data.frame(time = c(1, 2, 3, 4, 5, 6),
-                                            lower = c(1, 2, 3, 4, 5, 6),
-                                            upper = c(1, 2, 3, 4, 5, 6)),
+                                            time_lower = c(1, 2, 3, 4, 5, 6),
+                                            time_upper = c(1, 2, 3, 4, 5, 6)),
                      deriv = "1")
   
   testthat::expect_equal(label1, c("[0-1]", "[1-2]", "[2-3]"))
@@ -129,21 +139,21 @@ testthat::test_that("getLabel, deriv = 1",  {
 
 testthat::test_that("getLabel, deriv = 2",  {
   label1 <- getLabel(xAxisData = data.frame(time = c(0.5, 1.5, 2.5),
-                                            lower = c(0, 1, 2),
-                                            upper = c(1, 2, 3)),
+                                            time_lower = c(0, 1, 2),
+                                            time_upper = c(1, 2, 3)),
                      deriv = "2")
   label2 <- getLabel(xAxisData = data.frame(time = c(0.5, 1.5, 2.5, 4.5, 5.5),
-                                            lower = c(0, 1, 2, 4, 5),
-                                            upper = c(1, 2, 3, 5, 6)),
+                                            time_lower = c(0, 1, 2, 4, 5),
+                                            time_upper = c(1, 2, 3, 5, 6)),
                      deriv = "2",
                      hidePastedLabels = FALSE)
   label3 <- getLabel(xAxisData = data.frame(time = c(0, 1, 2, 3, 4, 5),
-                                            lower = c(0, 1, 2, 3, 4, 5),
-                                            upper = c(0, 1, 2, 3, 4, 5)),
+                                            time_lower = c(0, 1, 2, 3, 4, 5),
+                                            time_upper = c(0, 1, 2, 3, 4, 5)),
                      deriv = "2")
   label4 <- getLabel(xAxisData = data.frame(time = c(1, 2, 3, 4, 5, 6),
-                                            lower = c(1, 2, 3, 4, 5, 6),
-                                            upper = c(1, 2, 3, 4, 5, 6)),
+                                            time_lower = c(1, 2, 3, 4, 5, 6),
+                                            time_upper = c(1, 2, 3, 4, 5, 6)),
                      deriv = "2",
                      hidePastedLabels = FALSE)
   
@@ -177,30 +187,11 @@ testthat::test_that("getBreaks, deriv = 2",  {
   testthat::expect_equal(breaks3, c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5))
 })
 
-
-testthat::test_that("getDefaultPlotRange, deriv = 2",  {
-  savedModels <- list(
-    list(fit = testObjectDefault1),
-    list(fit = testObjectDefault2),
-    list(fit = testObjectGap1),
-    list(fit = testObjectGap11)
-  )
-  testRange1 <- getDefaultPlotRange(savedModels, deriv = "1")
-  testRange2 <- getDefaultPlotRange(savedModels, deriv = "2")
-  
-  testthat::expect_equal(testRange1 %>% unlist(),
-                         c(xmin = 0.5, xmax = 6, 
-                           ymin = -12.9045490738921, ymax = -4.58609303324681))
-  testthat::expect_equal(testRange2 %>% unlist(),
-                         c(xmin = 1, xmax = 5.5,
-                           ymin = -4.2100298618177, ymax = 3.69646935224212))
-})
-
 testthat::test_that("extendXAxis", {
   oldXAxisData <- structure(list(
     time = c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5), 
-    lower = c(0, 1, 2, 3, 4, 5), 
-    upper = c(1, 2, 3, 4, 5, 6)),
+    time_lower = c(0, 1, 2, 3, 4, 5), 
+    time_upper = c(1, 2, 3, 4, 5, 6)),
     class = "data.frame", 
     row.names = c(NA,  -6L))
   
@@ -216,4 +207,12 @@ testthat::test_that("extendXAxis", {
   
   testthat::expect_equal(breaks, c(-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 7))
   testthat::expect_equal(labels, c("[-1-0]", "[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]", "[6-8]"))
+})
+
+testthat::test_that("getLim", {
+  testRanges <- list(xAxis = list(min = 0L, max = 1L, fromData = TRUE), 
+                     yAxis = list(min = 0L, max = 1L, fromData = FALSE))
+  
+  expect_equal(getLim(testRanges, axis = "xAxis"), numeric(0))
+  expect_equal(getLim(testRanges, axis = "yAxis"), 0:1)
 })

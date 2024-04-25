@@ -114,7 +114,7 @@ timePlotFormattingUI <- function(id) {
       )
     ),
     fluidRow(column(12, 
-                    style = "margin-top: -3em;",
+                    style = "margin-top: -1em;",
                     align = "right",
                     plotExportButton(ns("exportCredIntTimePlot")))),
     tags$hr(),

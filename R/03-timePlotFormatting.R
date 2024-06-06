@@ -77,7 +77,8 @@ timePlotFormattingUI <- function(id) {
                id = ns("plotLabels"),
                title = "Text",
                type = "ggplot",
-               initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]])
+               initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]],
+                               xAxisText = config()[["defaultIntervalTimePlotText"]])
                )
       ),
       column(3,

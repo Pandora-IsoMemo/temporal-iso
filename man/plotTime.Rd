@@ -10,11 +10,8 @@ plotTime(
   plotShifts = FALSE,
   yLim = c(0, 1),
   xLim = c(0, 1),
-  oldPlot = NULL,
-  oldXAxisData = data.frame(),
   deriv = "1",
-  colorL = NULL,
-  colorU = NULL,
+  color = NULL,
   alphaL = 0.9,
   alphaU = 0.1,
   sizeTextY = 12,
@@ -25,6 +22,7 @@ plotTime(
   xAxisLabel = "Time",
   yAxisLabel = "Estimate",
   extendLabels = FALSE,
+  pointStyle = config()[["defaultPointStyle"]],
   ...
 )
 }
@@ -39,19 +37,13 @@ plotTime(
 
 \item{xLim}{numeric vector of length 2: range of x axis}
 
-\item{oldPlot}{ggplot object}
-
-\item{oldXAxisData}{data.frame of time data from object}
-
 \item{deriv}{character "1" for absolute values, "2" for first differences}
 
-\item{colorL}{color of line (RGB)}
+\item{color}{color of line and uncertainty region (RGB)}
 
-\item{colorU}{color of uncertainty region (RGB)}
+\item{alphaL}{opacity line}
 
-\item{alphaL}{Color line}
-
-\item{alphaU}{Color uncertainty region}
+\item{alphaU}{opacity uncertainty region}
 
 \item{sizeTextY}{size plot y label}
 
@@ -69,6 +61,8 @@ plotTime(
 
 \item{extendLabels}{boolean if TRUE, extend the labels of the x-axis to the x-axis limits. 
 If FALSE, the range of the data defines the range of x-axis labels.}
+
+\item{pointStyle}{(list) named list with style definitions, or output of \code{plotPointsServer}}
 
 \item{...}{arguments handed to \code{\link{getShiftTime}}}
 }

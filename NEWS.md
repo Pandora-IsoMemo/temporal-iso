@@ -1,3 +1,9 @@
+# OsteoBioR 24.08.0
+
+## Bug Fixes
+- prevent dropUp of inputs for `Element` and `Time` variables in the tab _Model_ and other 
+  'pickerInputs' (#56)
+
 # OsteoBioR 24.04.1
 
 ## New Features

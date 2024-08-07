@@ -15,9 +15,11 @@ modelSpecificationsUI <- function(id, title) {
       label = "Time variable(s):",
       choices = character(0),
       options = list(
-        "actions-box" = FALSE,
-        "none-selected-text" = 'No variables selected',
-        "max-options" = 2
+        `actions-box` = FALSE,
+        `dropup-auto` = FALSE,
+        size = 10,
+        `none-selected-text` = 'No variables selected',
+        `max-options` = 2
       ),
       multiple = TRUE
     ),
@@ -29,6 +31,7 @@ modelSpecificationsUI <- function(id, title) {
       choices = character(0),
       options = list(
         `actions-box` = TRUE,
+        `dropup-auto` = FALSE,
         size = 10,
         `none-selected-text` = "No variables selected"
       ),

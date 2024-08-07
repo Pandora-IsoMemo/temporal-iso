@@ -127,7 +127,7 @@ tagList(
                sidebarPanel(
                  width = 2,
                  style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
-                 DataTools::importDataUI("modelUpload", label = "Import Model"),
+                 DataTools::importUI("modelUpload", label = "Import Model"),
                  tags$hr(),
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
                  actionButton("fitModel", "Fit Model"),

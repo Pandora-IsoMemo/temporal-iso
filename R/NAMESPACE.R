@@ -13,7 +13,7 @@
 #' @import shinythemes
 #' @importFrom colourpicker colourInput 
 #' @importFrom DataTools checkAnyNonNumericColumns downloadModelUI downloadModelServer 
-#'  importDataUI importDataServer importOptions renameExistingNames tryCatchWithWarningsAndErrors
+#'  importDataUI importDataServer importUI importServer importOptions renameExistingNames tryCatchWithWarningsAndErrors
 #' @importFrom dplyr arrange bind_cols bind_rows cur_group_id distinct do group_by mutate n select
 #'  slice ungroup
 #' @importFrom ggplot2 aes coord_cartesian element_line element_text 

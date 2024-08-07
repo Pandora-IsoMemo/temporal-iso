@@ -435,14 +435,16 @@ shinyServer(function(input, output, session) {
                                  modelNotes = uploadedNotes,
                                  triggerUpdate = reactive(TRUE))
   
-  uploadedValues <- DataTools::importDataServer("modelUpload",
-                                                title = "Import Model",
-                                                importType = "model",
-                                                ckanFileTypes = config()[["ckanModelTypes"]],
-                                                ignoreWarnings = TRUE,
-                                                defaultSource = config()[["defaultSourceModel"]],
-                                                fileExtension = config()[["fileExtension"]],
-                                                options = DataTools::importOptions(rPackageName = config()[["rPackageName"]]))
+  uploadedValues <- DataTools::importServer("modelUpload",
+                                            title = "Import Model",
+                                            importType = "model",
+                                            ckanFileTypes = config()[["ckanModelTypes"]],
+                                            ignoreWarnings = TRUE,
+                                            defaultSource = config()[["defaultSourceModel"]],
+                                            fileExtension = config()[["fileExtension"]],
+                                            options = DataTools::importOptions(
+                                              rPackageName = config()[["rPackageName"]]
+                                            ))
   
   observe({
     req(length(uploadedValues()) > 0)

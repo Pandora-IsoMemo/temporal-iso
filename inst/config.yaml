@@ -8,8 +8,8 @@ ckanFileTypes:
   - "odt"
   - "txt"
 ckanModelTypes:
-  - "zip"
   - "osteobior"
+  - "zip"
 githubRepo: "osteobior"        # for import of models
 mainFolder: "predefinedModels"  # for import of models
 fileExtension: "osteobior"      # for download of models

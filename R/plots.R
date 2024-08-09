@@ -158,6 +158,23 @@ drawShiftLines <- function(plot, object, deriv, plotShifts, ...) {
 }
 
 extractPlotDataDF <- function(plotDataList, models, credInt) {
+  # remove elements with no rows
+  plotDataList <- plotDataList[sapply(plotDataList, nrow) > 0]
+  
+  # empty of selected models
+  emptyModels <- setdiff(models, names(plotDataList))
+  
+  # warning that no data is available for some selected models
+  if (length(emptyModels) > 0) {
+    warning(paste("No data available for model(s):", 
+                  paste(emptyModels, collapse = ", "),
+                  ". Model(s) not displayed in table 'Plot Data'."))
+  }
+  
+  models <- intersect(models, names(plotDataList))
+  
+  if (length(models) == 0) return(data.frame())
+                      
   # filter for displayed models:
   plotDataList[models] %>%
     bind_rows(.id = "individual") %>%
@@ -191,6 +208,8 @@ getPlotData <- function(object, prop = 0.8, time = NULL, deriv = "1"){
   uLim <- 1 - lLim
   dat <- rstan::extract(object)$interval
 
+  if (is.null(dat)) return(data.frame())
+  
   if(deriv == "2"){
     if (ncol(dat) > 2) {
       dat <- t(apply(dat, 1, diff))
@@ -225,6 +244,8 @@ getPlotData <- function(object, prop = 0.8, time = NULL, deriv = "1"){
 #' @param plotData (data.frame) plot data
 #' @inheritParams plotTime
 updateTime <- function(plotData, object, deriv = "1") {
+  if (nrow(plotData) == 0) return(plotData)
+  
   plotData$time <- adjustTimeColumn(objectTime = object@time, deriv = deriv)
   plotData$time_lower <- adjustTimeColumn(objectTime = object@timeLower, deriv = deriv)
   plotData$time_upper <- adjustTimeColumn(objectTime = object@timeUpper, deriv = deriv)

@@ -792,7 +792,7 @@ shinyServer(function(input, output, session) {
                      siteMeans = stayTimeDat()[, 1] %>% unlist(),
                      siteSigma = stayTimeDat()[, 2] %>% unlist(),
                      print = FALSE) %>%
-      DataTools::tryCatchWithWarningsAndErrors()
+      shinyTools::shinyTryCatch(errorTitle = "Calculation failed", alertStyle = "shinyalert")
   })
   output$estimatedStayTimes <- renderPrint({ estimatedStayTimes() })
   
@@ -901,7 +901,7 @@ shinyServer(function(input, output, session) {
       meanVar = input$meanVarHist,
       sdVar = input$sdVarHist
     ) %>%
-      DataTools::tryCatchWithWarningsAndErrors(),
+      shinyTools::shinyTryCatch(errorTitle = "Calculation failed", alertStyle = "shinyalert"),
     sapply(isoHistDat() %>% select(input$boneVarsHist), quantile, probs = c(0.025, 0.975)) %>% t()
     
     )

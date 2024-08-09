@@ -213,18 +213,26 @@ timePlotFormattingServer <- function(id, savedModels) {
                    lapply(allFits(), function(x) {
                      getPlotData(object = x, prop = input$modCredInt, deriv = input$deriv) %>%
                        updateTime(object = x, deriv = input$deriv)
-                   })
+                   }) %>%
+                     shinyTryCatch(errorTitle = "'Credibility intervals over time': Error in extracting plot data",
+                                   warningTitle = "'Credibility intervals over time': Warning in extracting plot data",
+                                   alertStyle = "shinyalert")
                  })
                  
                  extractedPlotDataDF <- reactive({
-                   extractPlotDataDF(plotDataList = extractedPlotDataList(),
-                                      models = input[["plotTimeModels"]],
-                                      credInt = input$modCredInt)
+                   extractedPlotDataList() %>%
+                     extractPlotDataDF(models = input[["plotTimeModels"]],
+                                       credInt = input$modCredInt)  %>%
+                     shinyTryCatch(errorTitle = "'Credibility intervals over time': Error in extracting table data", 
+                                   warningTitle = "'Credibility intervals over time': Warning in extracting table data",
+                                   alertStyle = "shinyalert")
                  })
                  
                  output$plotData <- renderTable({
                    validate(need(input[["plotTimeModels"]],
-                                 "Choose at least one element from 'Display Models / Individuals' ..."))
+                                 "Choose at least one element from 'Display Models / Individuals' ..."),
+                            need(nrow(extractedPlotDataDF()) > 0,
+                                 "No data available for selected models ..."))
                    extractedPlotDataDF()
                  })
                  

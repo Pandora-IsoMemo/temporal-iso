@@ -1,3 +1,8 @@
+# OsteoBioR 24.08.1
+
+## Bug Fixes
+- catch error when trying to display plot and table of models that failed and have no samples (#55)
+
 # OsteoBioR 24.08.0
 
 ## Bug Fixes

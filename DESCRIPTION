@@ -22,6 +22,7 @@ Imports:
   futile.logger,
   htmltools,
   jsonlite,
+  loo,
   magrittr,
   mcp,
   methods,

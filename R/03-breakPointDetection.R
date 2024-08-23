@@ -153,8 +153,8 @@ formulasServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     formulasAndPriors <- reactiveVal()
     
-    segmentsMatrix <- matrixServer("segments", exampleFunction = exampleBreakPointSegments)
-    priorsMatrix <- matrixServer("priors", exampleFunction = exampleBreakPointPriors)
+    segmentsMatrix <- matrixServer("segments", exampleFunction = getExampleMatrix, path = file.path("data", "example_breakPointSegments.csv"))
+    priorsMatrix <- matrixServer("priors", exampleFunction = getExampleMatrix, path = file.path("data", "example_breakPointPriors.csv"))
     
     observe({
       req(segmentsMatrix(), priorsMatrix())

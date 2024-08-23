@@ -1,52 +1,26 @@
-#' Detect break points in a time series
+#' Get Example Matrix
 #' 
-#' @param df A data frame
-#' @param x The x-axis column name
-#' @param y The y-axis column name
-detectBreakPoints <- function(df,
-                              x,
-                              y,
-                              burnin_len = 5000,
-                              chains = 3, 
-                              iter = 3000,
-                              segments = exampleBreakPointSegments(),
-                              priors = exampleBreakPointPriors()) {
-  lists <- setFormulasAndPriors()
+#' @param path path to example matrix
+getExampleMatrix <- function(path) {
+  df <- read.csv(path)
   
-  fit <- runMcp(lists = lists, data = df, adapt = burnin_len, chains = chains, iter = iter)
+  df[is.na(df)] <- ""
   
+  res <- df %>% as.matrix()
+  colnames(res) <- NULL
   
+  res
 }
 
-exampleBreakPointSegments <- function(s_rows = 3, s_cols = 4) {
-  segments <- matrix(c(
-    
-    "d15N ~ 1 + time", "d15N ~ 1 ~ 0 + time", "d15N ~ 1 ~ 0 + time", "d15N ~ 1 ~ 0 + time", 
-    
-    "d15N ~ 1 + time", "", "", "",
-    
-    "", "", "", ""
-    
-  ), nrow = s_rows, ncol = s_cols, byrow = TRUE)
-  
-  segments
-}
-
-exampleBreakPointPriors <- function(s_rows = 3, s_cols = 4) {
-  priors <- matrix(c(
-    
-    "time_1 = dunif(-4, -0.5);", "", "", "",
-    
-    "", "", "", "",
-    
-    "", "", "", ""
-    
-  ), nrow = s_rows, ncol = s_cols, byrow = TRUE)
-  
-  priors
-}
-
-getComb <- function(segments = exampleBreakPointSegments(), priors = exampleBreakPointPriors()) {
+#' Get the comb matrix
+#' 
+#' Get the combined matrix of segments and priors
+#' 
+#' @param segments A matrix containing the segmented formulas
+#' @param priors A matrix containing the priors
+#' 
+#' @return A matrix containing the segmented formulas and priors
+getComb <- function(segments, priors) {
   # find rows and columns in segments that are not all ""
   row_indices <- apply(segments, 1, function(x) any(x != ""))
   col_indices <- apply(segments, 2, function(x) any(x != ""))
@@ -73,7 +47,12 @@ getComb <- function(segments = exampleBreakPointSegments(), priors = exampleBrea
   comb
 }
 
-cleanComb <- function(comb = getComb()) {
+#' Clean the comb matrix
+#' 
+#' @param comb A matrix containing the segmented formulas and priors
+#' 
+#' @return A cleaned matrix
+cleanComb <- function(comb) {
   n_rows <- nrow(comb)
   
   # Check each row for '*+*' and if found replace that cell and all following cells in the row with ""
@@ -97,7 +76,12 @@ cleanComb <- function(comb = getComb()) {
   comb
 }
 
-splitComb <- function(comb = cleanComb()) {
+#' Split the comb matrix into two matrices
+#' 
+#' @param comb A matrix containing the segmented formulas and priors
+#' 
+#' @return A list of two matrices
+splitComb <- function(comb) {
   # Create two empty matrices with the same dimensions as comb
   mat1 <- matrix(ncol = ncol(comb), nrow = nrow(comb))
   mat2 <- matrix(ncol = ncol(comb), nrow = nrow(comb))
@@ -130,7 +114,12 @@ splitComb <- function(comb = cleanComb()) {
   list(mat1 = mat1, mat2 = mat2)
 }
 
-setFormulasAndPriors <- function(splittedComb = splitComb()) {
+#' Set formulas and priors
+#' 
+#' @param splittedComb A list of matrices containing the segmented formulas and priors
+#' 
+#' @return A list of lists containing the segmented formulas and priors
+setFormulasAndPriors <- function(splittedComb) {
   mat1 <- splittedComb$mat1
   mat2 <- splittedComb$mat2
   
@@ -171,7 +160,13 @@ setFormulasAndPriors <- function(splittedComb = splitComb()) {
   list(lists_seg = lists_seg, lists_prior = lists_prior)
 }
 
-runMcp <- function(lists = setFormulasAndPriors(), ...) {
+#' Run mcp model
+#' 
+#' @param lists A list of lists containing the segmented formulas and priors
+#' @param ... Additional arguments to pass to mcp
+#' 
+#' @return A list of mcp model fits
+runMcp <- function(lists, ...) {
   lists_seg <- lists$lists_seg
   lists_prior <- lists$lists_prior
   
@@ -185,7 +180,12 @@ runMcp <- function(lists = setFormulasAndPriors(), ...) {
   fit
 }
 
-compareWithLoo <- function(fit = runMcp(), ...) {
+#' Compare models using loo
+#' 
+#' @param fit A list of mcp model fits
+#' 
+#' @return A loo model comparison object
+compareWithLoo <- function(fit) {
   #Comparing models using loo
   
   #Define list

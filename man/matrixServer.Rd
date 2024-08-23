@@ -14,7 +14,7 @@ matrixUI(
   exampleLabel = "Example Matrix"
 )
 
-matrixServer(id, exampleFunction)
+matrixServer(id, exampleFunction, ...)
 }
 \arguments{
 \item{id}{namespace id}
@@ -28,6 +28,8 @@ matrixServer(id, exampleFunction)
 \item{exampleLabel}{example label}
 
 \item{exampleFunction}{example function}
+
+\item{...}{additional arguments to example function}
 }
 \description{
 Matrix Module

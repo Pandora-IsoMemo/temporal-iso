@@ -3,8 +3,24 @@ testthat::test_that("detectBreakPoints",  {
   df <- testthat::test_path("testdata/test_detectBreakPoints.csv") %>%
     read.csv()
   
-  res <- runMcp(lists = setFormulasAndPriors(), 
-                data = df)
+  segmentsMatrix <- matrix(c(
+    "d15N ~ 1 + time", "d15N ~ 1 ~ 0 + time", "d15N ~ 1 ~ 0 + time", "d15N ~ 1 ~ 0 + time", 
+    "d15N ~ 1 + time", "", "", "",
+    "", "", "", ""
+  ), nrow = 3, ncol = 4, byrow = TRUE)
+  
+  priorsMatrix <- matrix(c(
+    "time_1 = dunif(-4, -0.5);", "", "", "",
+    "", "", "", "",
+    "", "", "", ""
+  ), nrow = 3, ncol = 4, byrow = TRUE)
+  
+  lists <- getComb(segments = segmentsMatrix, priors = priorsMatrix) %>%
+    cleanComb() %>%
+    splitComb() %>%
+    setFormulasAndPriors()
+  
+  res <- runMcp(lists = lists, data = df)
   
   testthat::expect_equal(
     compareWithLoo(res) %>% colnames() %>% suppressWarnings(), 

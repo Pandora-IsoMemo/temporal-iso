@@ -68,7 +68,8 @@ matrixUI <- function(id,
 #'
 #' @param id namespace id
 #' @param exampleFunction example function
-matrixServer <- function(id, exampleFunction) {
+#' @param ... additional arguments to example function
+matrixServer <- function(id, exampleFunction, ...) {
   moduleServer(id, function(input, output, session) {
     dataMatrix <- reactiveVal()
     
@@ -83,7 +84,7 @@ matrixServer <- function(id, exampleFunction) {
         ncol = ncol,
         byrow = TRUE
       ))
-      updateSelectInput(session, "cellID", choices = getCellChoices(nrow, ncol))
+      updateSelectInput(session, "cellID", choices = getCellChoices(nrow = nrow, ncol = ncol))
     }) %>%
       bindEvent(list(input[["rows"]], input[["cols"]]))
     
@@ -112,8 +113,9 @@ matrixServer <- function(id, exampleFunction) {
       bindEvent(input[["set"]])
     
     observe({
-      dataMatrix(exampleFunction())
-      # update ids choices ...
+      newMatrix <- exampleFunction(...)
+      dataMatrix(newMatrix)
+      updateSelectInput(session, "cellID", choices = getCellChoices(nrow = nrow(newMatrix), ncol = ncol(newMatrix)))
     }) %>%
       bindEvent(input[["example"]])
     

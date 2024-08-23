@@ -10,119 +10,141 @@
 timePlotFormattingUI <- function(id) {
   ns <- NS(id)
   tagList(
-    tags$h4("Time Plot"),
-    plotOutput(ns("plotTime")) %>% withSpinner(color = "#20c997"),
-    tags$br(),
+    # Time Plot ----
     fluidRow(
-      column(8,
-             selectizeInput(ns("plotTimeModels"), "Display Models / Individuals", 
-                            choices = c("Fit / import a model ..." = ""),
+      column(3, tags$h3("Time Plot")),
+      column(7,
+             selectizeInput(ns("plotTimeModels"), "Display Models / Individuals",
+                            choices = c("Fit or import a model ..." = ""),
                             multiple = TRUE,
                             selected = "",
                             width = "100%")),
-      column(1,
-             align = "right",
-             style = "margin-top: 1.2em;",
-             actionButton(ns("applyFormatToTimePlot"), "Apply")),
       column(2,
-             selectizeInput(ns("formatTimePlot"), "Format Model / Individual",
-                            choices = c("Fit / import a model ..." = ""),
-                            width = "100%")),
-      column(1,
              align = "right",
              style = "margin-top: 1.2em;",
-             actionButton(ns("applyFormatToTimePlotModel"), "Apply"))
+             actionButton(ns("applyFormatToTimePlot"), "Apply Selection"))
     ),
     tags$br(),
-    fluidRow(
-      column(3,
-             tags$h4("Data"),
-             radioButtons(ns("deriv"), 
-                          "Type", 
-                          choices = c("Absolute values" = "1", "First derivate" = "2")), 
-             sliderInput(ns("modCredInt"),
-                         "Credibility interval:",
-                         min = 0,
-                         max = .99,
-                         value = .8,
-                         step = .05,
-                         width = "100%"),
-             tags$br(),
-             sliderInput(ns("alphaU"),
-                         "Transparency of uncertainty region",
-                         min = 0,
-                         max = 1,
-                         value = 0.1,
-                         step = 0.05),
-             sliderInput(ns("alphaL"), 
-                         "Transparency of points / lines",
-                         min = 0, 
-                         max = 1, 
-                         value = 0.9,
-                         step = 0.05),
-             tags$br(),
-             fluidRow(
-               column(6, selectInput(inputId = ns("legendPosition"),
-                                     label = "Legend position",
-                                     choices = c("right", "top", "bottom", "left"))),
-               column(6, 
-                      style = "margin-top: 1.5em;",
-                      checkboxInput(inputId = ns("hideLegend"),
-                                    label = "Hide legend",
-                                    value = FALSE))
-             )
+    plotOutput(ns("plotTime")) %>% withSpinner(color = "#20c997"),
+    tags$br(),
+    tabsetPanel(
+      id = ns("plotDataTabs"),
+      tabPanel(
+        # Format Plot ----
+        "Format Model / Individual",
+        value = "formatPlotTab",
+        tags$br(),
+        fluidRow(
+          column(6,
+                 selectizeInput(ns("formatTimePlot"), "Model / Individual to apply formatting",
+                                choices = c("Fit or import a model ..." = ""),
+                                width = "100%")),
+          column(3,
+                 style = "margin-top: 1.2em;",
+                 actionButton(ns("applyFormatToTimePlotModel"), "Apply Formatting")),
+          column(3,
+                 align = "right",
+                 style = "margin-top: 1.2em;",
+                 plotExportButton(ns("exportCredIntTimePlot")))
+        ),
+        tags$br(),
+        fluidRow(
+          column(3,
+                 tags$h4("Data"),
+                 radioButtons(ns("deriv"), 
+                              "Type", 
+                              choices = c("Absolute values" = "1", "First derivate" = "2")), 
+                 sliderInput(ns("modCredInt"),
+                             "Credibility interval:",
+                             min = 0,
+                             max = .99,
+                             value = .8,
+                             step = .05,
+                             width = "100%"),
+                 tags$br(),
+                 sliderInput(ns("alphaU"),
+                             "Transparency of uncertainty region",
+                             min = 0,
+                             max = 1,
+                             value = 0.1,
+                             step = 0.05),
+                 sliderInput(ns("alphaL"), 
+                             "Transparency of points / lines",
+                             min = 0, 
+                             max = 1, 
+                             value = 0.9,
+                             step = 0.05),
+                 tags$br(),
+                 fluidRow(
+                   column(6, selectInput(inputId = ns("legendPosition"),
+                                         label = "Legend position",
+                                         choices = c("right", "top", "bottom", "left"))),
+                   column(6, 
+                          style = "margin-top: 1.5em;",
+                          checkboxInput(inputId = ns("hideLegend"),
+                                        label = "Hide legend",
+                                        value = FALSE))
+                 )
+          ),
+          column(3,
+                 shinyTools::plotTitlesUI(
+                   id = ns("plotLabels"),
+                   title = "Text",
+                   type = "ggplot",
+                   initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]],
+                                   xAxisText = config()[["defaultIntervalTimePlotText"]])
+                 )
+          ),
+          column(3,
+                 shinyTools::plotRangesUI(
+                   id = ns("plotRanges"), 
+                   title = "Axis",
+                   initRanges = list(xAxis = config()[["plotRange"]],
+                                     yAxis = config()[["plotRange"]])
+                 ),
+                 checkboxInput(inputId = ns("extendLabels"),
+                               label = "Extend x-axis labels to full range",
+                               value = FALSE),
+                 tags$br(),
+                 selectizeInput(ns("secAxisModel"), "Add a new secondary y axis",
+                                choices = c("Choose one Model / Individual ..." = "")),
+                 helpText("The first element of 'Display Models / Individuals' is always used for the first (left) axis."),
+                 conditionalPanel(
+                   ns = ns,
+                   condition = "input.secAxisModel != ''",
+                   fluidRow(
+                     column(6, textInput(ns("secAxisText"), label = "Title",
+                                         value = "",
+                                         placeholder = "Custom title ...")),
+                     column(6, colourInput(ns("secAxisColor"),
+                                           label = "Title color",
+                                           value = config()[["defaultIntervalTimePlotTitle"]][["color"]]))
+                   )),
+                 
+          ),
+          column(3,
+                 shinyTools::plotPointsUI(id = ns("pointStyle"),
+                                          title = "Points / Lines",
+                                          initStyle = config()[["defaultPointStyle"]])
+          )
+        )
       ),
-      column(3,
-             shinyTools::plotTitlesUI(
-               id = ns("plotLabels"),
-               title = "Text",
-               type = "ggplot",
-               initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]],
-                               xAxisText = config()[["defaultIntervalTimePlotText"]])
-               )
+      tabPanel(
+        # Plot Data ----
+        "Plot Data",
+        value = "plotDataTab",
+        tags$br(),
+        tableOutput(ns("plotData")),
+        fluidRow(column(12, align = "right", dataExportButton(ns("exportCredIntTimeData"))))
       ),
-      column(3,
-             shinyTools::plotRangesUI(
-               id = ns("plotRanges"), 
-               title = "Axis",
-               initRanges = list(xAxis = config()[["plotRange"]],
-                                 yAxis = config()[["plotRange"]])
-             ),
-             checkboxInput(inputId = ns("extendLabels"),
-                           label = "Extend x-axis labels to full range",
-                           value = FALSE),
-             tags$br(),
-             selectizeInput(ns("secAxisModel"), "Add a new secondary y axis",
-                            choices = c("Choose one Model / Individual ..." = "")),
-             helpText("The first element of 'Display Models / Individuals' is always used for the first (left) axis."),
-             conditionalPanel(
-               ns = ns,
-               condition = "input.secAxisModel != ''",
-               fluidRow(
-                 column(6, textInput(ns("secAxisText"), label = "Title",
-                                     value = "",
-                                     placeholder = "Custom title ...")),
-                 column(6, colourInput(ns("secAxisColor"),
-                                       label = "Title color",
-                                       value = config()[["defaultIntervalTimePlotTitle"]][["color"]]))
-               )),
-             
-      ),
-      column(3,
-             shinyTools::plotPointsUI(id = ns("pointStyle"),
-                                      title = "Points / Lines",
-                                      initStyle = config()[["defaultPointStyle"]])
+      tabPanel(
+        # Break Point Detection ----
+        "Break point detection",
+        value = "breakPointTab",
+        breakPointDetectionUI(ns("breakPointDetection"))
       )
-    ),
-    fluidRow(column(12, 
-                    style = "margin-top: -1em;",
-                    align = "right",
-                    plotExportButton(ns("exportCredIntTimePlot")))),
-    tags$hr(),
-    tags$h4("Plot Data"),
-    tableOutput(ns("plotData")),
-    tags$br(),
-    fluidRow(column(12, align = "right", dataExportButton(ns("exportCredIntTimeData")))),
+    )
+    ,
     tags$br()
   )
 }
@@ -228,6 +250,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                                    alertStyle = "shinyalert")
                  })
                  
+                 # render plot data table ----
                  output$plotData <- renderTable({
                    validate(need(input[["plotTimeModels"]],
                                  "Choose at least one element from 'Display Models / Individuals' ..."),
@@ -236,6 +259,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                    extractedPlotDataDF()
                  })
                  
+                 # export plot data ----
                  plotDataExport <- reactiveVal()
                  
                  observe({
@@ -309,18 +333,22 @@ timePlotFormattingServer <- function(id, savedModels) {
                    bindEvent(list(input[["applyFormatToTimePlot"]], 
                                   input[["applyFormatToTimePlotModel"]]))
                  
+                 # render plot ----
                  output$plotTime <- renderPlot({
                    validate(need(formattedPlot(), "Choose at least one element from 'Display Models / Individuals' and press 'Apply' ..."))
                    formattedPlot()
                  })
                  
+                 # export plot ----
                  plotExportServer("exportCredIntTimePlot",
                                   plotFun = reactive(function() formattedPlot()),
                                   filename = sprintf("%s_Credibility_Intervals_Over_Time",
                                                      gsub("-", "", Sys.Date()))
                                   )
                  
-                 return(reactive(formattedPlot()))
+                 # Break point detection ----
+                 
+                 breakPointDetectionServer(id = "breakPointDetection", plotData = extractedPlotDataDF)
                })
 }
 

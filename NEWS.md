@@ -1,3 +1,8 @@
+# OsteoBioR 24.08.2
+
+## New Features
+- option to run a break point detection based on the mcp package (#49, #61)
+
 # OsteoBioR 24.08.1
 
 ## Bug Fixes

@@ -22,7 +22,9 @@
 #'  scale_x_continuous scale_y_continuous sec_axis theme
 #' @importFrom htmltools save_html
 #' @importFrom jsonlite toJSON
+#' @importFrom loo loo loo_compare
 #' @importFrom magrittr %>%
+#' @importFrom mcp mcp
 #' @importFrom openxlsx write.xlsx
 #' @importFrom parallel detectCores
 #' @importFrom rlang .data

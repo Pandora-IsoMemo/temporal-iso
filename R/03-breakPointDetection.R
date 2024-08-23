@@ -13,7 +13,7 @@ breakPointDetectionUI <- function(id) {
               "MCP Model",
               mcpUI(ns("mcp")),
               tags$h4("Comparing models using loo"),
-              verbatimTextOutput(ns("compareWithLoo"))
+              verbatimTextOutput(ns("compareWithLoo")) %>% withSpinner(color = "#20c997")
             )
           ),
           tags$br())
@@ -50,7 +50,8 @@ mcpUI <- function(id) {
               3,
               align = "right",
               style = "margin-top: 1.75em;",
-              actionButton(ns("apply"), "Run Model", disabled = TRUE)
+              #actionButton(ns("loadExampleDf"), "Load Example Data"),
+              actionButton(ns("apply"), "Run Model with 'Plot Data'", disabled = TRUE)
             )
           ),
           tags$br())
@@ -69,18 +70,31 @@ breakPointDetectionServer <- function(id, plotData) {
     
     # load data ----
     observe({
-      mcpData(read.csv(file.path("data", "example_breakPoints.csv")))
-    })
+      req(nrow(plotData()) > 0)
+      # select relevant columns
+      newData <- plotData()[, c("time", "median")]
+      # rename columns
+      colnames(newData) <- c("x", "y")
+      # remove rows with NA
+      newData <- na.omit(newData)
+      
+      mcpData(newData)
+    }) %>% bindEvent(plotData())
+    
+    # observe({
+    #   mcpData(read.csv(file.path("data", "example_breakPoints.csv")))
+    # }) %>%
+    #   bindEvent(input[["mcp-loadExampleDf"]])
     
     # Formulas tab ----
     formulasAndPriors <- formulasServer("formulas")
     
     observe({
-      req(formulasAndPriors())
+      req(formulasAndPriors(), mcpData())
       
       # enable the 'Run Model' button
       updateActionButton(session, "mcp-apply", disabled = FALSE)
-    }) %>% bindEvent(formulasAndPriors())
+    }) %>% bindEvent(formulasAndPriors(), mcpData())
     
     # Model tab ----
     
@@ -95,8 +109,8 @@ breakPointDetectionServer <- function(id, plotData) {
           iter = input[["mcp-iter"]]
         )
       ) %>%
-        withProgress(message = "Fitting mcp model", value = 0.5) %>%
-        shinyTryCatch(errorTitle = "Error in fitting mcp model", warningTitle = "Warning in fitting mcp model")
+        shinyTryCatch(errorTitle = "Error in fitting mcp model", warningTitle = "Warning in fitting mcp model") %>%
+        withProgress(message = "Fitting MCP model...", value = 0.5)
     }) %>%
       bindEvent(input[["mcp-apply"]])
     
@@ -124,14 +138,14 @@ formulasUI <- function(id) {
     matrixUI(
       ns("segments"),
       title = "Segments",
-      defaultCellContent = "d15N ~ 1 + time",
+      defaultCellContent = "y ~ 1 + x",
       exampleLabel = "Example Segments"
     ),
     tags$br(),
     matrixUI(
       ns("priors"),
       title = "Priors",
-      defaultCellContent = "time_1 = dunif(-4, -0.5);",
+      defaultCellContent = "x_1 = dunif(-4, -0.5);",
       exampleLabel = "Example Priors"
     ),
     tags$br(),
@@ -153,8 +167,16 @@ formulasServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     formulasAndPriors <- reactiveVal()
     
-    segmentsMatrix <- matrixServer("segments", exampleFunction = getExampleMatrix, path = file.path("data", "example_breakPointSegments.csv"))
-    priorsMatrix <- matrixServer("priors", exampleFunction = getExampleMatrix, path = file.path("data", "example_breakPointPriors.csv"))
+    segmentsMatrix <- matrixServer(
+      "segments",
+      exampleFunction = getExampleMatrix,
+      path = file.path("data", "example_breakPointSegments.csv")
+    )
+    priorsMatrix <- matrixServer(
+      "priors",
+      exampleFunction = getExampleMatrix,
+      path = file.path("data", "example_breakPointPriors.csv")
+    )
     
     observe({
       req(segmentsMatrix(), priorsMatrix())

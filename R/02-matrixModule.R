@@ -115,7 +115,10 @@ matrixServer <- function(id, exampleFunction, ...) {
     observe({
       newMatrix <- exampleFunction(...)
       dataMatrix(newMatrix)
-      updateSelectInput(session, "cellID", choices = getCellChoices(nrow = nrow(newMatrix), ncol = ncol(newMatrix)))
+      updateSelectInput(session, "cellID", choices = getCellChoices(
+        nrow = nrow(newMatrix),
+        ncol = ncol(newMatrix)
+      ))
     }) %>%
       bindEvent(input[["example"]])
     
@@ -124,10 +127,10 @@ matrixServer <- function(id, exampleFunction, ...) {
 }
 
 #' Get cell choices
-#' 
+#'
 #' @param nrow Number of rows
 #' @param ncol Number of columns
-#' 
+#'
 #' @return A named vector of cell choices
 getCellChoices <- function(nrow, ncol) {
   getCellLabel <- function(cellID, matrixDim) {

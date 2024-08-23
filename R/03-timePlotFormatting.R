@@ -22,7 +22,7 @@ timePlotFormattingUI <- function(id) {
       column(2,
              align = "right",
              style = "margin-top: 1.2em;",
-             actionButton(ns("applyFormatToTimePlot"), "Apply Selection"))
+             actionButton(ns("applyFormatToTimePlot"), "Draw Plot"))
     ),
     tags$br(),
     plotOutput(ns("plotTime")) %>% withSpinner(color = "#20c997"),

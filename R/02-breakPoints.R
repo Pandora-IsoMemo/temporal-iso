@@ -1,20 +1,23 @@
 #' Get Example Matrix
 #'
 #' @param path path to example matrix
-getExampleMatrix <- function(path) {
+readExampleMatrix <- function(path) {
   df <- read.csv(path)
   
   df[is.na(df)] <- ""
   
   res <- df %>% as.matrix()
-  colnames(res) <- NULL
+  colnames(res) <- 1:ncol(res)
+  rownames(res) <- 1:nrow(res)
   
   res
 }
 
 #' Get the comb matrix
 #'
-#' Get the combined matrix of segments and priors
+#' Get the combined matrix of segments and priors.
+#' Process the segments and priors matrices, identify relevant rows and columns, concatenate them, 
+#' and generate possible cell combinations while ensuring data consistency.
 #'
 #' @param segments A matrix containing the segmented formulas
 #' @param priors A matrix containing the priors
@@ -55,6 +58,9 @@ getComb <- function(segments, priors) {
 }
 
 #' Clean the comb matrix
+#' 
+#' Check each row for '*+*' and if found replace that cell and all following cells in the row with "".
+#' Remove Blank Rows. Remove duplicate rows.
 #'
 #' @param comb A matrix containing the segmented formulas and priors
 #'
@@ -73,7 +79,6 @@ cleanComb <- function(comb) {
     }
   }
   
-  
   # Remove Blank Rows
   comb <- comb[apply(comb, 1, function(x)
     any(x != "")), , drop = FALSE]
@@ -86,6 +91,8 @@ cleanComb <- function(comb) {
 
 #' Split the comb matrix into two matrices
 #'
+#' Split the comb matrix into two matrices based on the separator '*+*'.
+#' 
 #' @param comb A matrix containing the segmented formulas and priors
 #'
 #' @return A list of two matrices
@@ -124,7 +131,7 @@ splitComb <- function(comb) {
 
 #' Set formulas and priors
 #'
-#' @param splittedComb A list of matrices containing the segmented formulas and priors
+#' @param splittedComb A list of two matrices containing the segmented formulas and priors
 #'
 #' @return A list of lists containing the segmented formulas and priors
 setFormulasAndPriors <- function(splittedComb) {

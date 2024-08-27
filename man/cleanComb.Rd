@@ -13,5 +13,6 @@ cleanComb(comb)
 A cleaned matrix
 }
 \description{
-Clean the comb matrix
+Check each row for '*+*' and if found replace that cell and all following cells in the row with "".
+Remove Blank Rows. Remove duplicate rows.
 }

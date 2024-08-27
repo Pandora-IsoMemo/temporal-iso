@@ -30,10 +30,11 @@
 #' @importFrom rlang .data
 #' @importFrom rstan sampling extract
 #' @importFrom shinycssloaders withSpinner
-#' @importFrom shinyjs alert
-#' @importFrom shinyTools dataExportButton dataExportServer formatPointsOfGGplot
-#'  formatRangesOfGGplot formatTitlesOfGGplot plotExportButton plotExportServer
-#'  plotPointsServer plotPointsUI plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
+#' @importFrom shinyjs alert runjs
+#' @importFrom shinyTools dataExportButton dataExportServer
+#'  formatLegendOfGGplot formatPointsOfGGplot formatRangesOfGGplot formatTitlesOfGGplot
+#'  plotExportButton plotExportServer plotLegendServer plotLegendUI plotPointsServer plotPointsUI
+#'  plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
 #'  shinyTryCatch
 #' @importFrom shinyWidgets pickerInput updatePickerInput
 #' @importFrom stats approx dnorm lm median na.omit quantile sd

@@ -14,7 +14,7 @@ timePlotFormattingUI <- function(id) {
     fluidRow(
       column(3, tags$h3("Time Plot")),
       column(7,
-             selectizeInput(ns("plotTimeModels"), "Display Models / Individuals",
+             selectizeInput(ns("plotTimeModels"), "Models / Individuals to display",
                             choices = c("Fit or import a model ..." = ""),
                             multiple = TRUE,
                             selected = "",
@@ -36,12 +36,13 @@ timePlotFormattingUI <- function(id) {
         tags$br(),
         fluidRow(
           column(6,
-                 selectizeInput(ns("formatTimePlot"), "Model / Individual to apply formatting",
-                                choices = c("Fit or import a model ..." = ""),
+                 selectizeInput(ns("formatTimePlot"), "'Apply' formatting for Model / Individual:",
+                                choices = c("Select 'Model(s)/Individual(s) to display' first ..." = ""),
                                 width = "100%")),
           column(3,
                  style = "margin-top: 1.2em;",
-                 actionButton(ns("applyFormatToTimePlotModel"), "Apply Formatting")),
+                 actionButton(ns("applyFormatToTimePlotModel"), "Apply"),
+                 actionButton(ns("resetFormatTimePlotModel"), "Reset Format")),
           column(3,
                  align = "right",
                  style = "margin-top: 1.2em;",
@@ -75,16 +76,7 @@ timePlotFormattingUI <- function(id) {
                              value = 0.9,
                              step = 0.05),
                  tags$br(),
-                 fluidRow(
-                   column(6, selectInput(inputId = ns("legendPosition"),
-                                         label = "Legend position",
-                                         choices = c("right", "top", "bottom", "left"))),
-                   column(6, 
-                          style = "margin-top: 1.5em;",
-                          checkboxInput(inputId = ns("hideLegend"),
-                                        label = "Hide legend",
-                                        value = FALSE))
-                 )
+                 plotLegendUI(ns("legend"))
           ),
           column(3,
                  shinyTools::plotTitlesUI(
@@ -102,10 +94,14 @@ timePlotFormattingUI <- function(id) {
                    initRanges = list(xAxis = config()[["plotRange"]],
                                      yAxis = config()[["plotRange"]])
                  ),
-                 checkboxInput(inputId = ns("extendLabels"),
-                               label = "Extend x-axis labels to full range",
-                               value = FALSE),
-                 tags$br(),
+                 conditionalPanel(
+                   ns = ns,
+                   condition = "!input['plotRanges-fromData'] & input['plotRanges-labelName'] == 'xAxis'",
+                   checkboxInput(inputId = ns("extendLabels"),
+                                 label = "Extend x-axis labels to full range",
+                                 value = FALSE)
+                 ),
+                 tags$br(), tags$br(),
                  selectizeInput(ns("secAxisModel"), "Add a new secondary y axis",
                                 choices = c("Choose one Model / Individual ..." = "")),
                  helpText("The first element of 'Display Models / Individuals' is always used for the first (left) axis."),
@@ -119,7 +115,16 @@ timePlotFormattingUI <- function(id) {
                      column(6, colourInput(ns("secAxisColor"),
                                            label = "Title color",
                                            value = config()[["defaultIntervalTimePlotTitle"]][["color"]]))
-                   )),
+                   ),
+                   conditionalPanel(
+                     ns = ns,
+                     condition = "!input['plotRanges-fromData'] & input['plotRanges-labelName'] == 'yAxis'",
+                     fluidRow(
+                       column(6, numericInput(ns("secAxisYMin"), "Min", value = 0)),
+                       column(6, numericInput(ns("secAxisYMax"), "Max", value = 1))
+                     )
+                   )
+                   ),
                  
           ),
           column(3,
@@ -201,8 +206,12 @@ timePlotFormattingServer <- function(id, savedModels) {
                  
                  observe({
                    # choices for formatting of lines and points
-                   updateSelectizeInput(session, "formatTimePlot", 
-                                        choices = input[["plotTimeModels"]])
+                   if (is.null(input[["plotTimeModels"]])) {
+                     newChoices <- c("Select 'Model(s)/Individual(s) to display' first ..." = "")
+                   } else {
+                     newChoices <- input[["plotTimeModels"]]
+                   }
+                   updateSelectizeInput(session, "formatTimePlot", choices = newChoices)
                    
                    # choices for secondary axis
                    nDisplayedModels <- length(input[["plotTimeModels"]])
@@ -217,7 +226,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                                           choices = c("Choose one Model / Individual ..." = ""))
                    }
                  }) %>%
-                   bindEvent(input[["plotTimeModels"]])
+                   bindEvent(input[["plotTimeModels"]], ignoreNULL = FALSE, ignoreInit = TRUE)
                  
                  observe({
                    req(input[["formatTimePlot"]])
@@ -270,36 +279,40 @@ timePlotFormattingServer <- function(id, savedModels) {
                  dataExportServer("exportCredIntTimeData",
                                   reactive(function() {plotDataExport()}))
                  
-                 # set default: no rescaling
-                 rescalingSecAxis <- reactiveVal(list(scale = 1, center = 0))
-                 observe({
-                   req(input[["plotTimeModels"]])
-                   
+                 rescalingSecAxis <- reactive({ 
                    plotData <- extractedPlotDataDF() %>%
                      na.omit()
+                   
+                   if (length(input[["secAxisModel"]]) > 0 && input[["secAxisModel"]] != "") {
                    # get index for filter
                    index <- plotData$individual == input[["secAxisModel"]]
                    
                    # get rescaling parameters
                    req(nrow(plotData[index, ]) > 0)
                    
-                   # update title of second axis
-                   updateTextInput(session, "secAxisText", 
-                                   value = sprintf("%s Estimate", input[["secAxisModel"]]))
-                   
+                   if (input[["plotRanges-fromData"]] && input[["plotRanges-labelName"]] == "yAxis") {
+                     # use data based limits
+                     oldLimits <- getYRange(plotData) %>% unlist()
+                     newLimits <- getYRange(plotData[index, ]) %>% unlist()
+                   } else {
+                     # use custom limits
+                     oldLimits <- c(ymin = input[["plotRanges-min"]], ymax = input[["plotRanges-max"]])
+                     newLimits <- c(ymin = input[["secAxisYMin"]], ymax = input[["secAxisYMax"]])
+                   }
                    ## use always data based newYLimits, we only set global limits not(!) per model
-                   rescaling <- getRescaleParams(oldLimits = getYRange(plotData) %>% unlist(),
-                                                 newLimits = getYRange(plotData[index, ]) %>% unlist(),
-                                                 secAxis = TRUE)
-                   rescalingSecAxis(rescaling)
-                   
-                   
-                 }) %>%
-                   bindEvent(input[["secAxisModel"]])
+                   res <- getRescaleParams(oldLimits = oldLimits,
+                                    newLimits = newLimits,
+                                    secAxis = TRUE)
+                   } else {
+                     # set default: no rescaling
+                     list(scale = 1, center = 0)
+                   }
+                 })
                  
-                 observe({
-                   req(savedModels(), input[["plotTimeModels"]])
-                   p <- extractedPlotDataDF() %>%
+                 legend <- plotLegendServer("legend")
+                 
+                 newPlot <- reactive({
+                   extractedPlotDataDF() %>%
                      na.omit() %>%
                      rescaleSecondAxisData(individual = input[["secAxisModel"]],
                                            rescaling = rescalingSecAxis()) %>%
@@ -319,19 +332,38 @@ timePlotFormattingServer <- function(id, savedModels) {
                        pointStyleList = pointStyleList,
                        alphaL = input[["alphaL"]],
                        alphaU = input[["alphaU"]],
-                       legendName = plotTexts[["legendTitle"]][["text"]]) %>%
+                       legendName = plotTexts[["legendTitle"]][["text"]]
+                       ) %>%
                      setSecondYAxis(rescaling = rescalingSecAxis(),
                                     titleFormat = plotTexts[["yAxisTitle"]],
                                     textFormat = plotTexts[["yAxisText"]],
-                                    yAxisLabel = input[["secAxisText"]],
+                                    yAxisLabel = input[["secAxisText"]] %>% 
+                                      getSecondAxisTitle(secAxisModel = input[["secAxisModel"]]),
                                     yAxisTitleColor = input[["secAxisColor"]]) %>%
-                     setLegendPosition(hideLegend = input[["hideLegend"]],
-                                       legendPosition = input[["legendPosition"]])
-                   
+                     shinyTools::formatLegendOfGGplot(legend = legend)
+                 })
+                 
+                 observe({
+                   req(savedModels(), input[["plotTimeModels"]])
+                   p <- newPlot()
                    formattedPlot(p)
                  }) %>%
                    bindEvent(list(input[["applyFormatToTimePlot"]], 
                                   input[["applyFormatToTimePlotModel"]]))
+                 
+                 observe({
+                   req(savedModels(), input[["plotTimeModels"]])
+                   
+                   modelNames <- names(savedModels())
+                   defaultStyle <- pointStyleList %>%
+                     reactiveValuesToList() %>%
+                     getDefaultPointFormatForModels(modelNames = modelNames)
+                   pointStyleList[[input[["formatTimePlot"]]]] <- defaultStyle[[input[["formatTimePlot"]]]]
+                   
+                   p <- newPlot()
+                   formattedPlot(p)
+                 }) %>%
+                   bindEvent(input[["resetFormatTimePlotModel"]])
                  
                  # render plot ----
                  output$plotTime <- renderPlot({

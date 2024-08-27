@@ -7,7 +7,7 @@
 setFormulasAndPriors(splittedComb)
 }
 \arguments{
-\item{splittedComb}{A list of matrices containing the segmented formulas and priors}
+\item{splittedComb}{A list of two matrices containing the segmented formulas and priors}
 }
 \value{
 A list of lists containing the segmented formulas and priors

@@ -14,7 +14,7 @@ matrixUI(
   exampleLabel = "Example Matrix"
 )
 
-matrixServer(id, exampleFunction, ...)
+matrixServer(id, exampleFunction, validateCellFunction = NULL, ...)
 }
 \arguments{
 \item{id}{namespace id}

@@ -13,5 +13,5 @@ splitComb(comb)
 A list of two matrices
 }
 \description{
-Split the comb matrix into two matrices
+Split the comb matrix into two matrices based on the separator '*+*'.
 }

@@ -13,7 +13,10 @@ matrixUI <- function(id,
                      exampleLabel = "Example Matrix") {
   ns <- NS(id)
   tagList(
-    tags$h4(title),
+    if (!is.null(title))
+      tags$h4(title)
+    else
+      NULL,
     fluidRow(
       column(
         width = 2,
@@ -60,7 +63,7 @@ matrixUI <- function(id,
     ),
     # output matrix
     tags$br(),
-    verbatimTextOutput(ns("outputMatrix"))
+    tableOutput(ns("outputMatrix"))
   )
 }
 
@@ -69,7 +72,14 @@ matrixUI <- function(id,
 #' @param id namespace id
 #' @param exampleFunction example function
 #' @param ... additional arguments to example function
-matrixServer <- function(id, exampleFunction, ...) {
+matrixServer <- function(id,
+                         exampleFunction,
+                         validateCellFunction = NULL,
+                         ...) {
+  if (is.null(validateCellFunction)) {
+    validateCellFunction <- function(x)
+      x
+  }
   moduleServer(id, function(input, output, session) {
     dataMatrix <- reactiveVal()
     
@@ -78,37 +88,44 @@ matrixServer <- function(id, exampleFunction, ...) {
       req(input[["rows"]], input[["cols"]])
       nrow <- input[["rows"]] %>% as.numeric()
       ncol <- input[["cols"]] %>% as.numeric()
-      dataMatrix(matrix(
+      new_matrix <- matrix(
         data = "",
         nrow = nrow,
         ncol = ncol,
         byrow = TRUE
-      ))
+      )
+      colnames(new_matrix) <- 1:ncol
+      rownames(new_matrix) <- 1:nrow
+      dataMatrix(new_matrix)
       updateSelectInput(session, "cellID", choices = getCellChoices(nrow = nrow, ncol = ncol))
     }) %>%
       bindEvent(list(input[["rows"]], input[["cols"]]))
     
-    output$outputMatrix <- renderPrint({
+    output$outputMatrix <- renderTable({
       validate(need(
         dataMatrix(),
         "Please click 'Set' first or load 'Example Priors'"
       ))
       dataMatrix()
-    })
+    }, rownames = TRUE)
     
     observe({
       req(input[["cellID"]], input[["cell"]], length(dataMatrix()))
       # set new value
       id <- as.numeric(input[["cellID"]])
       new_matrix <- dataMatrix()
-      new_matrix[id] <- input[["cell"]]
+      
+      {
+        new_matrix[id] <- input[["cell"]] %>%
+          validateCellFunction()
+      } %>%
+        shinyTryCatch(errorTitle = "Error in syntax")
       dataMatrix(new_matrix)
       
       # inc id
       maxID <- length(dataMatrix())
       newID <- ifelse(id == maxID, 1, id + 1)
       updateSelectInput(session, "cellID", selected = newID)
-      
     }) %>%
       bindEvent(input[["set"]])
     
@@ -119,6 +136,7 @@ matrixServer <- function(id, exampleFunction, ...) {
         nrow = nrow(newMatrix),
         ncol = ncol(newMatrix)
       ))
+      updateTextInput(session, "cell", value = newMatrix[1])
     }) %>%
       bindEvent(input[["example"]])
     
@@ -146,4 +164,22 @@ getCellChoices <- function(nrow, ncol) {
   names(choices) <- labels
   
   choices
+}
+
+#' Check formula syntax
+#'
+#' Check if the formula syntax is valid
+#'
+#' @param formula A formula to check
+#'
+#' @return A formula if valid, otherwise an error
+validateFormula <- function(formula) {
+  formula_check <- try(as.formula(formula), silent = TRUE)
+  
+  if (inherits(formula_check, "try-error")) {
+    warning("No formula, invalid syntax. Please check your input!")
+    return(formula)
+  } else {
+    return(formula)
+  }
 }

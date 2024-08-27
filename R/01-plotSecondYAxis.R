@@ -16,12 +16,12 @@ setSecondYAxis <- function(plot,
   if (is.null(yAxisTitleColor)) yAxisTitleColor <- config()[["defaultIntervalTimePlotTitle"]][["color"]]
   
   plot <- plot + 
-    theme(axis.title.y.right = element_text(family = "Arial",
+    theme(axis.title.y.right = element_text(family = titleFormat[["fontFamily"]],
                                             size = titleFormat[["size"]],
                                             face = titleFormat[["fontType"]],
                                             color = yAxisTitleColor,
                                             hjust = 0.5),
-          axis.text.y.right = element_text(family = "Arial",
+          axis.text.y.right = element_text(family = textFormat[["fontFamily"]],
                                            size = textFormat[["size"]],
                                            face = textFormat[["fontType"]],
                                            color = textFormat[["color"]],
@@ -64,4 +64,12 @@ getRescaleParams <- function(oldLimits, newLimits = NULL, secAxis = FALSE) {
   
   list(scale = res$coefficients[2],
        center = res$coefficients[1])
+}
+
+getSecondAxisTitle <- function(secAxisTitle, secAxisModel) {
+  if (is.null(secAxisModel) || secAxisModel == "") return("")
+  
+  if (secAxisTitle == "") return(sprintf("%s Estimate", secAxisModel))
+  
+  return(secAxisTitle)
 }

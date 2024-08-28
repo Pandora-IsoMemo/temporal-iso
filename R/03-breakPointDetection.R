@@ -204,7 +204,7 @@ formulasServer <- function(id) {
       title = "'Prior' description",
       text = "The 'prior' argument in mcp specifies the prior distributions for the parameters in your model.
         It should be a named list where the names correspond to the model parameters,
-        and the values are prior distributions in JAGS notation. If you don’t specify a prior for a parameter,
+        and the values are prior distributions in JAGS notation. If you don't specify a prior for a parameter,
         mcp will use a default weakly informative prior.",
       link = "https://lindeloev.github.io/mcp/articles/priors.html"
     )

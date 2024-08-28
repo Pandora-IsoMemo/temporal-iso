@@ -22,20 +22,23 @@
 #'  scale_x_continuous scale_y_continuous sec_axis theme
 #' @importFrom htmltools save_html
 #' @importFrom jsonlite toJSON
+#' @importFrom loo loo loo_compare
 #' @importFrom magrittr %>%
+#' @importFrom mcp mcp
 #' @importFrom openxlsx write.xlsx
 #' @importFrom parallel detectCores
 #' @importFrom rlang .data
 #' @importFrom rstan sampling extract
 #' @importFrom shinycssloaders withSpinner
-#' @importFrom shinyjs alert
-#' @importFrom shinyTools dataExportButton dataExportServer formatPointsOfGGplot
-#'  formatRangesOfGGplot formatTitlesOfGGplot plotExportButton plotExportServer
-#'  plotPointsServer plotPointsUI plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
+#' @importFrom shinyjs alert enable runjs
+#' @importFrom shinyTools dataExportButton dataExportServer
+#'  formatLegendOfGGplot formatPointsOfGGplot formatRangesOfGGplot formatTitlesOfGGplot
+#'  plotExportButton plotExportServer plotLegendServer plotLegendUI plotPointsServer plotPointsUI
+#'  plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
 #'  shinyTryCatch
 #' @importFrom shinyWidgets pickerInput updatePickerInput
-#' @importFrom stats approx dnorm lm median na.omit quantile sd
-#' @importFrom utils write.csv write.table combn
+#' @importFrom stats approx as.formula dnorm lm median na.omit quantile sd
+#' @importFrom utils read.csv write.csv write.table combn
 #' @importFrom yaml read_yaml
 #' @references
 #' Stan Development Team (NA). RStan: the R interface to Stan. R package version NA. http://mc-stan.org

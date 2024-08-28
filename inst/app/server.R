@@ -535,8 +535,7 @@ shinyServer(function(input, output, session) {
     })
     
   # create plotTime ----
-  formattedTimePlot <- timePlotFormattingServer(id = "timePlotFormat", 
-                                                savedModels = savedModels)
+  timePlotFormattingServer(id = "timePlotFormat", savedModels = savedModels)
   
   observe({
     updateNumericInput(session, "from", 

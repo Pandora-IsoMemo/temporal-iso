@@ -1,3 +1,16 @@
+# OsteoBioR 24.08.2
+
+## New Features
+- option to run a break point detection based on the mcp package (#49, #61)
+
+## Updates
+- _Credibility intervals over time_ (#59):
+  - secondary axis: set the range if "Range detected from data" is unchecked and a second axis is selected
+  - option to choose a custom legend position
+
+## Bug Fixes
+- _Credibility intervals over time_ in secondary axis: fix that removes the axis if the model was removed from the input and the plot was recreated (#59)
+
 # OsteoBioR 24.08.1
 
 ## Bug Fixes

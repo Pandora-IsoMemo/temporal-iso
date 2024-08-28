@@ -1,5 +1,6 @@
 #' Matrix Module
 #'
+#' @param title title of the matrix UI
 #' @param maxRows maximum number of rows
 #' @param maxColumns maximum number of columns
 #' @param defaultCellContent default cell content
@@ -70,7 +71,8 @@ matrixUI <- function(id,
 #' Matrix Server
 #'
 #' @param id namespace id
-#' @param exampleFunction example function
+#' @param exampleFunction function to load example input
+#' @param validateCellFunction function to validate the cell content
 #' @param ... additional arguments to example function
 matrixServer <- function(id,
                          exampleFunction,

@@ -86,7 +86,7 @@ testthat::test_that("basePlotTime",  {
       alphaU = 0.1,
       legendName = "testLegend"
       ) %>%
-    formatLegendOfGGplot(legend = "top")
+    formatLegendOfGGplot(legend = list(position = "top"))
   
   expect_equal(
     plot$labels,

@@ -11,6 +11,8 @@ breakPointDetectionServer(id, plotData)
 }
 \arguments{
 \item{id}{The module id}
+
+\item{plotData}{The reactive plot data}
 }
 \description{
 UI of the module

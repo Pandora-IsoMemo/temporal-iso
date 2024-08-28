@@ -18,7 +18,7 @@ infoButtonServer(id, title = "Description", text, link = NULL)
 
 \item{text}{The text to display in the modal}
 
-\item{linkToDetails}{The link to the documentation}
+\item{link}{The link to the documentation}
 }
 \description{
 Info Button UI

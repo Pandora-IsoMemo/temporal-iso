@@ -19,6 +19,8 @@ matrixServer(id, exampleFunction, validateCellFunction = NULL, ...)
 \arguments{
 \item{id}{namespace id}
 
+\item{title}{title of the matrix UI}
+
 \item{maxRows}{maximum number of rows}
 
 \item{maxColumns}{maximum number of columns}
@@ -27,7 +29,9 @@ matrixServer(id, exampleFunction, validateCellFunction = NULL, ...)
 
 \item{exampleLabel}{example label}
 
-\item{exampleFunction}{example function}
+\item{exampleFunction}{function to load example input}
+
+\item{validateCellFunction}{function to validate the cell content}
 
 \item{...}{additional arguments to example function}
 }

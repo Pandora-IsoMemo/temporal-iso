@@ -63,6 +63,7 @@ mcpUI <- function(id) {
 #' Server function of the module
 #'
 #' @param id The module id
+#' @param plotData The reactive plot data
 breakPointDetectionServer <- function(id, plotData) {
   moduleServer(id, function(input, output, session) {
     mcpData <- reactiveVal()
@@ -246,7 +247,7 @@ infoButtonUI <- function(id, label = "Description") {
 #' @param id The module id
 #' @param title The title of the modal
 #' @param text The text to display in the modal
-#' @param linkToDetails The link to the documentation
+#' @param link The link to the documentation
 infoButtonServer <- function(id,
                              title = "Description",
                              text,

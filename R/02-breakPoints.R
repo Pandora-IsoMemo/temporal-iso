@@ -16,7 +16,7 @@ readExampleMatrix <- function(path) {
 #' Get the comb matrix
 #'
 #' Get the combined matrix of segments and priors.
-#' Process the segments and priors matrices, identify relevant rows and columns, concatenate them, 
+#' Process the segments and priors matrices, identify relevant rows and columns, concatenate them,
 #' and generate possible cell combinations while ensuring data consistency.
 #'
 #' @param segments A matrix containing the segmented formulas
@@ -58,7 +58,7 @@ getComb <- function(segments, priors) {
 }
 
 #' Clean the comb matrix
-#' 
+#'
 #' Check each row for '*+*' and if found replace that cell and all following cells in the row with "".
 #' Remove Blank Rows. Remove duplicate rows.
 #'
@@ -92,7 +92,7 @@ cleanComb <- function(comb) {
 #' Split the comb matrix into two matrices
 #'
 #' Split the comb matrix into two matrices based on the separator '*+*'.
-#' 
+#'
 #' @param comb A matrix containing the segmented formulas and priors
 #'
 #' @return A list of two matrices

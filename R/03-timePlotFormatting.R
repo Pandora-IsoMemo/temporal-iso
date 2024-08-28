@@ -13,16 +13,17 @@ timePlotFormattingUI <- function(id) {
     # Time Plot ----
     fluidRow(
       column(3, tags$h3("Time Plot")),
-      column(7,
+      column(6,
              selectizeInput(ns("plotTimeModels"), "Models / Individuals to display",
                             choices = c("Fit or import a model ..." = ""),
                             multiple = TRUE,
                             selected = "",
                             width = "100%")),
-      column(2,
+      column(3,
              align = "right",
              style = "margin-top: 1.2em;",
-             actionButton(ns("applyFormatToTimePlot"), "Draw Plot"))
+             actionButton(ns("applyFormatToTimePlot"), "Draw Plot"),
+             plotExportButton(ns("exportCredIntTimePlot")))
     ),
     tags$br(),
     plotOutput(ns("plotTime")) %>% withSpinner(color = "#20c997"),
@@ -35,18 +36,18 @@ timePlotFormattingUI <- function(id) {
         value = "formatPlotTab",
         tags$br(),
         fluidRow(
+          column(3,
+                 style = "margin-top: 1.2em;",
+                 tags$h4("Format Time Plot")),
           column(6,
                  selectizeInput(ns("formatTimePlot"), "'Apply' formatting for Model / Individual:",
                                 choices = c("Select 'Model(s)/Individual(s) to display' first ..." = ""),
                                 width = "100%")),
           column(3,
-                 style = "margin-top: 1.2em;",
-                 actionButton(ns("applyFormatToTimePlotModel"), "Apply"),
-                 actionButton(ns("resetFormatTimePlotModel"), "Reset Format")),
-          column(3,
                  align = "right",
                  style = "margin-top: 1.2em;",
-                 plotExportButton(ns("exportCredIntTimePlot")))
+                 actionButton(ns("applyFormatToTimePlotModel"), "Apply"),
+                 actionButton(ns("resetFormatTimePlotModel"), "Reset Format"))
         ),
         tags$br(),
         fluidRow(

@@ -51,7 +51,7 @@ mcpUI <- function(id) {
               align = "right",
               style = "margin-top: 1.75em;",
               #actionButton(ns("loadExampleDf"), "Load Example Data"),
-              actionButton(ns("apply"), "Run Model with 'Plot Data'", disabled = TRUE)
+              actionButton(ns("apply"), "Run MCP Model", disabled = TRUE)
             )
           ),
           tags$br())
@@ -66,6 +66,7 @@ mcpUI <- function(id) {
 #' @param plotData The reactive plot data
 breakPointDetectionServer <- function(id, plotData) {
   moduleServer(id, function(input, output, session) {
+    ns <- session$ns
     mcpData <- reactiveVal()
     mcpFit <- reactiveVal()
     
@@ -94,7 +95,8 @@ breakPointDetectionServer <- function(id, plotData) {
       req(formulasAndPriors(), mcpData())
       
       # enable the 'Run Model' button
-      updateActionButton(session, "mcp-apply", disabled = FALSE)
+      shinyjs::enable(ns("mcp-apply"), asis = TRUE)
+      #updateActionButton(session, "mcp-apply", disabled = FALSE) # not working with current version in docker
     }) %>% bindEvent(formulasAndPriors(), mcpData())
     
     # Model tab ----
@@ -119,9 +121,10 @@ breakPointDetectionServer <- function(id, plotData) {
     output$compareWithLoo <- renderPrint({
       validate(need(
         formulasAndPriors(),
-        "Please 'Create MCP Lists' and 'Run Model' first"
+        "Please 'Create MCP Lists' and 'Run MCP Model' first"
       ))
-      validate(need(mcpFit(), "Please 'Run Model' first"))
+      validate(need(mcpData(), "Please load 'Plot Data' and 'Run MCP Model' first"))
+      validate(need(mcpFit(), "Please 'Run MCP Model' first"))
       mcpFit() %>%
         compareWithLoo() %>%
         shinyTryCatch(errorTitle = "Error in comparing with loo", warningTitle = "Warning in comparing with loo")
@@ -172,6 +175,7 @@ formulasUI <- function(id) {
 #' @param id The module id
 formulasServer <- function(id) {
   moduleServer(id, function(input, output, session) {
+    ns <- session$ns
     formulasAndPriors <- reactiveVal()
     
     segmentsMatrix <- matrixServer(
@@ -209,7 +213,8 @@ formulasServer <- function(id) {
       req(segmentsMatrix(), priorsMatrix())
       
       # enable the 'Create MCP Formulas' button
-      updateActionButton(session, "apply", disabled = FALSE)
+      shinyjs::enable(ns("apply"), asis = TRUE)
+      #updateActionButton(session, "apply", disabled = FALSE) # not working with current version in docker
     }) %>% bindEvent(list(segmentsMatrix(), priorsMatrix()))
     
     observe({
@@ -225,7 +230,7 @@ formulasServer <- function(id) {
     
     ## render the output of creating formulas ----
     output$mcpFormulas <- renderPrint({
-      validate(need(formulasAndPriors(), "Please 'Create MCP Lists' first"))
+      validate(need(formulasAndPriors(), "Please 'Set' Segments and Priors first ..."))
       formulasAndPriors()
     })
     

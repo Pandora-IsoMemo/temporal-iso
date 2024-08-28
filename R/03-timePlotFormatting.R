@@ -1,3 +1,8 @@
+#' Message for no models to plot
+messageNoModelsToPlot <- function() {
+  "Select 'Model(s) / Individual(s) to display' and press 'Draw Plot' first ..."
+}
+
 # We need a separate namespace for formatting inputs for the model down- and upload.
 # With grepl we can get the relevant inputs for formatting
 
@@ -9,12 +14,16 @@
 #' @export
 timePlotFormattingUI <- function(id) {
   ns <- NS(id)
+  
+  defaultChoices <- ""
+  names(defaultChoices) <- messageNoModelsToPlot()
+  
   tagList(
     # Time Plot ----
     fluidRow(
       column(3, tags$h3("Time Plot")),
       column(6,
-             selectizeInput(ns("plotTimeModels"), "Models / Individuals to display",
+             selectizeInput(ns("plotTimeModels"), "Model(s) / Individual(s) to display",
                             choices = c("Fit or import a model ..." = ""),
                             multiple = TRUE,
                             selected = "",
@@ -41,7 +50,7 @@ timePlotFormattingUI <- function(id) {
                  tags$h4("Format Time Plot")),
           column(6,
                  selectizeInput(ns("formatTimePlot"), "'Apply' formatting for Model / Individual:",
-                                choices = c("Select 'Model(s)/Individual(s) to display' first ..." = ""),
+                                choices = defaultChoices,
                                 width = "100%")),
           column(3,
                  align = "right",
@@ -105,7 +114,7 @@ timePlotFormattingUI <- function(id) {
                  tags$br(), tags$br(),
                  selectizeInput(ns("secAxisModel"), "Add a new secondary y axis",
                                 choices = c("Choose one Model / Individual ..." = "")),
-                 helpText("The first element of 'Display Models / Individuals' is always used for the first (left) axis."),
+                 helpText("The first element of 'Model(s) / Individual(s) to display' is always used for the first (left) axis."),
                  conditionalPanel(
                    ns = ns,
                    condition = "input.secAxisModel != ''",
@@ -208,7 +217,8 @@ timePlotFormattingServer <- function(id, savedModels) {
                  observe({
                    # choices for formatting of lines and points
                    if (is.null(input[["plotTimeModels"]])) {
-                     newChoices <- c("Select 'Model(s)/Individual(s) to display' first ..." = "")
+                     newChoices <- ""
+                     names(newChoices) <- messageNoModelsToPlot()
                    } else {
                      newChoices <- input[["plotTimeModels"]]
                    }
@@ -262,8 +272,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  
                  # render plot data table ----
                  output$plotData <- renderTable({
-                   validate(need(input[["plotTimeModels"]],
-                                 "Choose at least one element from 'Display Models / Individuals' ..."),
+                   validate(need(input[["plotTimeModels"]], messageNoModelsToPlot()),
                             need(nrow(extractedPlotDataDF()) > 0,
                                  "No data available for selected models ..."))
                    extractedPlotDataDF()
@@ -368,7 +377,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  
                  # render plot ----
                  output$plotTime <- renderPlot({
-                   validate(need(formattedPlot(), "Choose at least one element from 'Display Models / Individuals' and press 'Apply' ..."))
+                   validate(need(formattedPlot(), messageNoModelsToPlot()))
                    formattedPlot()
                  })
                  

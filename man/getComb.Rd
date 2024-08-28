@@ -16,6 +16,6 @@ A matrix containing the segmented formulas and priors
 }
 \description{
 Get the combined matrix of segments and priors.
-Process the segments and priors matrices, identify relevant rows and columns, concatenate them, 
+Process the segments and priors matrices, identify relevant rows and columns, concatenate them,
 and generate possible cell combinations while ensuring data consistency.
 }

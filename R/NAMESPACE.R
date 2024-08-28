@@ -30,7 +30,7 @@
 #' @importFrom rlang .data
 #' @importFrom rstan sampling extract
 #' @importFrom shinycssloaders withSpinner
-#' @importFrom shinyjs alert runjs
+#' @importFrom shinyjs alert enable runjs
 #' @importFrom shinyTools dataExportButton dataExportServer
 #'  formatLegendOfGGplot formatPointsOfGGplot formatRangesOfGGplot formatTitlesOfGGplot
 #'  plotExportButton plotExportServer plotLegendServer plotLegendUI plotPointsServer plotPointsUI

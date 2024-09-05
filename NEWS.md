@@ -3,7 +3,6 @@
 ## Updates
 - added new methods for model comparison (_waic_, _heuristic_) after running the break point detection (#49, #61)
 
-
 # OsteoBioR 24.08.2
 
 ## New Features

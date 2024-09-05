@@ -12,8 +12,10 @@ breakPointDetectionUI <- function(id) {
             tabPanel(
               "MCP Model",
               mcpUI(ns("mcp")),
-              tags$h4("Comparing models using loo"),
-              verbatimTextOutput(ns("compareWithLoo")) %>% withSpinner(color = "#20c997")
+              tags$h4("Comparing models"),
+              selectInput(ns("method"), "Method", c("loo", "waic", "heuristic")),
+              tags$br(),
+              verbatimTextOutput(ns("compareModels")) %>% withSpinner(color = "#20c997")
             )
           ),
           tags$br())
@@ -117,17 +119,25 @@ breakPointDetectionServer <- function(id, plotData) {
     }) %>%
       bindEvent(input[["mcp-apply"]])
     
-    ## render the output of comparing with loo ----
-    output$compareWithLoo <- renderPrint({
+    ## render the output of comparing models ----
+    output$compareModels <- renderPrint({
       validate(need(
         formulasAndPriors(),
         "Please 'Create MCP Lists' and 'Run MCP Model' first"
       ))
       validate(need(mcpData(), "Please load 'Plot Data' and 'Run MCP Model' first"))
       validate(need(mcpFit(), "Please 'Run MCP Model' first"))
+      
+      compareFUN <- switch(
+        input[["method"]],
+        loo = compareWithLoo,
+        waic = compareWithWAIC,
+        heuristic = compareWithHeuristic
+      )
+
       mcpFit() %>%
-        compareWithLoo() %>%
-        shinyTryCatch(errorTitle = "Error in comparing with loo", warningTitle = "Warning in comparing with loo")
+        compareFUN() %>%
+        shinyTryCatch(errorTitle = "Error in model comparison", warningTitle = "Warning in model comparison")
     })
   })
 }

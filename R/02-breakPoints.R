@@ -201,8 +201,6 @@ runMcp <- function(lists, ...) {
 #'
 #' @return A loo model comparison object
 compareWithLoo <- function(fit) {
-  #Comparing models using loo
-  
   #Define list
   loo_model <- vector("list", length(fit))
   
@@ -212,4 +210,57 @@ compareWithLoo <- function(fit) {
   
   #Results of model comparison
   loo_compare(loo_model)
+}
+
+#' Compare models using waic
+#' 
+#' @param fit A list of mcp model fits
+#' 
+#' @return A loo model comparison object
+compareWithWAIC <- function(fit) {
+  #Define list
+  waic_model <- vector("list", length(fit))
+  
+  for (i in 1:length(fit)) {
+    waic_model[[i]] <- waic(fit[[i]])
+  }
+  
+  #Results of model comparison
+  loo_compare(waic_model)
+}
+
+#' Compare models using heuristic
+#' 
+#' The heuristic method is a model comparison method that combines the number of parameters and the elpd_diff value.
+#' 
+#' @param fit A list of mcp model fits
+#' 
+#' @return A loo model comparison object
+compareWithHeuristic <- function(fit) {
+  comparison <- compareWithLoo(fit)
+  
+  row_names <- rownames(comparison)
+  model_number <- as.integer(gsub(".*model([0-9]*).*", "\\1", row_names))
+  numEntries <- array(0, nrow(comparison))
+  k <- 1
+  for (i in model_number) {
+    numEntries[k] <- length(unlist(fit[[i]][3]))
+    k <- k + 1
+  }
+  
+  comparison <- cbind(comparison, numEntries)
+  # calculate the ratio and use ifelse function to assign zero if division by zero occurs
+  new_column <- abs(ifelse(comparison[,2] != 0, comparison[,1]/comparison[,2], 0))
+  comparison <- cbind(comparison, new_column)
+  
+  # Remove rows where the last column value is bigger than 5
+  comparison <- comparison[comparison[,10] < 5, , drop = FALSE]
+  
+  #Order by lowest number of model parameters and for equal number of parameters by higher elpd_diff value
+  if (nrow(comparison) > 1) {
+    comparison <- comparison[order(comparison[,9], -comparison[,1]),]
+    comparison <- cbind(comparison, "Rank" = 1:nrow(comparison))
+  }
+  
+  comparison
 }

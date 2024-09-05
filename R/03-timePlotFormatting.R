@@ -183,6 +183,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                    "plotLabels",
                    type = "ggplot", 
                    availableElements = c("title", "axis", "legend"),
+                   showParseButton = FALSE,
                    initText = getDefaultTextFormat()
                  )
                  plotRanges <- shinyTools::plotRangesServer(
@@ -198,6 +199,8 @@ timePlotFormattingServer <- function(id, savedModels) {
                    initStyle = config()[["defaultPointStyle"]],
                    hideInput = c("hide", "alpha", "colorBg")
                    )
+                 
+                 legend <- shinyTools::plotLegendServer("legend")
                  
                  pointStyleList <- reactiveValues()
                  
@@ -319,8 +322,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                    }
                  })
                  
-                 legend <- plotLegendServer("legend")
-                 
                  newPlot <- reactive({
                    extractedPlotDataDF() %>%
                      na.omit() %>%
@@ -350,7 +351,8 @@ timePlotFormattingServer <- function(id, savedModels) {
                                     yAxisLabel = input[["secAxisText"]] %>% 
                                       getSecondAxisTitle(secAxisModel = input[["secAxisModel"]]),
                                     yAxisTitleColor = input[["secAxisColor"]]) %>%
-                     shinyTools::formatLegendOfGGplot(legend = legend)
+                     shinyTools::formatLegendOfGGplot(legend = legend) %>%
+                     shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
                  })
                  
                  observe({

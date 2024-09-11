@@ -20,8 +20,9 @@ R Package to estimate isotopic values in the past and their change over time.
 * to re-generate `R/rstanmodel.R` and the C++ Source Code in `src` use
   `rstantools::rstan_config()`
 * After that you can install and compile the package e.g. `devtools::load_all()`
-* The precompiled stanmodel objects will appear in a named list called
-  `stanmodels` and you can call them with something like
-  `rstan::sampling(stanmodels$foo, ...)`
 * You can put any stan model file in to `inst/stan` 
 * Header files belong into `inst/include`
+* If you want use functions of the R-Package (not the shiny app), the
+  precompiled stanmodel objects will appear in a named list called `stanmodels`
+  and you can call them with something like `rstan::sampling(stanmodels$foo, ...)`
+

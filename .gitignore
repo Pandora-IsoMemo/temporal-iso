@@ -37,5 +37,7 @@ vignettes/*.pdf
 # src files
 src/*
 
+R/stanmodel.R
+
 # profiling script
 RScripts/profileApp.R

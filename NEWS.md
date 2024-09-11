@@ -1,3 +1,9 @@
+# 24.09.1
+
+## Fixes
+
+- Clean up of rstan files and src folder. Add command to generate cpp files to Dockerfile.
+
 # OsteoBioR 24.04.1
 
 ## New Features

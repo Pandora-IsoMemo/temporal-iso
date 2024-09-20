@@ -1,4 +1,4 @@
-# OsteoBioR 24.09.0
+# OsteoBioR 24.09.3
 
 ## Updates
 - break point detection (#49, #61)
@@ -7,6 +7,11 @@
   
 ## Bug Fixes
 - fix missing filter for legend content in 'Credibility intervals over time' (#63)
+
+# OsteoBioR 24.09.1
+
+## Fixes
+- Clean up of rstan files and src folder. Add command to generate cpp files to Dockerfile.
 
 # OsteoBioR 24.08.2
 

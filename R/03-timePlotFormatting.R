@@ -391,7 +391,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                                   )
                  
                  # Break point detection ----
-                 
                  breakPointDetectionServer(id = "breakPointDetection", plotData = extractedPlotDataDF)
                })
 }

@@ -1,7 +1,12 @@
 # OsteoBioR 24.09.0
 
 ## Updates
-- added new methods for model comparison (_waic_, _heuristic_) after running the break point detection (#49, #61)
+- break point detection (#49, #61)
+  - new outputs in tab '2. MCP Modeling': plot, waic
+  - new methods for model comparison in tab '3. Comparison of Models': _waic_, _heuristic_
+  
+## Bug Fixes
+- fix missing filter for legend content in 'Credibility intervals over time' (#63)
 
 # OsteoBioR 24.08.2
 

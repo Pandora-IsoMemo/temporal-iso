@@ -2,13 +2,22 @@
 % Please edit documentation in R/03-breakPointDetection.R
 \name{mcpModelingUI}
 \alias{mcpModelingUI}
+\alias{mcpModelingServer}
 \title{MCP Modeling UI}
 \usage{
 mcpModelingUI(id)
+
+mcpModelingServer(id, formulasAndPriors, mcpData)
 }
 \arguments{
 \item{id}{The module id}
+
+\item{formulasAndPriors}{The reactive formulas and priors}
+
+\item{mcpData}{The reactive mcp data}
 }
 \description{
 MCP Modeling UI
+
+MCP Modeling Server
 }

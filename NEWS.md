@@ -1,4 +1,14 @@
-# 24.09.1
+# OsteoBioR 24.09.3
+
+## Updates
+- break point detection (#49, #61)
+  - new outputs in tab '2. MCP Modeling': plot, waic
+  - new methods for model comparison in tab '3. Comparison of Models': _waic_, _heuristic_
+  
+## Bug Fixes
+- fix missing filter for legend content in 'Credibility intervals over time' (#63)
+
+# OsteoBioR 24.09.1
 
 ## Fixes
 - Clean up of rstan files and src folder. Add command to generate cpp files to Dockerfile.

@@ -174,9 +174,9 @@ extractPlotDataDF <- function(plotDataList, models, credInt) {
   models <- intersect(models, names(plotDataList))
   
   if (length(models) == 0) return(data.frame())
-                      
+
   # filter for displayed models:
-  plotDataList[models] %>%
+  res <- plotDataList[models] %>%
     bind_rows(.id = "individual") %>%
     # add column with 
     mutate(cred_interval = sprintf("%.0f%%", credInt * 100)) %>%
@@ -195,6 +195,13 @@ extractPlotDataDF <- function(plotDataList, models, credInt) {
            "cred_interval", "lower", "median", "upper", "sd") %>%
     # remove last line containing only NA values
     slice(1:(n() - 1))
+  
+  # drop levels of the individual column (important for legend content)
+  res$individual <- res$individual %>%
+    as.factor() %>%
+    droplevels()
+  
+  res
 }
 
 #' Get Plot Data

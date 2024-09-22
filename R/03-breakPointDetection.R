@@ -8,55 +8,18 @@ breakPointDetectionUI <- function(id) {
   tagList(tags$br(),
           tabsetPanel(
             id = ns("breakPointTabs"),
-            tabPanel("MCP Lists", formulasUI(ns("formulas"))),
+            tabPanel("1. MCP Lists from Segments & Priors", mcpFormulasUI(ns("formulas"))),
             tabPanel(
-              "MCP Model",
-              mcpUI(ns("mcp")),
-              tags$h4("Comparing models using loo"),
-              verbatimTextOutput(ns("compareWithLoo")) %>% withSpinner(color = "#20c997")
-            )
+              "2. MCP Modeling",
+              mcpModelingUI(ns("mcp")),
+              mcpShowSingleModelUI(ns("singleModelOut"))
+            ),
+            tabPanel("3. Comparison of Models", mcpCompareModelsUI(ns(
+              "compareModelsOut"
+            )))
           ),
           tags$br())
 }
-
-#' MCP UI
-#'
-#' @param id The module id
-mcpUI <- function(id) {
-  ns <- NS(id)
-  tagList(tags$br(),
-          fluidRow(
-            column(
-              3,
-              numericInput(ns("adapt"), "Burn in length", value = 5000),
-              helpText("Increase for better conversion (makes the run slower).")
-            ),
-            column(3, numericInput(
-              ns("chains"),
-              "Number of chains",
-              value = 3,
-              min = 1
-            )),
-            column(
-              3,
-              numericInput(
-                ns("iter"),
-                "Number of iterations",
-                value = 3000,
-                min = 1
-              )
-            ),
-            column(
-              3,
-              align = "right",
-              style = "margin-top: 1.75em;",
-              #actionButton(ns("loadExampleDf"), "Load Example Data"),
-              actionButton(ns("apply"), "Run MCP Model", disabled = TRUE)
-            )
-          ),
-          tags$br())
-}
-
 
 #' Break Point Detection Server
 #'
@@ -68,9 +31,7 @@ breakPointDetectionServer <- function(id, plotData) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     mcpData <- reactiveVal()
-    mcpFit <- reactiveVal()
     
-    # load data ----
     observe({
       req(nrow(plotData()) > 0)
       # select relevant columns
@@ -83,59 +44,41 @@ breakPointDetectionServer <- function(id, plotData) {
       mcpData(newData)
     }) %>% bindEvent(plotData())
     
+    # example data instead of plot data
     # observe({
     #   mcpData(read.csv(file.path("data", "example_breakPoints.csv")))
     # }) %>%
     #   bindEvent(input[["mcp-loadExampleDf"]])
     
-    # Formulas tab ----
-    formulasAndPriors <- formulasServer("formulas")
+    formulasAndPriors <- mcpFormulasServer(id = "formulas")
     
-    observe({
-      req(formulasAndPriors(), mcpData())
-      
-      # enable the 'Run Model' button
-      shinyjs::enable(ns("mcp-apply"), asis = TRUE)
-      #updateActionButton(session, "mcp-apply", disabled = FALSE) # not working with current version in docker
-    }) %>% bindEvent(formulasAndPriors(), mcpData())
+    mcpFitList <- mcpModelingServer(id = "mcp",
+                                    mcpData = mcpData,
+                                    formulasAndPriors = formulasAndPriors)
     
-    # Model tab ----
+    mcpShowSingleModelServer(
+      id = "singleModelOut",
+      mcpData = mcpData,
+      formulasAndPriors = formulasAndPriors,
+      mcpFitList = mcpFitList
+    )
     
-    ## run the mcp model ----
-    observe({
-      mcpFit(
-        runMcp(
-          lists = formulasAndPriors(),
-          data = mcpData(),
-          adapt = input[["mcp-adapt"]],
-          chains = input[["mcp-chains"]],
-          iter = input[["mcp-iter"]]
-        )
-      ) %>%
-        shinyTryCatch(errorTitle = "Error in fitting mcp model", warningTitle = "Warning in fitting mcp model") %>%
-        withProgress(message = "Fitting MCP model...", value = 0.5)
-    }) %>%
-      bindEvent(input[["mcp-apply"]])
-    
-    ## render the output of comparing with loo ----
-    output$compareWithLoo <- renderPrint({
-      validate(need(
-        formulasAndPriors(),
-        "Please 'Create MCP Lists' and 'Run MCP Model' first"
-      ))
-      validate(need(mcpData(), "Please load 'Plot Data' and 'Run MCP Model' first"))
-      validate(need(mcpFit(), "Please 'Run MCP Model' first"))
-      mcpFit() %>%
-        compareWithLoo() %>%
-        shinyTryCatch(errorTitle = "Error in comparing with loo", warningTitle = "Warning in comparing with loo")
-    })
+    mcpCompareModelsServer(
+      id = "compareModelsOut",
+      mcpData = mcpData,
+      formulasAndPriors = formulasAndPriors,
+      mcpFitList = mcpFitList
+    )
   })
 }
 
-#' Formulas UI
+
+# 1. MCP Segments & Priors ----
+
+#' MCP Formulas UI
 #'
-#' @rdname formulasServer
-formulasUI <- function(id) {
+#' @rdname mcpFormulasServer
+mcpFormulasUI <- function(id) {
   ns <- NS(id)
   tagList(
     tags$br(),
@@ -170,10 +113,10 @@ formulasUI <- function(id) {
   )
 }
 
-#' Formulas Server
+#' MCP Formulas Server
 #'
 #' @param id The module id
-formulasServer <- function(id) {
+mcpFormulasServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     formulasAndPriors <- reactiveVal()
@@ -228,9 +171,11 @@ formulasServer <- function(id) {
     }) %>%
       bindEvent(input[["apply"]])
     
-    ## render the output of creating formulas ----
     output$mcpFormulas <- renderPrint({
-      validate(need(formulasAndPriors(), "Please 'Set' Segments and Priors first ..."))
+      validate(need(
+        formulasAndPriors(),
+        "Please 'Set' Segments and Priors first ..."
+      ))
       formulasAndPriors()
     })
     
@@ -278,5 +223,290 @@ infoButtonServer <- function(id,
       )
     }) %>%
       bindEvent(input$show_info)
+  })
+}
+
+
+# 2. MCP Modeling ----
+
+#' MCP Modeling UI
+#'
+#' @rdname mcpModelingServer
+mcpModelingUI <- function(id) {
+  ns <- NS(id)
+  tagList(tags$br(),
+          fluidRow(
+            column(
+              3,
+              numericInput(ns("adapt"), "Burn in length", value = 5000),
+              helpText("Increase for better conversion (makes the run slower).")
+            ),
+            column(3, numericInput(
+              ns("chains"),
+              "Number of chains",
+              value = 3,
+              min = 1
+            )),
+            column(
+              3,
+              numericInput(
+                ns("iter"),
+                "Number of iterations",
+                value = 3000,
+                min = 1
+              )
+            ),
+            column(
+              3,
+              align = "right",
+              style = "margin-top: 1.75em;",
+              # load example data instead of plot data:
+              #actionButton(ns("loadExampleDf"), "Load Example Data"),
+              actionButton(ns("apply"), "Run MCP", disabled = TRUE)
+            )
+          ),
+          tags$hr())
+}
+
+#' MCP Modeling Server
+#'
+#' @inheritParams mcpOutServer
+mcpModelingServer <- function(id, formulasAndPriors, mcpData) {
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    
+    mcpFitList <- reactiveVal()
+    
+    observe({
+      req(formulasAndPriors(), mcpData())
+      # enable the 'Run Model' button
+      shinyjs::enable(ns("apply"), asis = TRUE) # use this instead of updateActionButton
+      #updateActionButton(session, "apply", disabled = FALSE) # not working with current version in docker
+    }) %>% bindEvent(formulasAndPriors(), mcpData())
+    
+    observe({
+      res <- runMcp(
+        lists = formulasAndPriors(),
+        data = mcpData(),
+        adapt = input[["adapt"]],
+        chains = input[["chains"]],
+        iter = input[["iter"]]
+      ) %>%
+        shinyTryCatch(errorTitle = "Error in fitting mcp model", warningTitle = "Warning in fitting mcp model") %>%
+        withProgress(message = "Fitting MCP model...", value = 0.5)
+      
+      mcpFitList(res)
+    }) %>%
+      bindEvent(input[["apply"]])
+    
+    return(mcpFitList)
+  })
+}
+
+#' MCP Show Single Model UI
+#'
+#' @rdname mcpShowSingleModelServer
+mcpShowSingleModelUI <- function(id) {
+  ns <- NS(id)
+  tagList(
+    selectInput(
+      ns("showModel"),
+      "Show MCP model",
+      choices = c("'Run MCP' first ..." = "")
+    ),
+    tags$br(),
+    fluidRow(column(
+      6,
+      mcpOutUI(
+        id = ns("summary"),
+        title = "Model Summary",
+        outFUN = verbatimTextOutput,
+        showWidth = TRUE
+      )
+    ), column(
+      6,
+      mcpOutUI(
+        id = ns("waic"),
+        title = "Model WAIC",
+        outFUN = verbatimTextOutput
+      )
+    )),
+    mcpOutUI(
+      id = ns("plot"),
+      title = "Model Plot",
+      outFUN = plotOutput
+    )
+  )
+}
+
+#' MCP Show Single Model Server
+#'
+#' @inheritParams mcpOutServer
+mcpShowSingleModelServer <- function(id,
+                                     mcpData,
+                                     formulasAndPriors,
+                                     mcpFitList) {
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    mcpModel <- reactiveVal()
+    
+    observe({
+      mcpModels <- seq_along(mcpFitList())
+      names(mcpModels) <- paste("Model", mcpModels)
+      if (length(mcpModels) > 0)
+        mcpSelected <- 1
+      else
+        mcpSelected <- NULL
+      updateSelectInput(session,
+                        "showModel",
+                        choices = mcpModels,
+                        selected = mcpSelected)
+    }) %>%
+      bindEvent(mcpFitList())
+    
+    observe({
+      req(mcpFitList(), input[["showModel"]])
+      res <- mcpFitList()[[as.numeric(input[["showModel"]])]]
+      mcpModel(res)
+    }) %>% bindEvent(input[["showModel"]])
+    
+    mcpOutServer(
+      id = "summary",
+      formulasAndPriors = formulasAndPriors,
+      mcpData = mcpData,
+      mcpFitList = mcpFitList,
+      mcpModel = mcpModel,
+      outFUN = summary,
+      renderFUN = renderPrint
+    )
+    
+    mcpOutServer(
+      id = "waic",
+      formulasAndPriors = formulasAndPriors,
+      mcpData = mcpData,
+      mcpFitList = mcpFitList,
+      mcpModel = mcpModel,
+      outFUN = waic,
+      renderFUN = renderPrint
+    )
+    
+    mcpOutServer(
+      id = "plot",
+      formulasAndPriors = formulasAndPriors,
+      mcpData = mcpData,
+      mcpFitList = mcpFitList,
+      mcpModel = mcpModel,
+      outFUN = plot,
+      renderFUN = renderPlot
+    )
+  })
+}
+
+#' MCP Output UI
+#'
+#' @param title The title of the output
+#' @param showWidth Show the width slider
+#' @rdname mcpOutServer
+mcpOutUI <- function(id,
+                     title,
+                     outFUN = verbatimTextOutput,
+                     showWidth = FALSE) {
+  ns <- NS(id)
+  
+  tagList(tags$h4(title),
+          outFUN(ns("modelOut")) %>% withSpinner(color = "#20c997"),
+          if (showWidth) {
+            sliderInput(
+              ns("width"),
+              "Summary width",
+              min = 0.01,
+              max = 0.99,
+              value = 0.95,
+              step = 0.01,
+              width = "100%"
+            )
+          })
+}
+
+#' MCP Output Server
+#'
+#' @param id The module id
+#' @param formulasAndPriors The reactive formulas and priors
+#' @param mcpData The reactive mcp data
+#' @param mcpFitList The reactive mcp fit list
+#' @param mcpModel The reactive mcp model
+#' @param outFUN The output function
+#' @param renderFUN The render function
+mcpOutServer <- function(id,
+                         formulasAndPriors,
+                         mcpData,
+                         mcpFitList,
+                         mcpModel,
+                         outFUN,
+                         renderFUN = renderPrint) {
+  moduleServer(id, function(input, output, session) {
+    output$modelOut <- renderFUN({
+      validate(need(
+        formulasAndPriors(),
+        "Please 'Create MCP Lists' and 'Run MCP' first ..."
+      ))
+      validate(need(mcpData(), "Please load 'Plot Data' and 'Run MCP' first ..."))
+      validate(need(mcpFitList(), "Please 'Run MCP' first ..."))
+      validate(need(mcpModel(), "Please select MCP model first ..."))
+      
+      params <- ifelse(is.null(input[["width"]]), list(), list(width = input[["width"]]))
+      
+      do.call(outFUN, c(list(mcpModel()), params)) %>%
+        shinyTryCatch(
+          errorTitle = sprintf("Error during creating '%s' output", id),
+          warningTitle = sprintf("Warning during creating '%s' output", id)
+        )
+    })
+  })
+}
+
+# 3. Comparison of Models ----
+
+#' MCP Compare Models UI
+#'
+#' @rdname mcpCompareModelsServer
+mcpCompareModelsUI <- function(id) {
+  ns <- NS(id)
+  
+  tagList(
+    selectInput(ns("method"), "Method", c("loo", "waic", "heuristic")),
+    tags$br(),
+    verbatimTextOutput(ns("compareModels")) %>% withSpinner(color = "#20c997")
+  )
+}
+
+#' MCP Compare Models Server
+#'
+#' @inheritParams mcpOutServer
+mcpCompareModelsServer <- function(id,
+                                   formulasAndPriors,
+                                   mcpData,
+                                   mcpFitList) {
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    compareModels <- reactiveVal()
+    
+    output$compareModels <- renderPrint({
+      validate(need(
+        formulasAndPriors(),
+        "Please 'Create MCP Lists' and 'Run MCP' first ..."
+      ))
+      validate(need(mcpData(), "Please load 'Plot Data' and 'Run MCP' first ..."))
+      validate(need(mcpFitList(), "Please 'Run MCP' first ..."))
+      
+      compareFUN <- switch(input[["method"]],
+                           loo = compareWithLoo,
+                           waic = compareWithWAIC,
+                           heuristic = compareWithHeuristic)
+      
+      mcpFitList() %>%
+        compareFUN() %>%
+        shinyTryCatch(errorTitle = "Error in model comparison", warningTitle = "Warning in model comparison")
+    })
   })
 }

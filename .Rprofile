@@ -1,7 +1,7 @@
 
 .First <- function() {
   options(repos = c(
-    CRAN = "https://packagemanager.posit.co/cran/2021-01-01",
+    getOption('repos'),
     INWTLab = "https://inwtlab.github.io/drat/",
     PANDORA = "https://Pandora-IsoMemo.github.io/drat/"
   ))
@@ -18,3 +18,7 @@
 }
 
 .First()
+
+if (interactive()) {
+  rstantools::rstan_config()
+}

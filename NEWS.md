@@ -4,9 +4,12 @@
 - break point detection (#49, #61)
   - new outputs in tab '2. MCP Modeling': plot, waic
   - new methods for model comparison in tab '3. Comparison of Models': _waic_, _heuristic_
+
+- _Credibility intervals over time_: new option to use notation for sub- and superscripts in titles 
+  of a plots, axis or the legend (#59)
   
 ## Bug Fixes
-- fix missing filter for legend content in 'Credibility intervals over time' (#63)
+- fix missing filter for legend content in _Credibility intervals over time_ (#63)
 
 # OsteoBioR 24.09.1
 

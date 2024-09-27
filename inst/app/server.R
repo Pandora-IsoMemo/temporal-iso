@@ -435,14 +435,16 @@ shinyServer(function(input, output, session) {
                                  modelNotes = uploadedNotes,
                                  triggerUpdate = reactive(TRUE))
   
-  uploadedValues <- DataTools::importDataServer("modelUpload",
-                                                title = "Import Model",
-                                                importType = "model",
-                                                ckanFileTypes = config()[["ckanModelTypes"]],
-                                                ignoreWarnings = TRUE,
-                                                defaultSource = config()[["defaultSourceModel"]],
-                                                fileExtension = config()[["fileExtension"]],
-                                                options = DataTools::importOptions(rPackageName = config()[["rPackageName"]]))
+  uploadedValues <- DataTools::importServer("modelUpload",
+                                            title = "Import Model",
+                                            importType = "model",
+                                            ckanFileTypes = config()[["ckanModelTypes"]],
+                                            ignoreWarnings = TRUE,
+                                            defaultSource = config()[["defaultSourceModel"]],
+                                            fileExtension = config()[["fileExtension"]],
+                                            options = DataTools::importOptions(
+                                              rPackageName = config()[["rPackageName"]]
+                                            ))
   
   observe({
     req(length(uploadedValues()) > 0)
@@ -533,8 +535,7 @@ shinyServer(function(input, output, session) {
     })
     
   # create plotTime ----
-  formattedTimePlot <- timePlotFormattingServer(id = "timePlotFormat", 
-                                                savedModels = savedModels)
+  timePlotFormattingServer(id = "timePlotFormat", savedModels = savedModels)
   
   observe({
     updateNumericInput(session, "from", 
@@ -790,7 +791,7 @@ shinyServer(function(input, output, session) {
                      siteMeans = stayTimeDat()[, 1] %>% unlist(),
                      siteSigma = stayTimeDat()[, 2] %>% unlist(),
                      print = FALSE) %>%
-      DataTools::tryCatchWithWarningsAndErrors()
+      shinyTools::shinyTryCatch(errorTitle = "Calculation failed", alertStyle = "shinyalert")
   })
   output$estimatedStayTimes <- renderPrint({ estimatedStayTimes() })
   
@@ -899,7 +900,7 @@ shinyServer(function(input, output, session) {
       meanVar = input$meanVarHist,
       sdVar = input$sdVarHist
     ) %>%
-      DataTools::tryCatchWithWarningsAndErrors(),
+      shinyTools::shinyTryCatch(errorTitle = "Calculation failed", alertStyle = "shinyalert"),
     sapply(isoHistDat() %>% select(input$boneVarsHist), quantile, probs = c(0.025, 0.975)) %>% t()
     
     )

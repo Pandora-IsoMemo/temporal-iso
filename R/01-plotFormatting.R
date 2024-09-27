@@ -32,12 +32,3 @@ getDefaultTextFormat <- function() {
        xAxisText  = config()[["defaultIntervalTimePlotText"]],
        yAxisText  = config()[["defaultIntervalTimePlotText"]])
 }
-
-setLegendPosition <- function(plot, hideLegend, legendPosition) {
-  if (hideLegend) {
-    legendPosition <- "none"
-  }
-  
-  plot + 
-    theme(legend.position = legendPosition)
-}

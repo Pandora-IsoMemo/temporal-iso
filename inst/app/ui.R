@@ -143,7 +143,7 @@ tagList(
                sidebarPanel(
                  width = 2,
                  style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
-                 DataTools::importDataUI("modelUpload", label = "Import Model"),
+                 DataTools::importUI("modelUpload", label = "Import Model"),
                  tags$hr(),
                  modelSpecificationsUI("modelSpecification", "Model Specification"),
                  actionButton("fitModel", "Fit Model"),
@@ -211,8 +211,13 @@ tagList(
                               pickerInput("savedModelsShift",
                                           "Select Models / Individuals",
                                           choices = NULL, multiple = TRUE,
-                                          options = list(`actions-box` = TRUE))
-                              ),
+                                          options = list(
+                                            `actions-box` = TRUE,
+                                            `dropup-auto` = FALSE,
+                                            size = 10,
+                                            `none-selected-text` = "No variables selected"
+                                          ))
+                       ),
                        column(3,
                               radioButtons(
                                 "shiftTimeAbsOrRel",
@@ -243,8 +248,16 @@ tagList(
                      tags$br(),
                      fluidRow(
                        column(4,
-                              pickerInput("savedModelsTime", "Select Models / Individuals", choices = NULL, multiple = TRUE,
-                                          options = list(`actions-box` = TRUE)),
+                              pickerInput("savedModelsTime",
+                                          "Select Models / Individuals", 
+                                          choices = NULL, 
+                                          multiple = TRUE,
+                                          options = list(
+                                            `actions-box` = TRUE,
+                                            `dropup-auto` = FALSE,
+                                            size = 10,
+                                            `none-selected-text` = "No variables selected"
+                                          )),
                               tags$br(),
                               actionButton("estSpecTimePoint", "Estimate")
                        ),
@@ -267,8 +280,16 @@ tagList(
                      HTML("<br>"),
                      fluidRow(
                        column(4,
-                              pickerInput("savedModelsUserDefined", "Select Models / Individuals", choices = NULL, multiple = TRUE,
-                                          options = list(`actions-box` = TRUE))
+                              pickerInput("savedModelsUserDefined", 
+                                          "Select Models / Individuals",
+                                          choices = NULL,
+                                          multiple = TRUE,
+                                          options = list(
+                                            `actions-box` = TRUE,
+                                            `dropup-auto` = FALSE,
+                                            size = 10,
+                                            `none-selected-text` = "No variables selected"
+                                          ))
                               ),
                        column(4,
                               radioButtons("typeEstUser", "Type", 
@@ -356,9 +377,11 @@ tagList(
                    label = "Time Variable:",
                    choices = character(0),
                    options = list(
-                     "actions-box" = FALSE,
-                     "none-selected-text" = 'No variables selected',
-                     "max-options" = 1
+                     `max-options` = 1,
+                     `actions-box` = FALSE,
+                     `dropup-auto` = FALSE,
+                     size = 10,
+                     `none-selected-text` = "No variables selected"
                    ),
                    multiple = TRUE
                  ),
@@ -368,7 +391,8 @@ tagList(
                    label = "Variables for elements:",
                    choices = character(0),
                    options = list(
-                     `actions-box` = FALSE,
+                     `actions-box` = TRUE,
+                     `dropup-auto` = FALSE,
                      size = 10,
                      `none-selected-text` = "No variables selected"
                    ),
@@ -380,9 +404,11 @@ tagList(
                    label = "Measurement mean:",
                    choices = character(0),
                    options = list(
-                     "actions-box" = FALSE,
-                     "none-selected-text" = 'No variables selected',
-                     "max-options" = 1
+                     `actions-box` = FALSE,
+                     `dropup-auto` = FALSE,
+                     size = 10,
+                     `none-selected-text` = "No variables selected",
+                     `max-options` = 1
                    ),
                    multiple = TRUE
                  ),
@@ -392,9 +418,11 @@ tagList(
                    label = "Measurement standard deviation:",
                    choices = character(0),
                    options = list(
-                     "actions-box" = FALSE,
-                     "none-selected-text" = 'No variables selected',
-                     "max-options" = 1
+                     `max-options` = 1,
+                     `actions-box` = FALSE,
+                     `dropup-auto` = FALSE,
+                     size = 10,
+                     `none-selected-text` = "No variables selected"
                    ),
                    multiple = TRUE
                  ),

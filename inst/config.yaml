@@ -8,8 +8,8 @@ ckanFileTypes:
   - "odt"
   - "txt"
 ckanModelTypes:
-  - "zip"
   - "osteobior"
+  - "zip"
 githubRepo: "osteobior"        # for import of models
 mainFolder: "predefinedModels"  # for import of models
 fileExtension: "osteobior"      # for download of models
@@ -17,18 +17,36 @@ rPackageName: "OsteoBioR"       # for download and import of models
 
 # parameters for plot styles
 # default format of graph and axis titles of intervalTimePlot for all models
+availableElements:
+  title:
+    plot title: "plotTitle"
+  axis:
+    x axis title: "xAxisTitle"
+    x axis text: "xAxisText"
+    y axis title: "yAxisTitle"
+    y axis text: "yAxisText"
+  legend:
+    legend title: "legendTitle"
+    legend text: "legendText"
+
+
 defaultIntervalTimePlotTitle:
   text: ""
+  fontFamily: "sans"
   fontType: "plain"
   color: "#000000"
   size: 24
   hide: false
 
 defaultIntervalTimePlotText:
+  fontFamily: "sans"
   fontType: "plain"
   color: "#000000"
   size: 18
   hide: false
+  angle: 0
+  hjust: 0.5
+  vjust: 0.5
 
 # default point style for each model
 defaultPointStyle:

@@ -13,7 +13,7 @@
 #' @import shinythemes
 #' @importFrom colourpicker colourInput 
 #' @importFrom DataTools checkAnyNonNumericColumns downloadModelUI downloadModelServer 
-#'  importDataUI importDataServer importOptions renameExistingNames tryCatchWithWarningsAndErrors
+#'  importDataUI importDataServer importUI importServer importOptions renameExistingNames
 #' @importFrom dplyr arrange bind_cols bind_rows cur_group_id distinct do group_by mutate n select
 #'  slice ungroup
 #' @importFrom ggplot2 aes coord_cartesian element_line element_text 
@@ -22,19 +22,23 @@
 #'  scale_x_continuous scale_y_continuous sec_axis theme
 #' @importFrom htmltools save_html
 #' @importFrom jsonlite toJSON
+#' @importFrom loo loo loo_compare waic
 #' @importFrom magrittr %>%
+#' @importFrom mcp mcp
 #' @importFrom openxlsx write.xlsx
 #' @importFrom parallel detectCores
 #' @importFrom rlang .data
 #' @importFrom rstan sampling extract
 #' @importFrom shinycssloaders withSpinner
-#' @importFrom shinyjs alert
-#' @importFrom shinyTools dataExportButton dataExportServer formatPointsOfGGplot
-#'  formatRangesOfGGplot formatTitlesOfGGplot plotExportButton plotExportServer
-#'  plotPointsServer plotPointsUI plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
+#' @importFrom shinyjs alert enable runjs
+#' @importFrom shinyTools dataExportButton dataExportServer
+#'  formatLegendOfGGplot formatPointsOfGGplot formatRangesOfGGplot formatTitlesOfGGplot
+#'  plotExportButton plotExportServer plotLegendServer plotLegendUI plotPointsServer plotPointsUI
+#'  plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
+#'  shinyTryCatch
 #' @importFrom shinyWidgets pickerInput updatePickerInput
-#' @importFrom stats approx dnorm lm median na.omit quantile sd
-#' @importFrom utils write.csv write.table combn
+#' @importFrom stats approx as.formula dnorm lm median na.omit quantile sd
+#' @importFrom utils read.csv write.csv write.table combn
 #' @importFrom yaml read_yaml
 #' @references
 #' Stan Development Team (NA). RStan: the R interface to Stan. R package version NA. http://mc-stan.org

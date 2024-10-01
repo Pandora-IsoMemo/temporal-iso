@@ -39,6 +39,7 @@ vignettes/*.pdf
 # Ensure the 'src' directory itself is tracked by git
 src/*
 !src/
+R/stanmodels.R
 
 # profiling script
 RScripts/profileApp.R

@@ -35,9 +35,11 @@ vignettes/*.pdf
 *.ipynb
 
 # src files
+# Ignore all files and subdirectories within the 'src' folder
+# Ensure the 'src' directory itself is tracked by git
 src/*
-
-R/stanmodels.R
+!src/
 
 # profiling script
 RScripts/profileApp.R
+

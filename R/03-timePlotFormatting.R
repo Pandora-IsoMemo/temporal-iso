@@ -117,25 +117,12 @@ timePlotFormattingUI <- function(id) {
                  helpText("The first element of 'Model(s) / Individual(s) to display' is always used for the first (left) axis."),
                  conditionalPanel(
                    ns = ns,
-                   condition = "input.secAxisModel != ''",
+                   condition = "input.secAxisModel != '' & input['plotRanges-labelName'] == 'yAxis' & !input['plotRanges-fromData']",
                    fluidRow(
-                     column(6, textInput(ns("secAxisText"), label = "Title",
-                                         value = "",
-                                         placeholder = "Custom title ...")),
-                     column(6, colourInput(ns("secAxisColor"),
-                                           label = "Title color",
-                                           value = config()[["defaultIntervalTimePlotTitle"]][["color"]]))
-                   ),
-                   conditionalPanel(
-                     ns = ns,
-                     condition = "!input['plotRanges-fromData'] & input['plotRanges-labelName'] == 'yAxis'",
-                     fluidRow(
-                       column(6, numericInput(ns("secAxisYMin"), "Min", value = 0)),
-                       column(6, numericInput(ns("secAxisYMax"), "Max", value = 1))
-                     )
+                     column(6, numericInput(ns("secAxisYMin"), "Minimum 2nd y axis", value = 0)),
+                     column(6, numericInput(ns("secAxisYMax"), "Maximum 2nd y axis", value = 1))
                    )
-                   ),
-                 
+                 )
           ),
           column(3,
                  shinyTools::plotPointsUI(id = ns("pointStyle"),

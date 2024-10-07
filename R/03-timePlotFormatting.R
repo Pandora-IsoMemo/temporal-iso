@@ -323,7 +323,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                  })
                  
                  newPlot <- reactive({
-                   
                    allXAxisData <- extractedPlotDataList() %>%
                      extractAllXAxisData() %>%
                      extendXAxis(xLabelLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
@@ -355,8 +354,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                      setSecondYAxis(rescaling = rescalingSecAxis(),
                                     titleFormat = plotTexts[["yAxisTitle2"]],
                                     textFormat = plotTexts[["yAxisText2"]]) %>%
-                     shinyTools::formatLegendOfGGplot(legend = legend) %>%
-                     shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
+                     shinyTools::formatLegendOfGGplot(legend = legend)
                  })
                  
                  observe({

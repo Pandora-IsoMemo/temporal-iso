@@ -2,9 +2,9 @@
 
 ## Updates
 - _Credibility intervals over time_ (#51):
-  - option to format a second y-axis
-  - option to use transformations for the x or y axis in order to handle extreme values
-  - update example for mathematical annotation in titles
+  - option to format a second y-axis (with shinyTools 24.10.0)
+  - option to use transformations for the x or y axis in order to handle extreme values (with shinyTools 24.10.0)
+  - update example for mathematical annotation in titles (with shinyTools 24.10.0)
 
 # OsteoBioR 24.09.3
 

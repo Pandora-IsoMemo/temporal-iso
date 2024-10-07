@@ -1,17 +1,15 @@
+
+# this function is in essence deprecated, but it is still usend for examples with plotTime()
 setXAxisLabels <- function(plot, xAxisData, extendLabels, deriv, xLim = NULL) {
   # set limits
   if (length(xLim) == 2) {
     xPlotLim <- xLim
   } else {
-    xPlotLim <- xLabelLim <- range(xAxisData)
+    xPlotLim <- range(xAxisData)
   }
   
-  # extend labels to full x axis range
-  if (extendLabels && length(xLim) == 2) {
-    xLabelLim <- xLim
-    xAxisData <- xAxisData %>%
-      extendXAxis(xLabelLim = xLabelLim)
-  }
+  xAxisData <- xAxisData %>%
+      extendXAxis(xLabelLim = xLim, extendLabels = extendLabels)
   
   breaks <- getBreaks(time = xAxisData$time, deriv = deriv)
   labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
@@ -37,7 +35,10 @@ extractAllXAxisData <- function(extractedPlotDataList) {
 #' @param xAxisData (data.frame) data.frame containing "time", "lower" and "upper" columns used for
 #'  the x axis.
 #' @param xLabelLim numeric vector of length 2: range of labels of x axis
-extendXAxis <- function(xAxisData, xLabelLim) {
+#' @param extendLabels (logical) if TRUE then extend the labels of the x axis
+extendXAxis <- function(xAxisData, xLabelLim, extendLabels = FALSE) {
+  if (length(xLabelLim) != 2 || !extendLabels) return(xAxisData)
+  
   if (min(xLabelLim) < min(xAxisData[["time_lower"]])) {
     # add new row at the beginning
     newFirstRow <- data.frame(

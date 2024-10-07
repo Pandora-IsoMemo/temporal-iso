@@ -2,34 +2,38 @@ setSecondYAxis <- function(plot,
                            rescaling,
                            titleFormat = NULL,
                            textFormat = NULL,
-                           yAxisLabel = "Estimate",
-                           yAxisTitleColor = NULL) {
+                           defaultTitle = "Estimate") {
   if (identical(rescaling, list(scale = 1, center = 0))) return(plot)
   
   scale <- rescaling$scale
   center <- rescaling$center
   
-  # format equal to first axis:
+  # if not set, format equal to first axis:
   if (is.null(titleFormat)) titleFormat <- config()[["defaultIntervalTimePlotTitle"]]
   if (is.null(textFormat)) textFormat <- config()[["defaultIntervalTimePlotText"]]
-  # custom format for second axis:
-  if (is.null(yAxisTitleColor)) yAxisTitleColor <- config()[["defaultIntervalTimePlotTitle"]][["color"]]
+  
+  customTitle <- extractTitle(titleFormat)
+  if (is.null(customTitle) || customTitle == "") {
+    yAxisTitle <- defaultTitle
+  } else {
+    yAxisTitle <- customTitle
+  }
   
   plot <- plot + 
     theme(axis.title.y.right = element_text(family = titleFormat[["fontFamily"]],
                                             size = titleFormat[["size"]],
                                             face = titleFormat[["fontType"]],
-                                            color = yAxisTitleColor,
-                                            hjust = 0.5),
+                                            color = titleFormat[["color"]],
+                                            hjust = titleFormat[["hjust"]]),
           axis.text.y.right = element_text(family = textFormat[["fontFamily"]],
                                            size = textFormat[["size"]],
                                            face = textFormat[["fontType"]],
                                            color = textFormat[["color"]],
-                                           hjust = 0.5)) +
+                                           hjust = textFormat[["hjust"]])) +
     scale_y_continuous(
       # Features of the first axis
       # Add a second axis and specify its features
-      sec.axis = sec_axis(~(.* scale) + center, name = yAxisLabel)
+      sec.axis = sec_axis(~(.* scale) + center, name = yAxisTitle)
     )
   
   plot

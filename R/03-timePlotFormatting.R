@@ -182,7 +182,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  plotTexts <- shinyTools::plotTitlesServer(
                    "plotLabels",
                    type = "ggplot", 
-                   availableElements = c("title", "axis", "legend"),
+                   availableElements = c("title", "axis", "yaxis2", "legend"),
                    showParseButton = FALSE,
                    initText = getDefaultTextFormat()
                  )
@@ -323,6 +323,12 @@ timePlotFormattingServer <- function(id, savedModels) {
                  })
                  
                  newPlot <- reactive({
+                   
+                   allXAxisData <- extractedPlotDataList() %>%
+                     extractAllXAxisData() %>%
+                     extendXAxis(xLabelLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
+                                 extendLabels = input$extendLabels)
+                   
                    extractedPlotDataDF() %>%
                      na.omit() %>%
                      rescaleSecondAxisData(individual = input[["secAxisModel"]],
@@ -331,33 +337,32 @@ timePlotFormattingServer <- function(id, savedModels) {
                                   yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
                      setDefaultTitles(prop = input$modCredInt) %>%
                      shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
-                     shinyTools::formatRangesOfGGplot(ranges = plotRanges) %>%
-                     setXAxisLabels(
-                       xAxisData = extractedPlotDataList() %>%
-                         extractAllXAxisData(), # labels for all x axis data
-                       extendLabels = input$extendLabels, 
-                       xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
-                       deriv = "1" # input$deriv already included within extractedPlotDataList()
+                     shinyTools::formatRangesOfGGplot(
+                       ranges = plotRanges,
+                       xlabels = list(
+                         # input$deriv already included within extractedPlotDataList()
+                         breaks = getBreaks(time = allXAxisData$time, deriv = "1"),
+                         labels = getLabel(xAxisData = allXAxisData, deriv = "1")
+                       )
                      ) %>%
                      drawLinesAndRibbon(
                        pointStyleList = pointStyleList,
                        alphaL = input[["alphaL"]],
                        alphaU = input[["alphaU"]],
+                       # UPDATE LEGEND HERE <- -------
                        legendName = plotTexts[["legendTitle"]][["text"]]
                        ) %>%
                      setSecondYAxis(rescaling = rescalingSecAxis(),
-                                    titleFormat = plotTexts[["yAxisTitle"]],
-                                    textFormat = plotTexts[["yAxisText"]],
-                                    yAxisLabel = input[["secAxisText"]] %>% 
-                                      getSecondAxisTitle(secAxisModel = input[["secAxisModel"]]),
-                                    yAxisTitleColor = input[["secAxisColor"]]) %>%
+                                    titleFormat = plotTexts[["yAxisTitle2"]],
+                                    textFormat = plotTexts[["yAxisText2"]]) %>%
                      shinyTools::formatLegendOfGGplot(legend = legend) %>%
                      shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
                  })
                  
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
-                   p <- newPlot()
+                   p <- newPlot() %>%
+                     shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
                    formattedPlot(p)
                  }) %>%
                    bindEvent(list(input[["applyFormatToTimePlot"]], 
@@ -372,7 +377,8 @@ timePlotFormattingServer <- function(id, savedModels) {
                      getDefaultPointFormatForModels(modelNames = modelNames)
                    pointStyleList[[input[["formatTimePlot"]]]] <- defaultStyle[[input[["formatTimePlot"]]]]
                    
-                   p <- newPlot()
+                   p <- newPlot() %>%
+                     shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
                    formattedPlot(p)
                  }) %>%
                    bindEvent(input[["resetFormatTimePlotModel"]])

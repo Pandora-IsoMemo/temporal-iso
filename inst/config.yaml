@@ -32,6 +32,8 @@ availableElements:
 
 defaultIntervalTimePlotTitle:
   text: ""
+  useExpression: false
+  expression: ""
   fontFamily: "sans"
   fontType: "plain"
   color: "#000000"

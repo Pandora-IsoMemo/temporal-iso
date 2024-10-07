@@ -235,10 +235,9 @@ testthat::test_that("setSecondYAxis",  {
       legendName = "testLegend"
     ) %>%
     setSecondYAxis(rescaling = rescaling,
-                   titleFormat = plotTexts[["yAxisTitle"]],
-                   textFormat = plotTexts[["yAxisText"]],
-                   yAxisLabel = "axis2Test",
-                   yAxisTitleColor = "#002350")
+                   titleFormat = plotTexts[["yAxisTitle2"]],
+                   textFormat = plotTexts[["yAxisText2"]],
+                   defaultTitle = "axis2Test")
   
   expect_equal(plot$labels, list(x = "time", y = "median", colour = "individual", ymin = "lower", 
                                  ymax = "upper", fill = "individual", shape = "individual", 

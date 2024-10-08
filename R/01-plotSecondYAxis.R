@@ -18,6 +18,16 @@ rescaleSecondAxisData <- function(plotData, individual, rescaling) {
   plotData
 }
 
+getScaleYLimits <- function(plotData, scaleParams) {
+  if (scaleParams$fromData) {
+    # use data based limits
+    getYRange(plotData) %>% unlist()
+  } else {
+    # use custom limits
+    c(ymin = scaleParams$min, ymax = scaleParams$max)
+  }
+}
+
 getRescaleParams <- function(oldLimits, newLimits = NULL, secAxis = FALSE) {
   if (length(newLimits) == 0 || !secAxis) return(list(scale = 1, center = 0))
   
@@ -27,4 +37,15 @@ getRescaleParams <- function(oldLimits, newLimits = NULL, secAxis = FALSE) {
   
   list(scale = res$coefficients[2],
        center = res$coefficients[1])
+}
+
+addSecAxisTitle <- function(paramList, modelName, customTitle) {
+  customTitle <- extractTitle(customTitle)
+  if (is.null(customTitle) || customTitle == "") {
+    title <- modelName
+  } else {
+    title <- customTitle
+  }
+  
+  c(title = title, paramList)
 }

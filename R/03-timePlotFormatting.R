@@ -275,42 +275,17 @@ timePlotFormattingServer <- function(id, savedModels) {
                    if (length(input[["secAxisModel"]]) > 0 && input[["secAxisModel"]] != "") {
                      # get index for filter
                      index <- plotData$individual == input[["secAxisModel"]]
+                     if (nrow(plotData[index, ]) == 0) return(list(scale = 1, center = 0))
                      
                      # get rescaling parameters
-                     req(nrow(plotData[index, ]) > 0)
-                     
-                     if (plotRanges$yAxis$fromData) {
-                       # use data based limits
-                       oldLimits <- getYRange(plotData) %>% unlist()
-                     } else {
-                       # use custom limits
-                       oldLimits <- c(ymin = plotRanges$yAxis$min, ymax = plotRanges$yAxis$max)
-                     }
-                     
-                     if (plotRanges$yAxis2$fromData) {
-                       # use data based limits from data of 2nd axis
-                       #newLimits <- getYRange(plotData[index, ]) %>% unlist()
-                       # use data based limits from normal data
-                       newLimits <- getYRange(plotData) %>% unlist()
-                     } else {
-                       # use custom limits
-                       newLimits <- c(ymin = plotRanges$yAxis2$min, ymax = plotRanges$yAxis2$max)
-                     }
-                     
-                     ## use always data based newYLimits, we only set global limits not(!) per model
-                     res <- getRescaleParams(oldLimits = oldLimits,
-                                             newLimits = newLimits,
-                                             secAxis = TRUE)
-                     
-                     # add title to rescaling
-                     customTitle <- extractTitle(plotTexts[["yAxisTitle2"]])
-                     if (is.null(customTitle) || customTitle == "") {
-                       title <- input[["secAxisModel"]]
-                     } else {
-                       title <- customTitle
-                     }
-                     
-                     c(title = title, res)
+                     getRescaleParams(
+                       oldLimits = getScaleYLimits(plotData = plotData, scaleParams = plotRanges$yAxis), 
+                       newLimits = getScaleYLimits(plotData = plotData, # always (re-)scale to full data range
+                                                   # plotData = plotData[index, ], # rescale to selected data range
+                                                   scaleParams = plotRanges$yAxis2),
+                       secAxis = TRUE) %>%
+                       addSecAxisTitle(modelName = input[["secAxisModel"]],
+                                       customTitle = plotTexts[["yAxisTitle2"]])
                    } else {
                      # set default: no rescaling
                      # if is.null(title) then no second axis is displayed

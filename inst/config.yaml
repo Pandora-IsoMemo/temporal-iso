@@ -66,6 +66,7 @@ plotRange:
   min: 0
   max: 1
   fromData: true
+  transform: "identity"
 
 # default line style for each model
 defaultLineStyle:

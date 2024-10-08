@@ -98,12 +98,7 @@ timePlotFormattingUI <- function(id) {
                  )
           ),
           column(3,
-                 shinyTools::plotRangesUI(
-                   id = ns("plotRanges"), 
-                   title = "Axis",
-                   initRanges = list(xAxis = config()[["plotRange"]],
-                                     yAxis = config()[["plotRange"]])
-                 ),
+                 shinyTools::plotRangesUI(id = ns("plotRanges"), title = "Axis"), 
                  conditionalPanel(
                    ns = ns,
                    condition = "!input['plotRanges-fromData'] & input['plotRanges-labelName'] == 'xAxis'",
@@ -114,15 +109,7 @@ timePlotFormattingUI <- function(id) {
                  tags$br(), tags$br(),
                  selectizeInput(ns("secAxisModel"), "Add a new secondary y axis",
                                 choices = c("Choose one Model / Individual ..." = "")),
-                 helpText("The first element of 'Model(s) / Individual(s) to display' is always used for the first (left) axis."),
-                 conditionalPanel(
-                   ns = ns,
-                   condition = "input.secAxisModel != '' & input['plotRanges-labelName'] == 'yAxis' & !input['plotRanges-fromData']",
-                   fluidRow(
-                     column(6, numericInput(ns("secAxisYMin"), "Minimum 2nd y axis", value = 0)),
-                     column(6, numericInput(ns("secAxisYMax"), "Maximum 2nd y axis", value = 1))
-                   )
-                 )
+                 helpText("The first element of 'Model(s) / Individual(s) to display' is always used for the first (left) axis.")
           ),
           column(3,
                  shinyTools::plotPointsUI(id = ns("pointStyle"),
@@ -177,7 +164,9 @@ timePlotFormattingServer <- function(id, savedModels) {
                    "plotRanges",
                    type = "ggplot",
                    initRanges = list(xAxis = config()[["plotRange"]],
-                                     yAxis = config()[["plotRange"]])
+                                     yAxis = config()[["plotRange"]],
+                                     yAxis2 = config()[["plotRange"]]),
+                   axes = c("x axis" = "xAxis", "y axis" = "yAxis", "2nd y axis" = "yAxis2")
                  )
                  
                  pointStyle <- shinyTools::plotPointsServer(
@@ -290,19 +279,28 @@ timePlotFormattingServer <- function(id, savedModels) {
                    # get rescaling parameters
                    req(nrow(plotData[index, ]) > 0)
                    
-                   if (input[["plotRanges-fromData"]] && input[["plotRanges-labelName"]] == "yAxis") {
+                   if (plotRanges$yAxis$fromData) {
                      # use data based limits
                      oldLimits <- getYRange(plotData) %>% unlist()
-                     newLimits <- getYRange(plotData[index, ]) %>% unlist()
                    } else {
                      # use custom limits
-                     oldLimits <- c(ymin = input[["plotRanges-min"]], ymax = input[["plotRanges-max"]])
-                     newLimits <- c(ymin = input[["secAxisYMin"]], ymax = input[["secAxisYMax"]])
+                     oldLimits <- c(ymin = plotRanges$yAxis$min, ymax = plotRanges$yAxis$max)
                    }
+                   
+                   if (plotRanges$yAxis2$fromData) {
+                     # use data based limits from data of 2nd axis
+                     #newLimits <- getYRange(plotData[index, ]) %>% unlist()
+                     # use data based limits from normal data
+                     newLimits <- getYRange(plotData) %>% unlist()
+                   } else {
+                     # use custom limits
+                     newLimits <- c(ymin = plotRanges$yAxis2$min, ymax = plotRanges$yAxis2$max)
+                   }
+                   
                    ## use always data based newYLimits, we only set global limits not(!) per model
                    res <- getRescaleParams(oldLimits = oldLimits,
-                                    newLimits = newLimits,
-                                    secAxis = TRUE)
+                                           newLimits = newLimits,
+                                           secAxis = TRUE)
                    } else {
                      # set default: no rescaling
                      list(scale = 1, center = 0)

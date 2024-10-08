@@ -1,44 +1,3 @@
-setSecondYAxis <- function(plot, 
-                           rescaling,
-                           titleFormat = NULL,
-                           textFormat = NULL,
-                           defaultTitle = "Estimate") {
-  if (identical(rescaling, list(scale = 1, center = 0))) return(plot)
-  
-  scale <- rescaling$scale
-  center <- rescaling$center
-  
-  # if not set, format equal to first axis:
-  if (is.null(titleFormat)) titleFormat <- config()[["defaultIntervalTimePlotTitle"]]
-  if (is.null(textFormat)) textFormat <- config()[["defaultIntervalTimePlotText"]]
-  
-  customTitle <- extractTitle(titleFormat)
-  if (is.null(customTitle) || customTitle == "") {
-    yAxisTitle <- defaultTitle
-  } else {
-    yAxisTitle <- customTitle
-  }
-  
-  plot <- plot + 
-    theme(axis.title.y.right = element_text(family = titleFormat[["fontFamily"]],
-                                            size = titleFormat[["size"]],
-                                            face = titleFormat[["fontType"]],
-                                            color = titleFormat[["color"]],
-                                            hjust = titleFormat[["hjust"]]),
-          axis.text.y.right = element_text(family = textFormat[["fontFamily"]],
-                                           size = textFormat[["size"]],
-                                           face = textFormat[["fontType"]],
-                                           color = textFormat[["color"]],
-                                           hjust = textFormat[["hjust"]])) +
-    scale_y_continuous(
-      # Features of the first axis
-      # Add a second axis and specify its features
-      sec.axis = sec_axis(~(.* scale) + center, name = yAxisTitle)
-    )
-  
-  plot
-}
-
 rescaleSecondAxisData <- function(plotData, individual, rescaling) {
   if (is.null(individual) || individual == "") return(plotData)
   
@@ -68,12 +27,4 @@ getRescaleParams <- function(oldLimits, newLimits = NULL, secAxis = FALSE) {
   
   list(scale = res$coefficients[2],
        center = res$coefficients[1])
-}
-
-getSecondAxisTitle <- function(secAxisTitle, secAxisModel) {
-  if (is.null(secAxisModel) || secAxisModel == "") return("")
-  
-  if (secAxisTitle == "") return(sprintf("%s Estimate", secAxisModel))
-  
-  return(secAxisTitle)
 }

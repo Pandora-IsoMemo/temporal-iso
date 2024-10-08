@@ -32,7 +32,7 @@
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom shinyjs alert enable runjs
 #' @importFrom shinyTools dataExportButton dataExportServer extractTitle
-#'  formatLegendOfGGplot formatPointsOfGGplot formatRangesOfGGplot formatTitlesOfGGplot
+#'  formatLegendOfGGplot formatPointsOfGGplot formatScalesOfGGplot formatTitlesOfGGplot
 #'  plotExportButton plotExportServer plotLegendServer plotLegendUI plotPointsServer plotPointsUI
 #'  plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
 #'  shinyTryCatch

@@ -273,61 +273,82 @@ timePlotFormattingServer <- function(id, savedModels) {
                      na.omit()
                    
                    if (length(input[["secAxisModel"]]) > 0 && input[["secAxisModel"]] != "") {
-                   # get index for filter
-                   index <- plotData$individual == input[["secAxisModel"]]
-                   
-                   # get rescaling parameters
-                   req(nrow(plotData[index, ]) > 0)
-                   
-                   if (plotRanges$yAxis$fromData) {
-                     # use data based limits
-                     oldLimits <- getYRange(plotData) %>% unlist()
-                   } else {
-                     # use custom limits
-                     oldLimits <- c(ymin = plotRanges$yAxis$min, ymax = plotRanges$yAxis$max)
-                   }
-                   
-                   if (plotRanges$yAxis2$fromData) {
-                     # use data based limits from data of 2nd axis
-                     #newLimits <- getYRange(plotData[index, ]) %>% unlist()
-                     # use data based limits from normal data
-                     newLimits <- getYRange(plotData) %>% unlist()
-                   } else {
-                     # use custom limits
-                     newLimits <- c(ymin = plotRanges$yAxis2$min, ymax = plotRanges$yAxis2$max)
-                   }
-                   
-                   ## use always data based newYLimits, we only set global limits not(!) per model
-                   res <- getRescaleParams(oldLimits = oldLimits,
-                                           newLimits = newLimits,
-                                           secAxis = TRUE)
+                     # get index for filter
+                     index <- plotData$individual == input[["secAxisModel"]]
+                     
+                     # get rescaling parameters
+                     req(nrow(plotData[index, ]) > 0)
+                     
+                     if (plotRanges$yAxis$fromData) {
+                       # use data based limits
+                       oldLimits <- getYRange(plotData) %>% unlist()
+                     } else {
+                       # use custom limits
+                       oldLimits <- c(ymin = plotRanges$yAxis$min, ymax = plotRanges$yAxis$max)
+                     }
+                     
+                     if (plotRanges$yAxis2$fromData) {
+                       # use data based limits from data of 2nd axis
+                       #newLimits <- getYRange(plotData[index, ]) %>% unlist()
+                       # use data based limits from normal data
+                       newLimits <- getYRange(plotData) %>% unlist()
+                     } else {
+                       # use custom limits
+                       newLimits <- c(ymin = plotRanges$yAxis2$min, ymax = plotRanges$yAxis2$max)
+                     }
+                     
+                     ## use always data based newYLimits, we only set global limits not(!) per model
+                     res <- getRescaleParams(oldLimits = oldLimits,
+                                             newLimits = newLimits,
+                                             secAxis = TRUE)
+                     
+                     # add title to rescaling
+                     customTitle <- extractTitle(plotTexts[["yAxisTitle2"]])
+                     if (is.null(customTitle) || customTitle == "") {
+                       title <- input[["secAxisModel"]]
+                     } else {
+                       title <- customTitle
+                     }
+                     
+                     c(title = title, res)
                    } else {
                      # set default: no rescaling
+                     # if is.null(title) then no second axis is displayed
                      list(scale = 1, center = 0)
                    }
                  })
                  
                  newPlot <- reactive({
-                   allXAxisData <- extractedPlotDataList() %>%
-                     extractAllXAxisData() %>%
-                     extendXAxis(xLabelLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
-                                 extendLabels = input$extendLabels)
-                   
-                   extractedPlotDataDF() %>%
+                   # setup base plot
+                   p <- extractedPlotDataDF() %>%
                      na.omit() %>%
                      rescaleSecondAxisData(individual = input[["secAxisModel"]],
                                            rescaling = rescalingSecAxis()) %>%
                      basePlotTime(xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
                                   yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
                      setDefaultTitles(prop = input$modCredInt) %>%
-                     shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
-                     shinyTools::formatRangesOfGGplot(
+                     shinyTools::formatTitlesOfGGplot(text = plotTexts)
+                   
+                   # specify x-axis labels
+                   allXAxisData <- extractedPlotDataList() %>%
+                     extractAllXAxisData() %>%
+                     extendXAxis(xLabelLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
+                                 extendLabels = input$extendLabels)
+                   
+                   # extract rescaling parameters
+                   rescaleParams <- rescalingSecAxis()
+                   
+                   p <- p %>%
+                     shinyTools::formatScalesOfGGplot(
                        ranges = plotRanges,
-                       xlabels = list(
+                       xLabels = list(
                          # input$deriv already included within extractedPlotDataList()
                          breaks = getBreaks(time = allXAxisData$time, deriv = "1"),
                          labels = getLabel(xAxisData = allXAxisData, deriv = "1")
-                       )
+                       ),
+                       ySecAxis = list(title = rescaleParams[["title"]], 
+                                       center = rescaleParams[["center"]],
+                                       scale = rescaleParams[["scale"]])
                      ) %>%
                      drawLinesAndRibbon(
                        pointStyleList = pointStyleList,
@@ -336,10 +357,9 @@ timePlotFormattingServer <- function(id, savedModels) {
                        # UPDATE LEGEND HERE <- -------
                        legendName = plotTexts[["legendTitle"]][["text"]]
                        ) %>%
-                     setSecondYAxis(rescaling = rescalingSecAxis(),
-                                    titleFormat = plotTexts[["yAxisTitle2"]],
-                                    textFormat = plotTexts[["yAxisText2"]]) %>%
                      shinyTools::formatLegendOfGGplot(legend = legend)
+                   
+                   p
                  })
                  
                  observe({

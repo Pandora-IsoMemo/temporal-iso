@@ -36,7 +36,7 @@ Imports:
   shinyMatrix,
   shinyWidgets,
   shinythemes,
-  shinyTools (>= 24.09.0),
+  shinyTools (>= 24.10.0),
   yaml
 LinkingTo: StanHeaders (>= 2.18.0), rstan (>= 2.18.1), BH (>= 1.66.0), Rcpp (>= 0.12.0), RcppEigen (>= 0.3.3.3.0)
 Suggests: 

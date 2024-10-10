@@ -69,7 +69,13 @@ basePlotTime <- function(df,
                          xLim = NULL, yLim = NULL, 
                          sizeTextX = 12, sizeTextY = 12, 
                          sizeAxisX = 12, sizeAxisY = 12) {
-  p <- ggplot(df, aes(x = .data[["time"]])) + 
+  if ("time" %in% colnames(df)) {
+    p <- ggplot(df, aes(x = .data[["time"]]))
+  } else {
+    p <- ggplot(df)
+  }
+  
+  p <- p + 
     theme(panel.grid.major.x = element_line(size = 0.1)) + # no error only in most recent version: element_line(linewidth = 0.1)
     theme(axis.title.x = element_text(size = sizeTextX),
           axis.text.x = element_text(size = sizeAxisX),
@@ -85,10 +91,9 @@ basePlotTime <- function(df,
 
 
 drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legendName = "individual") {
-  # default legend name
-  if (legendName == "") legendName <- "individual"
+  if (nrow(plot$data) == 0) return(plot)
   
-  # draw lines "upper", "mdeian", "lower"
+  # draw lines "upper", "median", "lower"
   if (nrow(plot$data) > 1) {
     plot <- plot +
       geom_line(aes(y = .data[["median"]], colour = .data[["individual"]]), 
@@ -124,11 +129,14 @@ drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legendName 
                    fill = .data[["individual"]]),
                alpha = alphaL)
   
-  # set scales for each "individual"
+  # set scales for each "individual" with default legend name
   lineColors <- getStyleForIndividuals(pointStyleList, input = "color")
   fillColors <- getStyleForIndividuals(pointStyleList, input = "color")
   pointShapes <- getStyleForIndividuals(pointStyleList, input = "symbol")
   pointSize <- getStyleForIndividuals(pointStyleList, input = "size")
+  
+  # default legend name for empty input
+  if (legendName == "") legendName <- "individual"
   
   plot + 
     scale_colour_manual(name = legendName, values = lineColors) +  # former colorL
@@ -157,12 +165,15 @@ drawShiftLines <- function(plot, object, deriv, plotShifts, ...) {
   plot
 }
 
-extractPlotDataDF <- function(plotDataList, models, credInt) {
+removeEmptyModels <- function(plotDataList) {
+  # keep names of all models
+  allModelNames <- names(plotDataList)
+  
   # remove elements with no rows
   plotDataList <- plotDataList[sapply(plotDataList, nrow) > 0]
   
   # empty of selected models
-  emptyModels <- setdiff(models, names(plotDataList))
+  emptyModels <- setdiff(allModelNames, names(plotDataList))
   
   # warning that no data is available for some selected models
   if (length(emptyModels) > 0) {
@@ -171,6 +182,10 @@ extractPlotDataDF <- function(plotDataList, models, credInt) {
                   ". Model(s) not displayed in table 'Plot Data'."))
   }
   
+  plotDataList
+}
+
+extractPlotDataDF <- function(plotDataList, models, credInt) {
   models <- intersect(models, names(plotDataList))
   
   if (length(models) == 0) return(data.frame())

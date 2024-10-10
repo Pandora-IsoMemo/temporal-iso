@@ -235,6 +235,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                      getPlotData(object = x, prop = input$modCredInt, deriv = input$deriv) %>%
                        updateTime(object = x, deriv = input$deriv)
                    }) %>%
+                     removeEmptyModels() %>%
                      shinyTryCatch(errorTitle = "'Credibility intervals over time': Error in extracting plot data",
                                    warningTitle = "'Credibility intervals over time': Warning in extracting plot data",
                                    alertStyle = "shinyalert")
@@ -281,7 +282,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                      setDefaultTitles(prop = input$modCredInt) %>%
                      shinyTools::formatTitlesOfGGplot(text = plotTexts)
                    
-                   # specify x-axis labels
+                   # specify x-axis labels from x data of all models
                    allXAxisData <- extractedPlotDataList() %>%
                      extractAllXAxisData() %>%
                      extendXAxis(xLabelLim = getUserLimits(plotRanges = plotRanges[["xAxis"]]), 

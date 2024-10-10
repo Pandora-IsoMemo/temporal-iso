@@ -179,7 +179,7 @@ removeEmptyModels <- function(plotDataList) {
   if (length(emptyModels) > 0) {
     warning(paste("No data available for model(s):", 
                   paste(emptyModels, collapse = ", "),
-                  ". Model(s) not displayed in table 'Plot Data'."))
+                  ". Model(s) not displayed in table 'Plot Data' or in 'Time Plot'."))
   }
   
   plotDataList

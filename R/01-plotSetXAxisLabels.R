@@ -1,16 +1,18 @@
 
 # this function is in essence deprecated, but it is still usend for examples with plotTime()
 setXAxisLabels <- function(plot, xAxisData, extendLabels, deriv, xLim = NULL) {
-  # set limits
+  # set limits for plot
   if (length(xLim) == 2) {
     xPlotLim <- xLim
   } else {
     xPlotLim <- range(xAxisData)
   }
   
+  # update x axis data
   xAxisData <- xAxisData %>%
       extendXAxis(xLabelLim = xLim, extendLabels = extendLabels)
   
+  # get breaks and labels
   breaks <- getBreaks(time = xAxisData$time, deriv = deriv)
   labels <- getLabel(xAxisData = xAxisData, deriv = deriv)
   

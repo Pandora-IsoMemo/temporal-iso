@@ -136,11 +136,8 @@ testthat::test_that("basePlotTime",  {
   )
   expect_equal(plot$coordinates$limits,
                list(
-                 x = c(xmin = 0.5, xmax = 5.5),
-                 y = c(
-                   ymin = -12.7512327337153,
-                   ymax = -4.60003088235379
-                 )
+                 x = c(0.5, 5.5),
+                 y = c(-12.7512327337153, -4.60003088235379)
                ))
   expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
                c(0.5, 1.5, 2.5, 3.5, 4.5, 5.5))
@@ -190,8 +187,7 @@ testthat::test_that("drawLinesAndRibbon",  {
     )
   )
   expect_equal(plot$coordinates$limits,
-               list(x = c(xmin = 1, xmax = 5), y = c(ymin = -4.17929722147457, 
-                                                     ymax = 3.35841030846769)))
+               list(x = c(1, 5), y = c(-4.17929722147457, 3.35841030846769)))
   expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$breaks, 
                c(1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5))
   expect_equal(ggplot_build(plot)$layout$panel_scales_x[[1]]$labels, 

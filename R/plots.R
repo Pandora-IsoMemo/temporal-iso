@@ -132,7 +132,7 @@ drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legendName 
   
   plot + 
     scale_colour_manual(name = legendName, values = lineColors) +  # former colorL
-    scale_fill_manual(name = legendName, values = fillColors)+  # former colorU
+    scale_fill_manual(name = legendName, values = fillColors) +  # former colorU
     scale_shape_manual(name = legendName, values = pointShapes) +
     scale_size_manual(name = legendName, values = pointSize)
 }
@@ -211,12 +211,11 @@ extractPlotDataDF <- function(plotDataList, models, credInt) {
 #' @param time (numeric) time vector
 #' @inheritParams plotTime
 getPlotData <- function(object, prop = 0.8, time = NULL, deriv = "1"){
-  lLim <- (1 - prop) / 2
-  uLim <- 1 - lLim
   dat <- rstan::extract(object)$interval
 
   if (is.null(dat)) return(data.frame())
   
+  # apply user derivation
   if(deriv == "2"){
     if (ncol(dat) > 2) {
       dat <- t(apply(dat, 1, diff))
@@ -226,6 +225,8 @@ getPlotData <- function(object, prop = 0.8, time = NULL, deriv = "1"){
   }
   
   # extract quantiles
+  lLim <- (1 - prop) / 2
+  uLim <- 1 - lLim
   intervalQuantiles <- as.data.frame(
     t(apply(dat, 2, quantile, probs = c(lLim, 0.5, uLim)))
   )
@@ -310,39 +311,30 @@ setPlotLimits <- function(plot, newData = NULL, xLim = NULL, yLim = NULL) {
   allData <- plot$data
   if(!is.null(newData)) allData <- bind_rows(plot$data, newData) %>% distinct()
   
-  if (length(xLim) == 0) xLim <- getXRange(allData) %>% unlist()
-  if (length(yLim) == 0) yLim <- getYRange(allData) %>% unlist()
+  if (length(xLim) == 0) xLim <- getXRange(allData)
+  if (length(yLim) == 0) yLim <- getYRange(allData)
   
   plot + coord_cartesian(ylim = yLim, xlim = xLim)
 }
 
-getLim <- function(plotRanges, axis = c("xAxis", "yAxis")) {
-  axis <- match.arg(axis)
+getUserLimits <- function(plotRanges) {
+  if (is.null(plotRanges[["fromData"]]) || plotRanges[["fromData"]]) return(NULL)
   
-  if (plotRanges[[axis]][["fromData"]]) return(numeric(0))
-  
-  c(plotRanges[[axis]][["min"]], plotRanges[[axis]][["max"]])
+  c(plotRanges[["min"]], plotRanges[["max"]])
 }
 
 getXRange <- function(dat) {
-  if (nrow(dat) == 0) return(list(xmin = defaultInputsForUI()$xmin,
-                                  xmax = defaultInputsForUI()$xmax))
+  if (nrow(dat) == 0) return(c(defaultInputsForUI()$xmin, defaultInputsForUI()$xmax))
   
-  xmin <- min(dat$time, na.rm = TRUE)
-  xmax <- max(dat$time, na.rm = TRUE)
-  
-  list(xmin = xmin,
-       xmax = xmax)
+  range(dat$time, na.rm = TRUE)
 }
 
 getYRange <- function(dat) {
-  if (nrow(dat) == 0) return(list(ymin = defaultInputsForUI()$ymin,
-                                  ymax = defaultInputsForUI()$ymax))
+  if (nrow(dat) == 0) return(c(defaultInputsForUI()$ymin, defaultInputsForUI()$ymax))
   
   ymin <- min(dat$lower, na.rm = TRUE)
   ymax <- max(dat$upper, na.rm = TRUE)
   rangeY <- ymax - ymin
   
-  list(ymin = ymin - 0.1*rangeY,
-       ymax = ymax + 0.1*rangeY)
+  c(ymin - 0.1*rangeY, ymax + 0.1*rangeY)
 }

@@ -268,52 +268,26 @@ timePlotFormattingServer <- function(id, savedModels) {
                  dataExportServer("exportCredIntTimeData",
                                   reactive(function() {plotDataExport()}))
                  
-                 rescalingSecAxis <- reactive({ 
-                   plotData <- extractedPlotDataDF() %>%
-                     na.omit()
-                   
-                   if (length(input[["secAxisModel"]]) > 0 && input[["secAxisModel"]] != "") {
-                     # get index for filter
-                     index <- plotData$individual == input[["secAxisModel"]]
-                     if (nrow(plotData[index, ]) == 0) return(list(scale = 1, center = 0))
-                     
-                     # get rescaling parameters
-                     getRescaleParams(
-                       oldLimits = getScaleYLimits(plotData = plotData, scaleParams = plotRanges$yAxis), 
-                       newLimits = getScaleYLimits(plotData = plotData, # always (re-)scale to full data range
-                                                   # plotData = plotData[index, ], # rescale to selected data range
-                                                   scaleParams = plotRanges$yAxis2),
-                       secAxis = TRUE) %>%
-                       addSecAxisTitle(modelName = input[["secAxisModel"]],
-                                       customTitle = plotTexts[["yAxisTitle2"]])
-                   } else {
-                     # set default: no rescaling
-                     # if is.null(title) then no second axis is displayed
-                     list(scale = 1, center = 0)
-                   }
-                 })
-                 
                  newPlot <- reactive({
+                   logDebug("%s: Entering: reactive 'newPlot'", id)
+                   
                    # setup base plot
                    p <- extractedPlotDataDF() %>%
                      na.omit() %>%
                      rescaleSecondAxisData(individual = input[["secAxisModel"]],
-                                           rescaling = rescalingSecAxis()) %>%
-                     basePlotTime(xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
-                                  yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
+                                           plotRanges = plotRanges) %>%
+                     basePlotTime(xLim = getUserLimits(plotRanges = plotRanges[["xAxis"]]),
+                                  yLim = getUserLimits(plotRanges = plotRanges[["yAxis"]])) %>%
                      setDefaultTitles(prop = input$modCredInt) %>%
                      shinyTools::formatTitlesOfGGplot(text = plotTexts)
                    
                    # specify x-axis labels
                    allXAxisData <- extractedPlotDataList() %>%
                      extractAllXAxisData() %>%
-                     extendXAxis(xLabelLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
+                     extendXAxis(xLabelLim = getUserLimits(plotRanges = plotRanges[["xAxis"]]), 
                                  extendLabels = input$extendLabels)
                    
-                   # extract rescaling parameters
-                   rescaleParams <- rescalingSecAxis()
-                   
-                   p <- p %>%
+                   p %>%
                      shinyTools::formatScalesOfGGplot(
                        ranges = plotRanges,
                        xLabels = list(
@@ -321,9 +295,8 @@ timePlotFormattingServer <- function(id, savedModels) {
                          breaks = getBreaks(time = allXAxisData$time, deriv = "1"),
                          labels = getLabel(xAxisData = allXAxisData, deriv = "1")
                        ),
-                       ySecAxis = list(title = rescaleParams[["title"]], 
-                                       center = rescaleParams[["center"]],
-                                       scale = rescaleParams[["scale"]])
+                       ySecAxisTitle = getSecAxisTitle(modelName = input[["secAxisModel"]],
+                                                       customTitle = plotTexts[["yAxisTitle2"]])
                      ) %>%
                      drawLinesAndRibbon(
                        pointStyleList = pointStyleList,
@@ -333,12 +306,12 @@ timePlotFormattingServer <- function(id, savedModels) {
                        legendName = plotTexts[["legendTitle"]][["text"]]
                        ) %>%
                      shinyTools::formatLegendOfGGplot(legend = legend)
-                   
-                   p
                  })
                  
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
+                   logDebug("%s: Entering get formattedPlot()", id)
+                   
                    p <- newPlot() %>%
                      shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
                    formattedPlot(p)
@@ -348,6 +321,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
+                   logDebug("%s: Entering reset formattedPlot()", id)
                    
                    modelNames <- names(savedModels())
                    defaultStyle <- pointStyleList %>%

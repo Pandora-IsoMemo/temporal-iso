@@ -31,8 +31,8 @@
 #' @importFrom rstan sampling extract
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom shinyjs alert enable runjs
-#' @importFrom shinyTools dataExportButton dataExportServer
-#'  formatLegendOfGGplot formatPointsOfGGplot formatRangesOfGGplot formatTitlesOfGGplot
+#' @importFrom shinyTools calculateRescalingFactors dataExportButton dataExportServer extractTitle
+#'  formatLegendOfGGplot formatPointsOfGGplot formatScalesOfGGplot formatTitlesOfGGplot
 #'  plotExportButton plotExportServer plotLegendServer plotLegendUI plotPointsServer plotPointsUI
 #'  plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
 #'  shinyTryCatch

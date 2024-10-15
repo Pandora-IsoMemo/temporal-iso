@@ -1,3 +1,14 @@
+# OsteoBioR 24.10.0
+
+## Updates
+- _Credibility intervals over time_ updates (availbale with shinyTools 24.10.0) (#51):
+  - option to format and set ranges of a second y-axis analog to other axes
+  - option to use transformations for the x or y axis in order to handle extreme values
+  - update example for mathematical annotation in titles
+  
+## Bug Fixes
+- removing duplicated warnings when plotting models with no samples (#55)
+
 # OsteoBioR 24.09.3
 
 ## Updates

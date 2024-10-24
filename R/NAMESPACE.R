@@ -11,6 +11,7 @@
 #' @import rstantools
 #' @import shiny
 #' @import shinythemes
+#' @importFrom ChangeR changePointsServer changePointsUI
 #' @importFrom colourpicker colourInput 
 #' @importFrom DataTools checkAnyNonNumericColumns downloadModelUI downloadModelServer 
 #'  importDataUI importDataServer importUI importServer importOptions renameExistingNames
@@ -31,7 +32,7 @@
 #' @importFrom rstan sampling extract
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom shinyjs alert enable runjs
-#' @importFrom shinyTools calculateRescalingFactors dataExportButton dataExportServer extractTitle
+#' @importFrom shinyTools calculateRescalingFactors dataExportButton dataExportServer extractTitle 
 #'  formatLegendOfGGplot formatPointsOfGGplot formatScalesOfGGplot formatTitlesOfGGplot
 #'  plotExportButton plotExportServer plotLegendServer plotLegendUI plotPointsServer plotPointsUI
 #'  plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI

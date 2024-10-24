@@ -13,6 +13,7 @@ LazyData: true
 ByteCompile: true
 Depends: R (>= 3.5.0), Rcpp (>= 0.12.0)
 Imports:
+  ChangeR,
   colourpicker,
   dplyr,
   ggplot2 (>= 2.2.1),

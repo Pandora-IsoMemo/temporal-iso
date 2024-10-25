@@ -16,7 +16,7 @@ Imports:
   ChangeR,
   dplyr,
   ggplot2 (>= 2.2.1),
-  DataTools (>= 23.12.2.3),
+  DataTools (>= 24.10.0.2),
   futile.logger,
   methods,
   modules,

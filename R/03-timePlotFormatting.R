@@ -256,15 +256,13 @@ timePlotFormattingServer <- function(id, savedModels) {
                  })
                  
                  # export plot data ----
-                 plotDataExport <- reactiveVal()
-                 
-                 observe({
-                   plotDataExport(extractedPlotDataDF())
-                 }) %>%
-                   bindEvent(input[["plotTimeModels"]])
-                 
-                 dataExportServer("exportCredIntTimeData",
-                                  reactive(function() {plotDataExport()}))
+                 dataExportServer("exportCredIntTimeData", filename = "timePlotData", reactive(function() {
+                   if (length(input[["plotTimeModels"]]) == 0 ||
+                       any(input[["plotTimeModels"]] == ""))
+                     return(NULL)
+                   
+                   extractedPlotDataDF()
+                 }))
                  
                  newPlot <- reactive({
                    logDebug("%s: Entering: reactive 'newPlot'", id)

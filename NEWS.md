@@ -1,3 +1,9 @@
+# OsteoBioR 24.11.0
+
+## Updates
+- integration of modules from _ChangeR_ package for break-point detection (#72)
+- option to set the "x" and "y" columns for mcp modelling
+
 # OsteoBioR 24.10.0
 
 ## Updates

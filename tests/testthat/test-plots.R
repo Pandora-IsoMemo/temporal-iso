@@ -198,7 +198,7 @@ testthat::test_that("extendXAxis", {
   xAxisData <- getXAxisData(object = testObjectDefault1, oldXAxisData = oldXAxisData)
   
   testXAxisData <- xAxisData %>%
-    extendXAxis(xLabelLim = c(-1, 8))
+    extendXAxis(xLabelLim = c(-1, 8), extendLabels = TRUE)
   
   testthat::expect_equal(nrow(xAxisData) + 2, nrow(testXAxisData))
   
@@ -209,10 +209,10 @@ testthat::test_that("extendXAxis", {
   testthat::expect_equal(labels, c("[-1-0]", "[0-1]", "[1-2]", "[2-3]", "[3-4]", "[4-5]", "[5-6]", "[6-8]"))
 })
 
-testthat::test_that("getLim", {
+testthat::test_that("getUserLimits", {
   testRanges <- list(xAxis = list(min = 0L, max = 1L, fromData = TRUE), 
                      yAxis = list(min = 0L, max = 1L, fromData = FALSE))
   
-  expect_equal(getLim(testRanges, axis = "xAxis"), numeric(0))
-  expect_equal(getLim(testRanges, axis = "yAxis"), 0:1)
+  expect_equal(getUserLimits(testRanges[["xAxis"]]), NULL)
+  expect_equal(getUserLimits(testRanges[["yAxis"]]), 0:1)
 })

@@ -187,15 +187,15 @@ tagList(
                      value = "summaryTab",
                      verbatimTextOutput("summary") %>% withSpinner(color =
                                                                      "#20c997"),
-                     actionButton("exportSummary", "Export Interval Data")
+                     shinyTools::dataExportButton("exportSummary", label = "Export Interval Data")
                    ),
                    tabPanel(
                      "Credibility Intervals",
                      value = "credibilityIntervalsTab",
                      plotOutput("plot") %>% withSpinner(color =
                                                           "#20c997"),
-                     actionButton("exportCredIntPlot", "Export Plot"),
-                     actionButton("exportCredIntDat", "Export Data")
+                     shinyTools::plotExportButton("exportCredIntPlot", label = "Export Plot"),
+                     shinyTools::dataExportButton("exportCredIntDat", label = "Export Data")
                    ),
                    tabPanel(
                      "Credibility intervals over time",
@@ -268,7 +268,7 @@ tagList(
                               ),
                        column(4,
                               tags$br(),
-                              actionButton("exportTimePointEst", "Export Time Point Estimates")
+                              shinyTools::dataExportButton("exportTimePointEst", label = "Export Time Point Estimates")
                               )
                      ),
                      tags$br(),
@@ -351,7 +351,7 @@ tagList(
                                   HTML("<h3>Results</h3>")),
                  verbatimTextOutput("estimatedStayTimes"),
                  tags$br(),
-                 actionButton("exportStayTimeDat", "Export estimated residence time lengths")
+                 shinyTools::dataExportButton("exportStayTimeDat", label = "Export estimated residence time lengths")
                )
              )
              ),
@@ -458,7 +458,7 @@ tagList(
                  tableOutput("isotopicValues"),
                  verbatimTextOutput("quant"),
                  tags$br(),
-                 actionButton("exportResultsDat", "Export Isotopic Values")
+                 shinyTools::dataExportButton("exportResultsDat", label = "Export Isotopic Values")
                )
              ))
     # STYLE of navbarPage ----

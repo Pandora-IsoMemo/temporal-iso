@@ -98,12 +98,7 @@ timePlotFormattingUI <- function(id) {
                  )
           ),
           column(3,
-                 shinyTools::plotRangesUI(
-                   id = ns("plotRanges"), 
-                   title = "Axis",
-                   initRanges = list(xAxis = config()[["plotRange"]],
-                                     yAxis = config()[["plotRange"]])
-                 ),
+                 shinyTools::plotRangesUI(id = ns("plotRanges"), title = "Axis"), 
                  conditionalPanel(
                    ns = ns,
                    condition = "!input['plotRanges-fromData'] & input['plotRanges-labelName'] == 'xAxis'",
@@ -114,28 +109,7 @@ timePlotFormattingUI <- function(id) {
                  tags$br(), tags$br(),
                  selectizeInput(ns("secAxisModel"), "Add a new secondary y axis",
                                 choices = c("Choose one Model / Individual ..." = "")),
-                 helpText("The first element of 'Model(s) / Individual(s) to display' is always used for the first (left) axis."),
-                 conditionalPanel(
-                   ns = ns,
-                   condition = "input.secAxisModel != ''",
-                   fluidRow(
-                     column(6, textInput(ns("secAxisText"), label = "Title",
-                                         value = "",
-                                         placeholder = "Custom title ...")),
-                     column(6, colourInput(ns("secAxisColor"),
-                                           label = "Title color",
-                                           value = config()[["defaultIntervalTimePlotTitle"]][["color"]]))
-                   ),
-                   conditionalPanel(
-                     ns = ns,
-                     condition = "!input['plotRanges-fromData'] & input['plotRanges-labelName'] == 'yAxis'",
-                     fluidRow(
-                       column(6, numericInput(ns("secAxisYMin"), "Min", value = 0)),
-                       column(6, numericInput(ns("secAxisYMax"), "Max", value = 1))
-                     )
-                   )
-                   ),
-                 
+                 helpText("The first element of 'Model(s) / Individual(s) to display' is always used for the first (left) axis.")
           ),
           column(3,
                  shinyTools::plotPointsUI(id = ns("pointStyle"),
@@ -156,7 +130,7 @@ timePlotFormattingUI <- function(id) {
         # Break Point Detection ----
         "Break point detection",
         value = "breakPointTab",
-        breakPointDetectionUI(ns("breakPointDetection"))
+        changePointsUI(ns("changePoints"))
       )
     )
     ,
@@ -182,7 +156,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  plotTexts <- shinyTools::plotTitlesServer(
                    "plotLabels",
                    type = "ggplot", 
-                   availableElements = c("title", "axis", "legend"),
+                   availableElements = c("title", "axis", "yaxis2", "legend"),
                    showParseButton = FALSE,
                    initText = getDefaultTextFormat()
                  )
@@ -190,7 +164,9 @@ timePlotFormattingServer <- function(id, savedModels) {
                    "plotRanges",
                    type = "ggplot",
                    initRanges = list(xAxis = config()[["plotRange"]],
-                                     yAxis = config()[["plotRange"]])
+                                     yAxis = config()[["plotRange"]],
+                                     yAxis2 = config()[["plotRange"]]),
+                   axes = c("x axis" = "xAxis", "y axis" = "yAxis", "2nd y axis" = "yAxis2")
                  )
                  
                  pointStyle <- shinyTools::plotPointsServer(
@@ -259,17 +235,15 @@ timePlotFormattingServer <- function(id, savedModels) {
                      getPlotData(object = x, prop = input$modCredInt, deriv = input$deriv) %>%
                        updateTime(object = x, deriv = input$deriv)
                    }) %>%
-                     shinyTryCatch(errorTitle = "'Credibility intervals over time': Error in extracting plot data",
-                                   warningTitle = "'Credibility intervals over time': Warning in extracting plot data",
-                                   alertStyle = "shinyalert")
+                     removeEmptyModels()
                  })
                  
                  extractedPlotDataDF <- reactive({
                    extractedPlotDataList() %>%
                      extractPlotDataDF(models = input[["plotTimeModels"]],
                                        credInt = input$modCredInt)  %>%
-                     shinyTryCatch(errorTitle = "'Credibility intervals over time': Error in extracting table data", 
-                                   warningTitle = "'Credibility intervals over time': Warning in extracting table data",
+                     shinyTryCatch(errorTitle = "'Credibility intervals over time': Error when extracting data", 
+                                   warningTitle = "'Credibility intervals over time': Warning when extracting data",
                                    alertStyle = "shinyalert")
                  })
                  
@@ -277,87 +251,65 @@ timePlotFormattingServer <- function(id, savedModels) {
                  output$plotData <- renderTable({
                    validate(need(input[["plotTimeModels"]], messageNoModelsToPlot()),
                             need(nrow(extractedPlotDataDF()) > 0,
-                                 "No data available for selected models ..."))
+                                 "No data available for selected model(s) ..."))
                    extractedPlotDataDF()
                  })
                  
                  # export plot data ----
-                 plotDataExport <- reactiveVal()
-                 
-                 observe({
-                   plotDataExport(extractedPlotDataDF())
-                 }) %>%
-                   bindEvent(input[["plotTimeModels"]])
-                 
-                 dataExportServer("exportCredIntTimeData",
-                                  reactive(function() {plotDataExport()}))
-                 
-                 rescalingSecAxis <- reactive({ 
-                   plotData <- extractedPlotDataDF() %>%
-                     na.omit()
+                 dataExportServer("exportCredIntTimeData", filename = "timePlotData", reactive(function() {
+                   if (length(input[["plotTimeModels"]]) == 0 ||
+                       any(input[["plotTimeModels"]] == ""))
+                     return(NULL)
                    
-                   if (length(input[["secAxisModel"]]) > 0 && input[["secAxisModel"]] != "") {
-                   # get index for filter
-                   index <- plotData$individual == input[["secAxisModel"]]
-                   
-                   # get rescaling parameters
-                   req(nrow(plotData[index, ]) > 0)
-                   
-                   if (input[["plotRanges-fromData"]] && input[["plotRanges-labelName"]] == "yAxis") {
-                     # use data based limits
-                     oldLimits <- getYRange(plotData) %>% unlist()
-                     newLimits <- getYRange(plotData[index, ]) %>% unlist()
-                   } else {
-                     # use custom limits
-                     oldLimits <- c(ymin = input[["plotRanges-min"]], ymax = input[["plotRanges-max"]])
-                     newLimits <- c(ymin = input[["secAxisYMin"]], ymax = input[["secAxisYMax"]])
-                   }
-                   ## use always data based newYLimits, we only set global limits not(!) per model
-                   res <- getRescaleParams(oldLimits = oldLimits,
-                                    newLimits = newLimits,
-                                    secAxis = TRUE)
-                   } else {
-                     # set default: no rescaling
-                     list(scale = 1, center = 0)
-                   }
-                 })
+                   extractedPlotDataDF()
+                 }))
                  
                  newPlot <- reactive({
-                   extractedPlotDataDF() %>%
+                   logDebug("%s: Entering: reactive 'newPlot'", id)
+                   
+                   # setup base plot
+                   p <- extractedPlotDataDF() %>%
                      na.omit() %>%
                      rescaleSecondAxisData(individual = input[["secAxisModel"]],
-                                           rescaling = rescalingSecAxis()) %>%
-                     basePlotTime(xLim = getLim(plotRanges = plotRanges, axis = "xAxis"),
-                                  yLim = getLim(plotRanges = plotRanges, axis = "yAxis")) %>%
+                                           plotRanges = plotRanges) %>%
+                     basePlotTime(xLim = getUserLimits(plotRanges = plotRanges[["xAxis"]]),
+                                  yLim = getUserLimits(plotRanges = plotRanges[["yAxis"]])) %>%
                      setDefaultTitles(prop = input$modCredInt) %>%
-                     shinyTools::formatTitlesOfGGplot(text = plotTexts) %>%
-                     shinyTools::formatRangesOfGGplot(ranges = plotRanges) %>%
-                     setXAxisLabels(
-                       xAxisData = extractedPlotDataList() %>%
-                         extractAllXAxisData(), # labels for all x axis data
-                       extendLabels = input$extendLabels, 
-                       xLim = getLim(plotRanges = plotRanges, axis = "xAxis"), 
-                       deriv = "1" # input$deriv already included within extractedPlotDataList()
+                     shinyTools::formatTitlesOfGGplot(text = plotTexts)
+                   
+                   # specify x-axis labels from x data of all models
+                   allXAxisData <- extractedPlotDataList() %>%
+                     extractAllXAxisData() %>%
+                     extendXAxis(xLabelLim = getUserLimits(plotRanges = plotRanges[["xAxis"]]), 
+                                 extendLabels = input$extendLabels)
+                   
+                   p %>%
+                     shinyTools::formatScalesOfGGplot(
+                       ranges = plotRanges,
+                       xLabels = list(
+                         # input$deriv already included within extractedPlotDataList()
+                         breaks = getBreaks(time = allXAxisData$time, deriv = "1"),
+                         labels = getLabel(xAxisData = allXAxisData, deriv = "1")
+                       ),
+                       ySecAxisTitle = getSecAxisTitle(modelName = input[["secAxisModel"]],
+                                                       customTitle = plotTexts[["yAxisTitle2"]])
                      ) %>%
                      drawLinesAndRibbon(
                        pointStyleList = pointStyleList,
                        alphaL = input[["alphaL"]],
                        alphaU = input[["alphaU"]],
+                       # UPDATE LEGEND HERE <- -------
                        legendName = plotTexts[["legendTitle"]][["text"]]
                        ) %>%
-                     setSecondYAxis(rescaling = rescalingSecAxis(),
-                                    titleFormat = plotTexts[["yAxisTitle"]],
-                                    textFormat = plotTexts[["yAxisText"]],
-                                    yAxisLabel = input[["secAxisText"]] %>% 
-                                      getSecondAxisTitle(secAxisModel = input[["secAxisModel"]]),
-                                    yAxisTitleColor = input[["secAxisColor"]]) %>%
-                     shinyTools::formatLegendOfGGplot(legend = legend) %>%
-                     shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
+                     shinyTools::formatLegendOfGGplot(legend = legend)
                  })
                  
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
-                   p <- newPlot()
+                   logDebug("%s: Entering get formattedPlot()", id)
+                   
+                   p <- newPlot() %>%
+                     shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
                    formattedPlot(p)
                  }) %>%
                    bindEvent(list(input[["applyFormatToTimePlot"]], 
@@ -365,6 +317,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  
                  observe({
                    req(savedModels(), input[["plotTimeModels"]])
+                   logDebug("%s: Entering reset formattedPlot()", id)
                    
                    modelNames <- names(savedModels())
                    defaultStyle <- pointStyleList %>%
@@ -372,7 +325,8 @@ timePlotFormattingServer <- function(id, savedModels) {
                      getDefaultPointFormatForModels(modelNames = modelNames)
                    pointStyleList[[input[["formatTimePlot"]]]] <- defaultStyle[[input[["formatTimePlot"]]]]
                    
-                   p <- newPlot()
+                   p <- newPlot() %>%
+                     shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
                    formattedPlot(p)
                  }) %>%
                    bindEvent(input[["resetFormatTimePlotModel"]])
@@ -391,7 +345,20 @@ timePlotFormattingServer <- function(id, savedModels) {
                                   )
                  
                  # Break point detection ----
-                 breakPointDetectionServer(id = "breakPointDetection", plotData = extractedPlotDataDF)
+                 changePointData <- reactiveValues()
+                 observe({
+                   changePointData$mainData <- extractedPlotDataDF()
+                 }) %>%
+                   bindEvent(extractedPlotDataDF())
+                 
+                 changePointsServer(
+                   "changePoints",
+                   file_data = changePointData, 
+                   mcp_columns = c(x = "time", y = "median")
+                 )
+                 # note: restoring a whole session as in ChangeR will not be possible (much too
+                 # complex) since inputs are send much earlier than all reactive objects are updated.
+                 # As a result the inputs cannot be set correctly and plots will remain empty.
                })
 }
 

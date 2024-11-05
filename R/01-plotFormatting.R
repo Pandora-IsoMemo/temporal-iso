@@ -29,6 +29,8 @@ getDefaultTextFormat <- function() {
        plotTitle  = config()[["defaultIntervalTimePlotTitle"]],
        xAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
        yAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
+       yAxisTitle2 = config()[["defaultIntervalTimePlotTitle"]],
        xAxisText  = config()[["defaultIntervalTimePlotText"]],
-       yAxisText  = config()[["defaultIntervalTimePlotText"]])
+       yAxisText  = config()[["defaultIntervalTimePlotText"]],
+       yAxisText2  = config()[["defaultIntervalTimePlotText"]])
 }

@@ -1,5 +1,5 @@
 Package: OsteoBioR
-Version: 24.10.0
+Version: 24.11.0
 Title: Temporal Estimation of Isotopic Values
 Description: Estimates the temporal changes of isotopic values of bone and teeth data solely based on the renewal rate of different bones/teeth and given measurements. The package furthermore provides plotting and exporting functionalities.
 Authors@R: c(
@@ -13,19 +13,13 @@ LazyData: true
 ByteCompile: true
 Depends: R (>= 3.5.0), Rcpp (>= 0.12.0)
 Imports:
-  colourpicker,
+  ChangeR,
   dplyr,
   ggplot2 (>= 2.2.1),
-  DataTools (>= 23.12.2.3),
+  DataTools (>= 24.10.0.2),
   futile.logger,
-  htmltools,
-  jsonlite,
-  loo,
-  magrittr,
-  mcp,
   methods,
   modules,
-  openxlsx,
   parallel,
   rlang,
   rstan (>= 2.18.1),

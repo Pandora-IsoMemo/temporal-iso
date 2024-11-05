@@ -130,7 +130,7 @@ timePlotFormattingUI <- function(id) {
         # Break Point Detection ----
         "Break point detection",
         value = "breakPointTab",
-        breakPointDetectionUI(ns("breakPointDetection"))
+        changePointsUI(ns("changePoints"))
       )
     )
     ,
@@ -256,15 +256,13 @@ timePlotFormattingServer <- function(id, savedModels) {
                  })
                  
                  # export plot data ----
-                 plotDataExport <- reactiveVal()
-                 
-                 observe({
-                   plotDataExport(extractedPlotDataDF())
-                 }) %>%
-                   bindEvent(input[["plotTimeModels"]])
-                 
-                 dataExportServer("exportCredIntTimeData",
-                                  reactive(function() {plotDataExport()}))
+                 dataExportServer("exportCredIntTimeData", filename = "timePlotData", reactive(function() {
+                   if (length(input[["plotTimeModels"]]) == 0 ||
+                       any(input[["plotTimeModels"]] == ""))
+                     return(NULL)
+                   
+                   extractedPlotDataDF()
+                 }))
                  
                  newPlot <- reactive({
                    logDebug("%s: Entering: reactive 'newPlot'", id)
@@ -347,7 +345,21 @@ timePlotFormattingServer <- function(id, savedModels) {
                                   )
                  
                  # Break point detection ----
-                 breakPointDetectionServer(id = "breakPointDetection", plotData = extractedPlotDataDF)
+                 changePointData <- reactiveValues()
+                 observe({
+                   changePointData$mainData <- extractedPlotDataDF()
+                 }) %>%
+                   bindEvent(extractedPlotDataDF())
+                 
+                 changePointsServer(
+                   "changePoints",
+                   file_data = changePointData, 
+                   mcp_columns = c(x = "time", y = "median")
+                 )
+                 # note: restoring a whole session as in ChangeR will not be possible (much too
+                 # complex) since inputs are send much earlier than all reactive objects are updated.
+                 # As a result the inputs cannot be set correctly and plots will remain empty.
+                 
                })
 }
 

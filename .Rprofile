@@ -19,3 +19,10 @@
 }
 
 .First()
+
+if (interactive()) {
+  rstantools::rstan_config()
+  
+  library(futile.logger)
+  futile.logger::flog.threshold(DEBUG)
+}

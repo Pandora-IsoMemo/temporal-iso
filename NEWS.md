@@ -1,8 +1,54 @@
-# 24.09.1
+# OsteoBioR 24.10.0
+
+## Updates
+- _Credibility intervals over time_ updates (availbale with shinyTools 24.10.0) (#51):
+  - option to format and set ranges of a second y-axis analog to other axes
+  - option to use transformations for the x or y axis in order to handle extreme values
+  - update example for mathematical annotation in titles
+  
+## Bug Fixes
+- removing duplicated warnings when plotting models with no samples (#55)
+
+# OsteoBioR 24.09.3
+
+## Updates
+- break point detection (#49, #61)
+  - new outputs in tab '2. MCP Modeling': plot, waic
+  - new methods for model comparison in tab '3. Comparison of Models': _waic_, _heuristic_
+- _Credibility intervals over time_: new option to use notation for sub- and superscripts in titles 
+  of a plots, axis or the legend (#59)
+  
+## Bug Fixes
+- fix missing filter for legend content in _Credibility intervals over time_ (#63)
+
+# OsteoBioR 24.09.1
 
 ## Fixes
-
 - Clean up of rstan files and src folder. Add command to generate cpp files to Dockerfile.
+
+# OsteoBioR 24.08.2
+
+## New Features
+- option to run a break point detection based on the mcp package (#49, #61)
+
+## Updates
+- _Credibility intervals over time_ (#59):
+  - secondary axis: set the range if "Range detected from data" is unchecked and a second axis is selected
+  - option to choose a custom legend position
+
+## Bug Fixes
+- _Credibility intervals over time_ in secondary axis: fix that removes the axis if the model was removed from the input and the plot was recreated (#59)
+
+# OsteoBioR 24.08.1
+
+## Bug Fixes
+- catch error when trying to display plot and table of models that failed and have no samples (#55)
+
+# OsteoBioR 24.08.0
+
+## Bug Fixes
+- prevent dropUp of inputs for `Element` and `Time` variables in the tab _Model_ and other 
+  'pickerInputs' (#56)
 
 # OsteoBioR 24.04.1
 

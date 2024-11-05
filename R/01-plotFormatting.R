@@ -29,15 +29,8 @@ getDefaultTextFormat <- function() {
        plotTitle  = config()[["defaultIntervalTimePlotTitle"]],
        xAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
        yAxisTitle = config()[["defaultIntervalTimePlotTitle"]],
+       yAxisTitle2 = config()[["defaultIntervalTimePlotTitle"]],
        xAxisText  = config()[["defaultIntervalTimePlotText"]],
-       yAxisText  = config()[["defaultIntervalTimePlotText"]])
-}
-
-setLegendPosition <- function(plot, hideLegend, legendPosition) {
-  if (hideLegend) {
-    legendPosition <- "none"
-  }
-  
-  plot + 
-    theme(legend.position = legendPosition)
+       yAxisText  = config()[["defaultIntervalTimePlotText"]],
+       yAxisText2  = config()[["defaultIntervalTimePlotText"]])
 }

@@ -28,10 +28,25 @@
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/adjustTimeColumn.html</loc>
   </url>
   <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/breakPointDetectionServer.html</loc>
+  </url>
+  <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/cleanAndSplitData.html</loc>
   </url>
   <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/cleanComb.html</loc>
+  </url>
+  <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/combineDataAndModelOutputs.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/compareWithHeuristic.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/compareWithLoo.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/compareWithWAIC.html</loc>
   </url>
   <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/computeResult.html</loc>
@@ -79,6 +94,12 @@
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/getBreaks.html</loc>
   </url>
   <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/getCellChoices.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/getComb.html</loc>
+  </url>
+  <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/getEntry.html</loc>
   </url>
   <url>
@@ -121,6 +142,9 @@
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/index.html</loc>
   </url>
   <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/infoButtonServer.html</loc>
+  </url>
+  <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/joinTimeForDerivation.html</loc>
   </url>
   <url>
@@ -131,6 +155,27 @@
   </url>
   <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/logging.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/matrixServer.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/mcpCompareModelsServer.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/mcpFormulasServer.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/mcpModelingServer.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/mcpOutServer.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/mcpShowSingleModelServer.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/messageNoModelsToPlot.html</loc>
   </url>
   <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/modelSpecificationsServer.html</loc>
@@ -148,13 +193,25 @@
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/plotTime.html</loc>
   </url>
   <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/readExampleMatrix.html</loc>
+  </url>
+  <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/removeModelOutputs.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/runMcp.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/setFormulasAndPriors.html</loc>
   </url>
   <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/setVarsForUncMatrix.html</loc>
   </url>
   <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/shinyModule.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/splitComb.html</loc>
   </url>
   <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/startApplication.html</loc>
@@ -170,5 +227,8 @@
   </url>
   <url>
     <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/updateTime.html</loc>
+  </url>
+  <url>
+    <loc>https://pandora-isomemo.github.io/OsteoBioR/reference/validateFormula.html</loc>
   </url>
 </urlset>

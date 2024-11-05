@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">OsteoBioR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">24.09.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">24.10.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,80 @@
       
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="24.10.0" id="osteobior-24100">OsteoBioR 24.10.0<a class="anchor" aria-label="anchor" href="#osteobior-24100"></a></h2>
+<div class="section level3">
+<h3 id="updates-24-10-0">Updates<a class="anchor" aria-label="anchor" href="#updates-24-10-0"></a></h3>
+<ul><li>
+<em>Credibility intervals over time</em> updates (availbale with shinyTools 24.10.0) (#51):
+<ul><li>option to format and set ranges of a second y-axis analog to other axes</li>
+<li>option to use transformations for the x or y axis in order to handle extreme values</li>
+<li>update example for mathematical annotation in titles</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-24-10-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-24-10-0"></a></h3>
+<ul><li>removing duplicated warnings when plotting models with no samples (#55)</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="24.09.3" id="osteobior-24093">OsteoBioR 24.09.3<a class="anchor" aria-label="anchor" href="#osteobior-24093"></a></h2>
+<div class="section level3">
+<h3 id="updates-24-09-3">Updates<a class="anchor" aria-label="anchor" href="#updates-24-09-3"></a></h3>
+<ul><li>break point detection (#49, #61)
+<ul><li>new outputs in tab ‘2. MCP Modeling’: plot, waic</li>
+<li>new methods for model comparison in tab ‘3. Comparison of Models’: <em>waic</em>, <em>heuristic</em>
+</li>
+</ul></li>
+<li>
+<em>Credibility intervals over time</em>: new option to use notation for sub- and superscripts in titles of a plots, axis or the legend (#59)</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-24-09-3">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-24-09-3"></a></h3>
+<ul><li>fix missing filter for legend content in <em>Credibility intervals over time</em> (#63)</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="24.09.1" id="osteobior-24091">OsteoBioR 24.09.1<a class="anchor" aria-label="anchor" href="#osteobior-24091"></a></h2>
+<div class="section level3">
+<h3 id="fixes-24-09-1">Fixes<a class="anchor" aria-label="anchor" href="#fixes-24-09-1"></a></h3>
+<ul><li>Clean up of rstan files and src folder. Add command to generate cpp files to Dockerfile.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="24.08.2" id="osteobior-24082">OsteoBioR 24.08.2<a class="anchor" aria-label="anchor" href="#osteobior-24082"></a></h2>
+<div class="section level3">
+<h3 id="new-features-24-08-2">New Features<a class="anchor" aria-label="anchor" href="#new-features-24-08-2"></a></h3>
+<ul><li>option to run a break point detection based on the mcp package (#49, #61)</li>
+</ul></div>
+<div class="section level3">
+<h3 id="updates-24-08-2">Updates<a class="anchor" aria-label="anchor" href="#updates-24-08-2"></a></h3>
+<ul><li>
+<em>Credibility intervals over time</em> (#59):
+<ul><li>secondary axis: set the range if “Range detected from data” is unchecked and a second axis is selected</li>
+<li>option to choose a custom legend position</li>
+</ul></li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-24-08-2">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-24-08-2"></a></h3>
+<ul><li>
+<em>Credibility intervals over time</em> in secondary axis: fix that removes the axis if the model was removed from the input and the plot was recreated (#59)</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="24.08.1" id="osteobior-24081">OsteoBioR 24.08.1<a class="anchor" aria-label="anchor" href="#osteobior-24081"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-24-08-1">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-24-08-1"></a></h3>
+<ul><li>catch error when trying to display plot and table of models that failed and have no samples (#55)</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="24.08.0" id="osteobior-24080">OsteoBioR 24.08.0<a class="anchor" aria-label="anchor" href="#osteobior-24080"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-24-08-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-24-08-0"></a></h3>
+<ul><li>prevent dropUp of inputs for <code>Element</code> and <code>Time</code> variables in the tab <em>Model</em> and other ‘pickerInputs’ (#56)</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="24.04.1" id="osteobior-24041">OsteoBioR 24.04.1<a class="anchor" aria-label="anchor" href="#osteobior-24041"></a></h2>
 <div class="section level3">

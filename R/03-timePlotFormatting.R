@@ -359,7 +359,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                  # note: restoring a whole session as in ChangeR will not be possible (much too
                  # complex) since inputs are send much earlier than all reactive objects are updated.
                  # As a result the inputs cannot be set correctly and plots will remain empty.
-                 
                })
 }
 

@@ -178,7 +178,7 @@ tagList(
                      value = "credibilityIntervalsTab",
                      plotOutput("plot") %>% withSpinner(color =
                                                           "#20c997"),
-                     actionButton("exportCredIntPlot", "Export Plot"),
+                     shinyTools::plotExportButton("exportCredIntPlot", label = "Export Plot"),
                      shinyTools::dataExportButton("exportCredIntDat", label = "Export Data")
                    ),
                    tabPanel(

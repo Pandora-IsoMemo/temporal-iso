@@ -607,52 +607,17 @@ shinyServer(function(input, output, session) {
                                }))
   
   # Downloads Plots -------------------------------------------------
-  
-  observeEvent(input$exportCredIntPlot, {
-    
-    plotOutputElement <- renderPlot({ 
-      req(fit())
-      plot(fit(), prop = input$modCredInt) 
-      #OsteoBioR::plot(fit(), prop = input$modCredInt) 
-      })
-    exportTypeChoices <- c("png", "pdf", "svg", "tiff")
-    
-    showModal(modalDialog(
-      title = "Export Graphic",
-      footer = modalButton("OK"),
-      plotOutputElement,
-      selectInput(
-        "exportType", "Filetype",
-        choices = exportTypeChoices
-      ),
-      numericInput("width", "Width (px)", value = 1280),
-      numericInput("height", "Height (px)", value = 800),
-      downloadButton("exportExecute", "Export"),
-      easyClose = TRUE
-    ))
-    
-    output$exportExecute <- downloadHandler(
-      filename = function(){
-        paste0(gsub("-", "", Sys.Date()), "_", "Credibility_Intervals", ".", input$exportType)
-      },
-      content = function(file){
-        switch(
-          input$exportType,
-          png = png(file, width = input$width, height = input$height),
-          pdf = pdf(file, width = input$width / 72, height = input$height / 72),
-          tiff = tiff(file, width = input$width, height = input$height),
-          svg = svg(file, width = input$width / 72, height = input$height / 72)
-        )
-        print({
-          req(fit())
-          #OsteoBioR::plot(fit(), prop = input$modCredInt) 
-          plot(fit(), prop = input$modCredInt) 
-          })
-        
-        dev.off()
-      }
-    )
-  })
+  shinyTools::plotExportServer("exportCredIntPlot",
+                               plotFun = reactive({
+                                 function() {
+                                   if (length(fit()) == 0) return(NULL)
+                                   
+                                   #OsteoBioR::plot(fit(), prop = input$modCredInt)
+                                   plot(fit(), prop = input$modCredInt)
+                                 }
+                               }),
+                               plotType = "none", #"ggplot", #<- fix issue with labels first
+                               filename = sprintf("%s_Credibility_Intervals", gsub("-", "", Sys.Date())))
   
   # RESIDING TIME ------------------------------------------
   datStayTime <- reactiveValues()

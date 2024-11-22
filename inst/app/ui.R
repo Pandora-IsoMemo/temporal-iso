@@ -119,6 +119,22 @@ tagList(
         )
       )
     ),
+    # Calculate renewal rates ----------------------------------------------------------------------------------------------
+    tabPanel("Calculate renewal rates",
+             id = "calcRenewalRates",
+             fluidRow(
+               ## left sidebar ----
+               sidebarPanel(
+                 width = 2,
+                 style = "position:fixed; width:15%; max-width:350px; overflow-y:auto; height:85%",
+                 DataTools::importDataUI("fileToCalcRenewalRates", label = "Import Data")
+               ),
+               mainPanel(
+                 ## main panel ----
+                 HTML("<h5>Calculated renewal rates dataset </h5>")
+                 )
+             )
+    ),
     # MODEL ----------------------------------------------------------------------------------------------
     tabPanel("Model",
              id = "Model",

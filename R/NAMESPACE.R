@@ -25,10 +25,11 @@
 #' @importFrom rstan sampling extract
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom shinyjs alert enable runjs
-#' @importFrom shinyTools calculateRescalingFactors dataExportButton dataExportServer extractTitle
-#'  formatLegendOfGGplot formatPointsOfGGplot formatScalesOfGGplot formatTitlesOfGGplot
+#' @importFrom shinyTools addCustomPointsToGGplot calculateRescalingFactors customPointsServer 
+#'  customPointsUI dataExportButton dataExportServer extractTitle
+#'  formatPointsOfGGplot formatScalesOfGGplot formatTitlesOfGGplot
 #'  plotExportButton plotExportServer plotLegendServer plotLegendUI plotPointsServer plotPointsUI
-#'  plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI
+#'  plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI setLegendThemeOfGGplot
 #'  shinyTryCatch
 #' @importFrom shinyWidgets pickerInput updatePickerInput
 #' @importFrom stats approx dnorm lm median na.omit quantile sd

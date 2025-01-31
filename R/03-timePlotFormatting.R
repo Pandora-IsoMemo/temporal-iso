@@ -86,18 +86,11 @@ timePlotFormattingUI <- function(id) {
                              value = 0.9,
                              step = 0.05),
                  tags$br(),
-                 plotLegendUI(ns("legend"))
+                 shinyTools::plotPointsUI(id = ns("pointStyle"),
+                                          title = "Points / Lines",
+                                          initStyle = config()[["defaultPointStyle"]])
           ),
-          column(3,
-                 shinyTools::plotTitlesUI(
-                   id = ns("plotLabels"),
-                   title = "Text",
-                   type = "ggplot",
-                   initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]],
-                                   xAxisText = config()[["defaultIntervalTimePlotText"]])
-                 )
-          ),
-          column(3,
+          column(2,
                  shinyTools::plotRangesUI(id = ns("plotRanges"), title = "Axis"), 
                  conditionalPanel(
                    ns = ns,
@@ -112,10 +105,26 @@ timePlotFormattingUI <- function(id) {
                  helpText("The first element of 'Model(s) / Individual(s) to display' is always used for the first (left) axis.")
           ),
           column(3,
-                 shinyTools::plotPointsUI(id = ns("pointStyle"),
-                                          title = "Points / Lines",
-                                          initStyle = config()[["defaultPointStyle"]])
-          )
+                 tags$h4("Text & Legend"),
+                 tabsetPanel(
+                   id = ns("tabs_text_legend"),
+                   selected = "Text",
+                   tabPanel("Text",
+                            shinyTools::plotTitlesUI(
+                              id = ns("plotLabels"),
+                              title = NULL,
+                              type = "ggplot",
+                              initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]],
+                                              xAxisText = config()[["defaultIntervalTimePlotText"]])
+                            )
+                   ),
+                   tabPanel("Legend",
+                            shinyTools::plotLegendUI(ns("legend"))
+                   )
+                 )
+          ),
+          # custom points ----
+          column(4, shinyTools::customPointsUI(ns("customPoints")))
         )
       ),
       tabPanel(
@@ -175,8 +184,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                    initStyle = config()[["defaultPointStyle"]],
                    hideInput = c("hide", "alpha", "colorBg")
                    )
-                 
-                 legend <- shinyTools::plotLegendServer("legend")
                  
                  pointStyleList <- reactiveValues()
                  
@@ -264,14 +271,28 @@ timePlotFormattingServer <- function(id, savedModels) {
                    extractedPlotDataDF()
                  }))
                  
-                 newPlot <- reactive({
-                   logDebug("%s: Entering: reactive 'newPlot'", id)
-                   
-                   # setup base plot
-                   p <- extractedPlotDataDF() %>%
+                 # rescale secondary axis data ----
+                 rescaledPlotData <- reactive({
+                   logDebug("%s: Entering: reactive 'rescaledPlotData'", id)
+                   extractedPlotDataDF() %>%
                      na.omit() %>%
                      rescaleSecondAxisData(individual = input[["secAxisModel"]],
-                                           plotRanges = plotRanges) %>%
+                                           plotRanges = plotRanges)
+                 })
+                 
+                 legend <- shinyTools::plotLegendServer(
+                   "legend", 
+                   legend_title = reactive({"individual"}),
+                   legend_labels = reactive({levels(rescaledPlotData()[["individual"]])}))
+                 
+                 # custom points ----
+                 custom_points <- reactiveVal(list())
+                 customPointsServer("customPoints", plot_type = "ggplot", custom_points = custom_points)
+                 
+                 newPlot <- reactive({
+                   logDebug("%s: Entering: reactive 'newPlot'", id)
+                   # setup base plot
+                   p <- rescaledPlotData() %>%
                      basePlotTime(xLim = getUserLimits(plotRanges = plotRanges[["xAxis"]]),
                                   yLim = getUserLimits(plotRanges = plotRanges[["yAxis"]])) %>%
                      setDefaultTitles(prop = input$modCredInt) %>%
@@ -298,10 +319,9 @@ timePlotFormattingServer <- function(id, savedModels) {
                        pointStyleList = pointStyleList,
                        alphaL = input[["alphaL"]],
                        alphaU = input[["alphaU"]],
-                       # UPDATE LEGEND HERE <- -------
-                       legendName = plotTexts[["legendTitle"]][["text"]]
+                       legend = legend
                        ) %>%
-                     shinyTools::formatLegendOfGGplot(legend = legend)
+                     shinyTools::addCustomPointsToGGplot(custom_points = custom_points())
                  })
                  
                  observe({

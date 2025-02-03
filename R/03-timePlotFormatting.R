@@ -195,9 +195,9 @@ timePlotFormattingServer <- function(id, savedModels) {
                    req(length(savedModels()) > 0)
                    modelNames <- names(savedModels())
                    
-                   newPointStyleList <- pointStyleList() %>%
+                   newList <- pointStyleList() %>%
                      getDefaultPointFormatForModels(modelNames = modelNames)
-                   pointStyleList(newPointStyleList)
+                   pointStyleList(newList)
                    
                    updateSelectizeInput(session, "plotTimeModels", 
                                         choices = modelNames, 

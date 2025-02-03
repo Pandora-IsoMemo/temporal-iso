@@ -25,8 +25,8 @@
 #' @importFrom rstan sampling extract
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom shinyjs alert enable runjs
-#' @importFrom shinyTools addCustomPointsToGGplot applyLayoutServer applyLayoutUI
-#'  calculateRescalingFactors customPointsServer customPointsUI dataExportButton dataExportServer 
+#' @importFrom shinyTools addCustomPointsToGGplot calculateRescalingFactors
+#'  customPointsServer customPointsUI dataExportButton dataExportServer 
 #'  extractTitle formatPointsOfGGplot formatScalesOfGGplot formatTitlesOfGGplot
 #'  plotExportButton plotExportServer plotLegendServer plotLegendUI plotPointsServer plotPointsUI
 #'  plotRangesServer plotRangesUI plotTitlesServer plotTitlesUI setLegendThemeOfGGplot

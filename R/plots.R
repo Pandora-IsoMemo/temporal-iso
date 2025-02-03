@@ -90,10 +90,10 @@ basePlotTime <- function(df,
 
 
 
-drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legendName = "individual") {
+drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legend = NULL) {
   if (nrow(plot$data) == 0) return(plot)
   
-  # draw lines "upper", "median", "lower"
+  # draw lines "upper", "median", "lower" for each "individual"
   if (nrow(plot$data) > 1) {
     plot <- plot +
       geom_line(aes(y = .data[["median"]], colour = .data[["individual"]]), 
@@ -112,7 +112,7 @@ drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legendName 
                  size = 0.05, alpha = alphaL)
   }
   
-  # draw ribbon
+  # draw ribbon for each "individual"
   if (nrow(plot$data) > 1) {
     plot <- plot + 
       geom_ribbon(aes(ymin = .data[["lower"]], ymax = .data[["upper"]], 
@@ -120,7 +120,7 @@ drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legendName 
                   linetype = 2, alpha = alphaU)
   }
   
-  # draw points "median"
+  # draw points "median" for each "individual"
   plot <- plot +
     geom_point(aes(y = .data[["median"]],
                    colour = .data[["individual"]],
@@ -136,13 +136,26 @@ drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legendName 
   pointSize <- getStyleForIndividuals(pointStyleList, input = "size")
   
   # default legend name for empty input
-  if (legendName == "") legendName <- "individual"
+  if (!is.null(legend)) {
+    legendName <- extractTitle(legend$layout$title[[1]], default = "individual")
+    legendLabels <- sapply(names(legend$layout$labels), function(name) {
+      extractTitle(legend$layout$labels[[name]], default = name)
+    })
+    
+    plot <- plot %>% setLegendThemeOfGGplot(legend = legend)
+  } else {
+    legendName <- "individual"
+    legendLabels <- names(lineColors)
+    names(legendLabels) <- names(lineColors)
+  }
   
-  plot + 
-    scale_colour_manual(name = legendName, values = lineColors) +  # former colorL
-    scale_fill_manual(name = legendName, values = fillColors) +  # former colorU
-    scale_shape_manual(name = legendName, values = pointShapes) +
-    scale_size_manual(name = legendName, values = pointSize)
+  plot <- plot + 
+    scale_colour_manual(name = legendName, labels = legendLabels, values = lineColors) +  # former colorL
+    scale_fill_manual(name = legendName, labels = legendLabels, values = fillColors) +  # former colorU
+    scale_shape_manual(name = legendName, labels = legendLabels, values = pointShapes) +
+    scale_size_manual(name = legendName, labels = legendLabels, values = pointSize)
+  
+  plot
 }
 
 setDefaultTitles <- function(plot, prop, xAxisLabel = "Time", yAxisLabel = "Estimate") {

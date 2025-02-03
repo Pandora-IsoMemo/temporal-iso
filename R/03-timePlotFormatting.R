@@ -248,7 +248,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                    req(savedModels(), input[["plotTimeModels"]])
                    logDebug("%s: Entering get extractedPlotDataDF()", id)
                    
-                   
                    df <- extractedPlotDataList() %>%
                      extractPlotDataDF(models = input[["plotTimeModels"]],
                                        credInt = input$modCredInt)  %>%
@@ -365,6 +364,7 @@ timePlotFormattingServer <- function(id, savedModels) {
                  output$plotTime <- renderPlot({
                    validate(need(extractedPlotDataDF(), messageNoModelsToPlot()))
                    
+                   logDebug("%s: draw basePlot", id)
                    p <- extractedPlotDataDF() %>%
                      na.omit() %>%
                      rescaleSecondAxisData(individual = plotAxisStyleList()[["secAxisModel"]],
@@ -372,8 +372,8 @@ timePlotFormattingServer <- function(id, savedModels) {
                      basePlotTime(xLim = getUserLimits(plotRanges = plotAxisStyleList()[["xAxis"]]),
                                   yLim = getUserLimits(plotRanges = plotAxisStyleList()[["yAxis"]])) %>%
                      setDefaultTitles(prop = isolate(input[["modCredInt"]])) %>%
-                     shinyTools::formatTitlesOfGGplot(text = plotTextStyleList())
-                   
+                     shinyTools::formatTitlesOfGGplot(text = plotTextStyleList()) %>%
+                     shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
                    
                    # specify x-axis labels from x data of all models
                    allXAxisData <- extractedPlotDataList() %>%
@@ -381,12 +381,13 @@ timePlotFormattingServer <- function(id, savedModels) {
                      extendXAxis(xLabelLim = getUserLimits(plotRanges = plotAxisStyleList()[["xAxis"]]), 
                                  extendLabels = plotAxisStyleList()[["extendLabels"]])
                    
+                   logDebug("%s: draw lines", id)
                    p <- p %>%
                      drawLinesAndRibbon(
                        pointStyleList = pointStyleList(),
                        alphaL = input[["alphaL"]],
                        alphaU = input[["alphaU"]],
-                       legend = legend
+                       legend = reactiveValuesToList(legend)
                      ) %>%
                      shinyTools::formatScalesOfGGplot(
                        ranges = plotAxisStyleList(),

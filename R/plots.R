@@ -91,7 +91,7 @@ basePlotTime <- function(df,
 
 
 drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legend = NULL) {
-  if (nrow(plot$data) == 0) return(plot)
+  if (is.null(plot) || nrow(plot$data) == 0) return(plot)
   
   # draw lines "upper", "median", "lower" for each "individual"
   if (nrow(plot$data) > 1) {
@@ -128,6 +128,8 @@ drawLinesAndRibbon <- function(plot, pointStyleList, alphaL, alphaU, legend = NU
                    size = .data[["individual"]],
                    fill = .data[["individual"]]),
                alpha = alphaL)
+  
+  if (length(pointStyleList) == 0) return(plot)
   
   # set scales for each "individual" with default legend name
   lineColors <- getStyleForIndividuals(pointStyleList, input = "color")

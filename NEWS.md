@@ -1,3 +1,10 @@
+# OsteoBioR 25.02.0
+
+## New Features
+- option to add custom points to a plot
+- option to use custom legend labels for the plot (#69)
+- new logos and links in header
+
 # OsteoBioR 24.11.0
 
 ## Updates

@@ -6,6 +6,7 @@ library(OsteoBioR)
 library(shinyMatrix)
 library(dplyr)
 library(shinycssloaders)
+library(shinyTools)
 library(ggplot2)
 library(rstan)
 
@@ -178,8 +179,11 @@ tagList(
                      value = "credibilityIntervalsTab",
                      plotOutput("plot") %>% withSpinner(color =
                                                           "#20c997"),
-                     shinyTools::plotExportButton("exportCredIntPlot", label = "Export Plot"),
-                     shinyTools::dataExportButton("exportCredIntDat", label = "Export Data")
+                     fluidRow(column(4, shinyTools::customPointsUI("customPoints")),
+                              column(8, align = "right",
+                                     shinyTools::plotExportButton("exportCredIntPlot", label = "Export Plot"),
+                                     shinyTools::dataExportButton("exportCredIntDat", label = "Export Data")
+                                     )),
                    ),
                    tabPanel(
                      "Credibility intervals over time",

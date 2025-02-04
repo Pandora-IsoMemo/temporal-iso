@@ -501,11 +501,21 @@ shinyServer(function(input, output, session) {
     }
   }))
   
+  # custom points ----
+  custom_points <- reactiveVal(list())
+  shinyTools::customPointsServer("customPoints", plot_type = "ggplot", custom_points = custom_points)
+  
+  # render "Credibility Intervals" plot ----
+  plotToExport <- reactiveVal(NULL)
   output$plot <- renderPlot({ 
     req(fit())
     #OsteoBioR::plot(fit(), prop = input$modCredInt) 
-    plot(fit(), prop = input$modCredInt) 
-    })
+    p <- plot(fit(), prop = input$modCredInt) %>%
+      shinyTools::addCustomPointsToGGplot(custom_points = custom_points()) %>%
+      shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
+    plotToExport(p)
+    p
+  })
     
   # create plotTime ----
   timePlotFormattingServer(id = "timePlotFormat", savedModels = savedModels)
@@ -610,10 +620,7 @@ shinyServer(function(input, output, session) {
   shinyTools::plotExportServer("exportCredIntPlot",
                                plotFun = reactive({
                                  function() {
-                                   if (length(fit()) == 0) return(NULL)
-                                   
-                                   #OsteoBioR::plot(fit(), prop = input$modCredInt)
-                                   plot(fit(), prop = input$modCredInt)
+                                   plotToExport()
                                  }
                                }),
                                plotType = "none", #"ggplot", #<- fix issue with labels first

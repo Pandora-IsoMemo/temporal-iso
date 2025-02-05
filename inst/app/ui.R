@@ -6,6 +6,7 @@ library(OsteoBioR)
 library(shinyMatrix)
 library(dplyr)
 library(shinycssloaders)
+library(shinyTools)
 library(ggplot2)
 library(rstan)
 
@@ -171,15 +172,18 @@ tagList(
                      value = "summaryTab",
                      verbatimTextOutput("summary") %>% withSpinner(color =
                                                                      "#20c997"),
-                     actionButton("exportSummary", "Export Interval Data")
+                     shinyTools::dataExportButton("exportSummary", label = "Export Interval Data")
                    ),
                    tabPanel(
                      "Credibility Intervals",
                      value = "credibilityIntervalsTab",
                      plotOutput("plot") %>% withSpinner(color =
                                                           "#20c997"),
-                     actionButton("exportCredIntPlot", "Export Plot"),
-                     actionButton("exportCredIntDat", "Export Data")
+                     fluidRow(column(4, shinyTools::customPointsUI("customPoints")),
+                              column(8, align = "right",
+                                     shinyTools::plotExportButton("exportCredIntPlot", label = "Export Plot"),
+                                     shinyTools::dataExportButton("exportCredIntDat", label = "Export Data")
+                                     )),
                    ),
                    tabPanel(
                      "Credibility intervals over time",
@@ -252,7 +256,7 @@ tagList(
                               ),
                        column(4,
                               tags$br(),
-                              actionButton("exportTimePointEst", "Export Time Point Estimates")
+                              shinyTools::dataExportButton("exportTimePointEst", label = "Export Time Point Estimates")
                               )
                      ),
                      tags$br(),
@@ -335,7 +339,7 @@ tagList(
                                   HTML("<h3>Results</h3>")),
                  verbatimTextOutput("estimatedStayTimes"),
                  tags$br(),
-                 actionButton("exportStayTimeDat", "Export estimated residence time lengths")
+                 shinyTools::dataExportButton("exportStayTimeDat", label = "Export estimated residence time lengths")
                )
              )
              ),
@@ -442,39 +446,9 @@ tagList(
                  tableOutput("isotopicValues"),
                  verbatimTextOutput("quant"),
                  tags$br(),
-                 actionButton("exportResultsDat", "Export Isotopic Values")
+                 shinyTools::dataExportButton("exportResultsDat", label = "Export Isotopic Values")
                )
              ))
-    # STYLE of navbarPage ----
   ),
-  # tags$head(
-  #   tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
-  # ),
-  div(
-    id = "header-right",
-    # div(
-    #   id = "logo-mpi",
-    #   tags$a(
-    #     href = "https://www.mpg.de/en",
-    #     img(src = "MPIlogo.png", alt = "Supported by the Max Planck society"),
-    #     target = "_blank"
-    #   )
-    # ),
-    # div(
-    #   id = "logo-isomemo",
-    #   tags$a(
-    #     href = "https://isomemo.com/",
-    #     img(src = "IsoMemoLogo.png", alt = "IsoMemo"),
-    #     target = "_blank"
-    #   )
-    # ),
-    div(
-      id = "further-help",
-      tags$button(onclick = "window.open('https://isomemo.com','_blank');",
-                  class = "btn btn-default",
-                  "Further Help")
-    ),
-    div(id = "help",
-        actionButton("getHelp", "?"))
-  )
+  shinyTools::headerButtonsUI(id = "header", help_link = "https://pandora-isomemo.github.io/OsteoBioR/")
 )

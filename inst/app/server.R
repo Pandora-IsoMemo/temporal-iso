@@ -487,52 +487,35 @@ shinyServer(function(input, output, session) {
     bindEvent(uploadedValues())
   
   ## Export Summary ----
-  observeEvent(input$exportSummary, {
-    showModal(modalDialog(
-      "Export Data",
-      easyClose = TRUE,
-      footer = modalButton("OK"),
-      selectInput(
-        "exportType",
-        "File type",
-        choices = c("csv", "xlsx", "json"),
-        selected = "xlsx"
-      ),
-      conditionalPanel(
-        condition = "input['exportType'] == 'csv'",
-        div(style = "display: inline-block;horizontal-align:top; width: 80px;",
-            textInput("colseparator", "column separator:", value = ",")),
-        div(style = "display: inline-block;horizontal-align:top; width: 80px;",
-            textInput("decseparator", "decimal separator:", value = "."))
-      ),
-      downloadButton("exportExecuteSummary", "Export")
-    ))
-  })
-  
-  output$exportExecuteSummary <- downloadHandler(
-    filename = function(){
-      exportFilename(input$exportType)
-    },
-    content = function(file){
-      req(fit())
+  shinyTools::dataExportServer("exportSummary", filename = "isotopeData", dataFun = reactive({
+    function() {
+      if (is.null(fit()))
+        return(NULL)
+      
       exportData <- as.data.frame(extract(fit())$interval)
       namesStan <- names(fit())
       intervalNamesStan <- namesStan[grepl(pattern = "interval", namesStan)]
       colnames(exportData) <- intervalNamesStan
-      switch(
-        input$exportType,
-        csv = exportCSV(file, exportData, colseparator(), decseparator()),
-        xlsx = exportXLSX(file, exportData),
-        json = exportJSON(file, exportData)
-      )
+      
+      exportData
     }
-  )
+  }))
   
+  # custom points ----
+  custom_points <- reactiveVal(list())
+  shinyTools::customPointsServer("customPoints", plot_type = "ggplot", custom_points = custom_points)
+  
+  # render "Credibility Intervals" plot ----
+  plotToExport <- reactiveVal(NULL)
   output$plot <- renderPlot({ 
     req(fit())
     #OsteoBioR::plot(fit(), prop = input$modCredInt) 
-    plot(fit(), prop = input$modCredInt) 
-    })
+    p <- plot(fit(), prop = input$modCredInt) %>%
+      shinyTools::addCustomPointsToGGplot(custom_points = custom_points()) %>%
+      shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
+    plotToExport(p)
+    p
+  })
     
   # create plotTime ----
   timePlotFormattingServer(id = "timePlotFormat", savedModels = savedModels)
@@ -607,145 +590,41 @@ shinyServer(function(input, output, session) {
   #   )
   # })
   
+  shinyTools::dataExportServer("exportTimePointEst",
+                               filename = "timePointEstimates",
+                               dataFun = reactive({
+                                 function() {
+                                   if (length(input$savedModelsTime) == 0 ||
+                                       any(input$savedModelsTime == "") ||
+                                       length(input$estSpecTimePoint) == 0 ||
+                                       input$estSpecTimePoint == 0 ||
+                                       is.character(estimates()))
+                                     return(NULL)
+                                   
+                                   estimates()
+                                 }
+                               }))
   
-  observeEvent(input$exportTimePointEst, {
-    req(estimates())
-    req(!is.character(estimates()))
-    showModal(modalDialog(
-      "Export Data",
-      easyClose = TRUE,
-      footer = modalButton("OK"),
-      selectInput(
-        "exportType",
-        "File type",
-        choices = c("csv", "xlsx", "json"),
-        selected = "xlsx"
-      ),
-      conditionalPanel(
-        condition = "input['exportType'] == 'csv'",
-        div(style = "display: inline-block;horizontal-align:top; width: 80px;",
-            textInput("colseparator", "column separator:", value = ",")),
-        div(style = "display: inline-block;horizontal-align:top; width: 80px;",
-            textInput("decseparator", "decimal separator:", value = "."))
-      ),
-      downloadButton("exportExecuteTimePointEst", "Export")
-    ))
-
-  colseparator <- reactive({
-    input$colseparator
-  })
-  decseparator <- reactive({
-    input$decseparator
-  })
+  shinyTools::dataExportServer("exportCredIntDat",
+                               filename = "credibilityIntervals",
+                               dataFun = reactive({
+                                 function() {
+                                   if (is.null(fit()))
+                                     return(NULL)
+                                   
+                                   as.data.frame(fit())
+                                 }
+                               }))
   
-  output$exportExecuteTimePointEst <- downloadHandler(
-    filename = function(){
-      paste("timePointEstimates", input$exportType, sep = ".")
-    },
-    content = function(file){
-      exportData <- estimates()
-      switch(
-        input$exportType,
-        csv = exportCSV(file, exportData, colseparator(), decseparator()),
-        xlsx = exportXLSX(file, exportData),
-        json = exportJSON(file, exportData)
-      )
-    }
-  )
-  })
-  
-  observeEvent(input$exportCredIntDat, {
-    showModal(modalDialog(
-      "Export Data",
-      easyClose = TRUE,
-      footer = modalButton("OK"),
-      selectInput(
-        "exportType",
-        "File type",
-        choices = c("csv", "xlsx", "json"),
-        selected = "xlsx"
-      ),
-      conditionalPanel(
-        condition = "input['exportType'] == 'csv'",
-        div(style = "display: inline-block;horizontal-align:top; width: 80px;",
-            textInput("colseparator", "column separator:", value = ",")),
-        div(style = "display: inline-block;horizontal-align:top; width: 80px;",
-            textInput("decseparator", "decimal separator:", value = "."))
-      ),
-      downloadButton("exportExecuteCredIntDat", "Export")
-    ))
-    
-    colseparator <- reactive({
-      input$colseparator
-    })
-    decseparator <- reactive({
-      input$decseparator
-    })
-    
-    output$exportExecuteCredIntDat <- downloadHandler(
-      filename = function(){
-        paste("credibilityIntervals", input$exportType, sep = ".")
-      },
-      content = function(file){
-        req(fit())
-        exportData <- as.data.frame(fit())
-        switch(
-          input$exportType,
-          csv = exportCSV(file, exportData, colseparator(), decseparator()),
-          xlsx = exportXLSX(file, exportData),
-          json = exportJSON(file, exportData)
-        )
-      }
-    )
-  })
-
   # Downloads Plots -------------------------------------------------
-  
-  observeEvent(input$exportCredIntPlot, {
-    
-    plotOutputElement <- renderPlot({ 
-      req(fit())
-      plot(fit(), prop = input$modCredInt) 
-      #OsteoBioR::plot(fit(), prop = input$modCredInt) 
-      })
-    exportTypeChoices <- c("png", "pdf", "svg", "tiff")
-    
-    showModal(modalDialog(
-      title = "Export Graphic",
-      footer = modalButton("OK"),
-      plotOutputElement,
-      selectInput(
-        "exportType", "Filetype",
-        choices = exportTypeChoices
-      ),
-      numericInput("width", "Width (px)", value = 1280),
-      numericInput("height", "Height (px)", value = 800),
-      downloadButton("exportExecute", "Export"),
-      easyClose = TRUE
-    ))
-    
-    output$exportExecute <- downloadHandler(
-      filename = function(){
-        paste0(gsub("-", "", Sys.Date()), "_", "Credibility_Intervals", ".", input$exportType)
-      },
-      content = function(file){
-        switch(
-          input$exportType,
-          png = png(file, width = input$width, height = input$height),
-          pdf = pdf(file, width = input$width / 72, height = input$height / 72),
-          tiff = tiff(file, width = input$width, height = input$height),
-          svg = svg(file, width = input$width / 72, height = input$height / 72)
-        )
-        print({
-          req(fit())
-          #OsteoBioR::plot(fit(), prop = input$modCredInt) 
-          plot(fit(), prop = input$modCredInt) 
-          })
-        
-        dev.off()
-      }
-    )
-  })
+  shinyTools::plotExportServer("exportCredIntPlot",
+                               plotFun = reactive({
+                                 function() {
+                                   plotToExport()
+                                 }
+                               }),
+                               plotType = "none", #"ggplot", #<- fix issue with labels first
+                               filename = sprintf("%s_Credibility_Intervals", gsub("-", "", Sys.Date())))
   
   # RESIDING TIME ------------------------------------------
   datStayTime <- reactiveValues()
@@ -795,51 +674,19 @@ shinyServer(function(input, output, session) {
   })
   output$estimatedStayTimes <- renderPrint({ estimatedStayTimes() })
   
-  observeEvent(input$exportStayTimeDat, {
-    showModal(modalDialog(
-      "Export Data",
-      easyClose = TRUE,
-      footer = modalButton("OK"),
-      selectInput(
-        "exportType",
-        "File type",
-        choices = c("csv", "xlsx", "json"),
-        selected = "xlsx"
-      ),
-      conditionalPanel(
-        condition = "input['exportType'] == 'csv'",
-        div(style = "display: inline-block;horizontal-align:top; width: 80px;",
-            textInput("colseparator", "column separator:", value = ",")),
-        div(style = "display: inline-block;horizontal-align:top; width: 80px;",
-            textInput("decseparator", "decimal separator:", value = "."))
-      ),
-      downloadButton("exportExecuteStayTimeDat", "Export")
-    ))
-    
-    colseparator <- reactive({
-      input$colseparator
-    })
-    decseparator <- reactive({
-      input$decseparator
-    })
-    
-    output$exportExecuteStayTimeDat <- downloadHandler(
-      filename = function(){
-        paste("stayTimeLengths", input$exportType, sep = ".")
-      },
-      content = function(file){
-        resTime <- estimatedStayTimes()
-        exportData <- as.data.frame(resTime$stayTimes)
-        switch(
-          input$exportType,
-          csv = exportCSV(file, exportData, colseparator(), decseparator()),
-          xlsx = exportXLSX(file, exportData),
-          json = exportJSON(file, exportData)
-        )
-      }
-    )
-  })
-  
+  shinyTools::dataExportServer("exportStayTimeDat",
+                               filename = "stayTimeLengths",
+                               dataFun = reactive({
+                                 function() {
+                                   if (length(fit()) == 0 ||
+                                       is.null(input$stayingTime) ||
+                                       input$stayingTime == 0 || length(estimatedStayTimes()) == 0)
+                                     return(NULL)
+                                   
+                                   resTime <- estimatedStayTimes()
+                                   as.data.frame(resTime$stayTimes)
+                                 }
+                               }))
   
   # COMPUTE ISOTOPIC VALUES ------------------------------
   datIso <- reactiveValues()
@@ -908,49 +755,19 @@ shinyServer(function(input, output, session) {
   
   output$isotopicValues <- renderTable({ isotopicValues() }, rownames = TRUE)
   
-  observeEvent(input$exportResultsDat, {
-    showModal(modalDialog(
-      "Export Data",
-      easyClose = TRUE,
-      footer = modalButton("OK"),
-      selectInput(
-        "exportType",
-        "File type",
-        choices = c("csv", "xlsx", "json"),
-        selected = "xlsx"
-      ),
-      conditionalPanel(
-        condition = "input['exportType'] == 'csv'",
-        div(style = "display: inline-block;horizontal-align:top; width: 80px;",
-            textInput("colseparator", "column separator:", value = ",")),
-        div(style = "display: inline-block;horizontal-align:top; width: 80px;",
-            textInput("decseparator", "decimal separator:", value = "."))
-      ),
-      downloadButton("exportExportResultsDat", "Export")
-    ))
-    
-    colseparator <- reactive({
-      input$colseparator
-    })
-    decseparator <- reactive({
-      input$decseparator
-    })
-    
-    output$exportExportResultsDat <- downloadHandler(
-      filename = function(){
-        paste("isotopicValues", input$exportType, sep = ".")
-      },
-      content = function(file){
-        exportData <- isotopicValues()
-        switch(
-          input$exportType,
-          csv = exportCSV(file, exportData, colseparator(), decseparator()),
-          xlsx = exportXLSX(file, exportData),
-          json = exportJSON(file, exportData)
-        )
-      }
-    )
-  })
+  shinyTools::dataExportServer("exportResultsDat",
+                               filename = "isotopicValues",
+                               dataFun = reactive({
+                                 function() {
+                                   if (length(input$historicData) == 0 ||
+                                       any(input$historicData == "") ||
+                                       length(input$calcIsotopicValues) == 0 ||
+                                       input$calcIsotopicValues == 0)
+                                     return(NULL)
+                                   
+                                   isotopicValues()
+                                 }
+                               }))
 
   observeEvent(input$getHelp, {
     showModal(modalDialog(

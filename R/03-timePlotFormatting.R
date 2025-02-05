@@ -1,6 +1,6 @@
 #' Message for no models to plot
 messageNoModelsToPlot <- function() {
-  "Select 'Model(s) / Individual(s) to display' and press 'Draw Plot' first ..."
+  "Select 'Model(s) / Individual(s) to display' and press 'Apply' first ..."
 }
 
 # We need a separate namespace for formatting inputs for the model down- and upload.
@@ -21,17 +21,29 @@ timePlotFormattingUI <- function(id) {
   tagList(
     # Time Plot ----
     fluidRow(
-      column(3, tags$h3("Time Plot")),
-      column(6,
+      column(2, tags$h3("Time Plot")),
+      column(3,
              selectizeInput(ns("plotTimeModels"), "Model(s) / Individual(s) to display",
                             choices = c("Fit or import a model ..." = ""),
                             multiple = TRUE,
                             selected = "",
                             width = "100%")),
       column(3,
+             sliderInput(ns("modCredInt"),
+                         "Credibility interval:",
+                         min = 0,
+                         max = .99,
+                         value = .8,
+                         step = .05,
+                         width = "100%")),
+      column(2,
+             radioButtons(ns("deriv"), 
+                          "Type", 
+                          choices = c("Absolute values" = "1", "First derivate" = "2"))),
+      column(2,
              align = "right",
              style = "margin-top: 1.2em;",
-             actionButton(ns("applyFormatToTimePlot"), "Draw Plot"),
+             actionButton(ns("plotTimeModels-apply"), "Apply"),
              plotExportButton(ns("exportCredIntTimePlot")))
     ),
     tags$br(),
@@ -45,77 +57,74 @@ timePlotFormattingUI <- function(id) {
         value = "formatPlotTab",
         tags$br(),
         fluidRow(
-          column(3,
-                 style = "margin-top: 1.2em;",
-                 tags$h4("Format Time Plot")),
-          column(6,
-                 selectizeInput(ns("formatTimePlot"), "'Apply' formatting for Model / Individual:",
-                                choices = defaultChoices,
-                                width = "100%")),
-          column(3,
-                 align = "right",
-                 style = "margin-top: 1.2em;",
-                 actionButton(ns("applyFormatToTimePlotModel"), "Apply"),
-                 actionButton(ns("resetFormatTimePlotModel"), "Reset Format"))
-        ),
-        tags$br(),
-        fluidRow(
-          column(3,
-                 tags$h4("Data"),
-                 radioButtons(ns("deriv"), 
-                              "Type", 
-                              choices = c("Absolute values" = "1", "First derivate" = "2")), 
-                 sliderInput(ns("modCredInt"),
-                             "Credibility interval:",
-                             min = 0,
-                             max = .99,
-                             value = .8,
-                             step = .05,
-                             width = "100%"),
-                 tags$br(),
-                 sliderInput(ns("alphaU"),
-                             "Transparency of uncertainty region",
-                             min = 0,
-                             max = 1,
-                             value = 0.1,
-                             step = 0.05),
-                 sliderInput(ns("alphaL"), 
-                             "Transparency of points / lines",
-                             min = 0, 
-                             max = 1, 
-                             value = 0.9,
-                             step = 0.05),
-                 tags$br(),
-                 plotLegendUI(ns("legend"))
-          ),
-          column(3,
-                 shinyTools::plotTitlesUI(
-                   id = ns("plotLabels"),
-                   title = "Text",
-                   type = "ggplot",
-                   initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]],
-                                   xAxisText = config()[["defaultIntervalTimePlotText"]])
+          column(4,
+                 tags$h4("Plot"),
+                 tabsetPanel(
+                   id = ns("tabs_text_legend"),
+                   selected = "Data",
+                   tabPanel("Data",
+                            sliderInput(ns("alphaU"),
+                                        "Transparency of uncertainty region",
+                                        min = 0,
+                                        max = 1,
+                                        value = 0.1,
+                                        step = 0.05),
+                            sliderInput(ns("alphaL"),
+                                        "Transparency of points / lines",
+                                        min = 0,
+                                        max = 1,
+                                        value = 0.9,
+                                        step = 0.05)
+                   ),
+                   tabPanel("Axis",
+                            shinyTools::plotRangesUI(id = ns("plotRanges"), title = NULL), 
+                            conditionalPanel(
+                              ns = ns,
+                              condition = "!input['plotRanges-fromData'] & input['plotRanges-labelName'] == 'xAxis'",
+                              checkboxInput(inputId = ns("extendLabels"),
+                                            label = "Extend x-axis labels to full range",
+                                            value = FALSE)
+                            ),
+                            tags$br(), tags$br(),
+                            selectizeInput(ns("secAxisModel"), "Add a new secondary y axis",
+                                           choices = c("Choose one Model / Individual ..." = "")),
+                            helpText("The first element of 'Model(s) / Individual(s) to display' is always used for the first (left) axis."),
+                            actionButton(ns("axis-apply"), "Apply")
+                   ),
+                   tabPanel("Text",
+                            shinyTools::plotTitlesUI(
+                              id = ns("plotLabels"),
+                              title = NULL,
+                              type = "ggplot",
+                              initText = list(plotTitle = config()[["defaultIntervalTimePlotTitle"]],
+                                              xAxisText = config()[["defaultIntervalTimePlotText"]])
+                            ),
+                            actionButton(ns("plotLabels-apply"), "Apply")
+                   ),
+                   tabPanel("Legend",
+                            shinyTools::plotLegendUI(ns("legend"))
+                   )
                  )
           ),
-          column(3,
-                 shinyTools::plotRangesUI(id = ns("plotRanges"), title = "Axis"), 
-                 conditionalPanel(
-                   ns = ns,
-                   condition = "!input['plotRanges-fromData'] & input['plotRanges-labelName'] == 'xAxis'",
-                   checkboxInput(inputId = ns("extendLabels"),
-                                 label = "Extend x-axis labels to full range",
-                                 value = FALSE)
-                 ),
-                 tags$br(), tags$br(),
-                 selectizeInput(ns("secAxisModel"), "Add a new secondary y axis",
-                                choices = c("Choose one Model / Individual ..." = "")),
-                 helpText("The first element of 'Model(s) / Individual(s) to display' is always used for the first (left) axis.")
+          column(4,
+                 tags$h4("Model / Individual"),
+                 tabsetPanel(
+                   id = ns("tabs_models"),
+                   selected = "Points & Lines",
+                   tabPanel("Points & Lines",
+                            selectizeInput(ns("formatTimePlot"), "Select model / individual:",
+                                           choices = defaultChoices,
+                                           width = "100%"),
+                            shinyTools::plotPointsUI(id = ns("pointStyle"),
+                                                     title = NULL,
+                                                     initStyle = config()[["defaultPointStyle"]]),
+                            actionButton(ns("pointStyle-apply"), "Apply"),
+                            actionButton(ns("pointStyle-reset"), "Reset Models")
+                   )
+                 )
           ),
-          column(3,
-                 shinyTools::plotPointsUI(id = ns("pointStyle"),
-                                          title = "Points / Lines",
-                                          initStyle = config()[["defaultPointStyle"]])
-          )
+          # custom points ----
+          column(4, shinyTools::customPointsUI(ns("customPoints")))
         )
       ),
       tabPanel(
@@ -130,7 +139,7 @@ timePlotFormattingUI <- function(id) {
         # Break Point Detection ----
         "Break point detection",
         value = "breakPointTab",
-        breakPointDetectionUI(ns("breakPointDetection"))
+        changePointsUI(ns("changePoints"))
       )
     )
     ,
@@ -151,12 +160,10 @@ timePlotFormattingServer <- function(id, savedModels) {
                function(input, output, session) {
                  ns <- session$ns
                  
-                 formattedPlot <- reactiveVal()
-                 
                  plotTexts <- shinyTools::plotTitlesServer(
                    "plotLabels",
                    type = "ggplot", 
-                   availableElements = c("title", "axis", "yaxis2", "legend"),
+                   availableElements = c("title", "axis", "yaxis2"),
                    showParseButton = FALSE,
                    initText = getDefaultTextFormat()
                  )
@@ -176,16 +183,21 @@ timePlotFormattingServer <- function(id, savedModels) {
                    hideInput = c("hide", "alpha", "colorBg")
                    )
                  
-                 legend <- shinyTools::plotLegendServer("legend")
-                 
-                 pointStyleList <- reactiveValues()
+                 pointStyleList <- reactiveVal(list()) # empty list, no models yet
+                 plotAxisStyleList <- reactiveVal(list(xAxis = config()[["plotRange"]],
+                                                       yAxis = config()[["plotRange"]],
+                                                       yAxis2 = config()[["plotRange"]],
+                                                       secAxisModel = "",
+                                                       extendLabels = FALSE))
+                 plotTextStyleList <- reactiveVal(getDefaultTextFormat())
                  
                  observe({
                    req(length(savedModels()) > 0)
                    modelNames <- names(savedModels())
                    
-                   pointStyleList <- pointStyleList %>%
+                   newList <- pointStyleList() %>%
                      getDefaultPointFormatForModels(modelNames = modelNames)
+                   pointStyleList(newList)
                    
                    updateSelectizeInput(session, "plotTimeModels", 
                                         choices = modelNames, 
@@ -218,13 +230,6 @@ timePlotFormattingServer <- function(id, savedModels) {
                  }) %>%
                    bindEvent(input[["plotTimeModels"]], ignoreNULL = FALSE, ignoreInit = TRUE)
                  
-                 observe({
-                   req(input[["formatTimePlot"]])
-                   # observe point style
-                   pointStyleList[[input[["formatTimePlot"]]]] <- pointStyle[["dataPoints"]]
-                 }) %>%
-                   bindEvent(input[["applyFormatToTimePlotModel"]])
-                 
                  allFits <- reactive({
                    getEntry(savedModels(), "fit")
                  })
@@ -238,14 +243,21 @@ timePlotFormattingServer <- function(id, savedModels) {
                      removeEmptyModels()
                  })
                  
-                 extractedPlotDataDF <- reactive({
-                   extractedPlotDataList() %>%
+                 extractedPlotDataDF <- reactiveVal()
+                 observe({
+                   req(savedModels(), input[["plotTimeModels"]])
+                   logDebug("%s: Entering get extractedPlotDataDF()", id)
+                   
+                   df <- extractedPlotDataList() %>%
                      extractPlotDataDF(models = input[["plotTimeModels"]],
                                        credInt = input$modCredInt)  %>%
                      shinyTryCatch(errorTitle = "'Credibility intervals over time': Error when extracting data", 
                                    warningTitle = "'Credibility intervals over time': Warning when extracting data",
                                    alertStyle = "shinyalert")
-                 })
+                   
+                   extractedPlotDataDF(df)
+                 }) %>%
+                   bindEvent(input[["plotTimeModels-apply"]])
                  
                  # render plot data table ----
                  output$plotData <- renderTable({
@@ -256,98 +268,166 @@ timePlotFormattingServer <- function(id, savedModels) {
                  })
                  
                  # export plot data ----
-                 plotDataExport <- reactiveVal()
+                 dataExportServer("exportCredIntTimeData", filename = "timePlotData", reactive(function() {
+                   if (length(input[["plotTimeModels"]]) == 0 ||
+                       any(input[["plotTimeModels"]] == ""))
+                     return(NULL)
+                   
+                   extractedPlotDataDF()
+                 }))
+                 
+                 legend <- shinyTools::plotLegendServer(
+                   "legend", 
+                   legend_title = reactive({"individual"}),
+                   legend_labels = reactive({levels(na.omit(extractedPlotDataDF())[["individual"]])}))
+                 
+                 # custom points ----
+                 custom_points <- reactiveVal(list())
+                 customPointsServer("customPoints", plot_type = "ggplot", custom_points = custom_points)
+                 
+                 # buttons: input[["plotTimeModels"]] button -----
+                 # disable if nothing is selected in
+                 buttons <- c("plotTimeModels-apply", "axis-apply", "plotLabels-apply")
+                 lapply(buttons, function(btn) {
+                   observe({
+                     if (length(input[["plotTimeModels"]]) == 0 ||
+                         any(input[["plotTimeModels"]] == "")) {
+                       logDebug("%s: Disable button '%s'", id, btn)
+                       shinyjs::disable(ns(btn), asis = TRUE)
+                     } else {
+                       logDebug("%s: Enable button '%s'", id, btn)
+                       shinyjs::enable(ns(btn), asis = TRUE)
+                     }
+                   })
+                 })
                  
                  observe({
-                   plotDataExport(extractedPlotDataDF())
-                 }) %>%
-                   bindEvent(input[["plotTimeModels"]])
-                 
-                 dataExportServer("exportCredIntTimeData",
-                                  reactive(function() {plotDataExport()}))
-                 
-                 newPlot <- reactive({
-                   logDebug("%s: Entering: reactive 'newPlot'", id)
+                   logDebug("%s: Apply new point layout", id)
+                   newList <- plotAxisStyleList()
+                   for (name in names(plotRanges)) {
+                     newList[[name]] <- plotRanges[[name]]
+                   }
+                   newList[["extendLabels"]] <- input[["extendLabels"]]
+                   newList[["secAxisModel"]] <- input[["secAxisModel"]]
                    
-                   # setup base plot
+                   plotAxisStyleList(newList)
+                 }) %>%
+                   bindEvent(input[["axis-apply"]])
+                 
+                 observe({
+                   logDebug("%s: Apply new text layout", id)
+                   newList <- plotTextStyleList()
+                   for (name in names(plotTexts)) {
+                     newList[[name]] <- plotTexts[[name]]
+                   }
+                   
+                   plotTextStyleList(newList)
+                 }) %>%
+                   bindEvent(input[["plotLabels-apply"]])
+                 
+                 # button: input[["formatTimePlot"]] ----
+                 # disable if nothing is selected in
+                 observe({
+                   if (length(input[["formatTimePlot"]]) == 0 ||
+                       any(input[["formatTimePlot"]] == "")) {
+                     logDebug("%s: Disable button 'pointStyle-apply'", id)
+                     shinyjs::disable(ns("pointStyle-apply"), asis = TRUE)
+                   } else {
+                     logDebug("%s: Enable button 'pointStyle-apply'", id)
+                     shinyjs::enable(ns("pointStyle-apply"), asis = TRUE)
+                   }
+                 })
+                 
+                 observe({
+                   logDebug("%s: Apply new point layout", id)
+                   
+                   # update point style list
+                   newList <- pointStyleList()
+                   newList[[input[["formatTimePlot"]]]] <- pointStyle[["dataPoints"]]
+                   pointStyleList(newList)
+                 }) %>%
+                   bindEvent(input[["pointStyle-apply"]])
+                 
+                 observe({
+                   req(savedModels(), input[["plotTimeModels"]])
+                   logDebug("%s: Entering reset pointStyleList()", id)
+                   defaultStyle <- pointStyleList() %>%
+                     getDefaultPointFormatForModels(modelNames = names(savedModels()), isFullReset = TRUE)
+                   newList <- pointStyleList()
+                   newList[[input[["formatTimePlot"]]]] <- defaultStyle[[input[["formatTimePlot"]]]]
+                   pointStyleList(newList)
+                 }) %>%
+                   bindEvent(input[["pointStyle-reset"]])
+                 
+                 # render plot ----
+                 plotToExport <- reactiveVal(NULL)
+                 output$plotTime <- renderPlot({
+                   validate(need(extractedPlotDataDF(), messageNoModelsToPlot()))
+                   
+                   logDebug("%s: draw basePlot", id)
                    p <- extractedPlotDataDF() %>%
                      na.omit() %>%
-                     rescaleSecondAxisData(individual = input[["secAxisModel"]],
-                                           plotRanges = plotRanges) %>%
-                     basePlotTime(xLim = getUserLimits(plotRanges = plotRanges[["xAxis"]]),
-                                  yLim = getUserLimits(plotRanges = plotRanges[["yAxis"]])) %>%
-                     setDefaultTitles(prop = input$modCredInt) %>%
-                     shinyTools::formatTitlesOfGGplot(text = plotTexts)
+                     rescaleSecondAxisData(individual = plotAxisStyleList()[["secAxisModel"]],
+                                           plotRanges = plotAxisStyleList()) %>%
+                     basePlotTime(xLim = getUserLimits(plotRanges = plotAxisStyleList()[["xAxis"]]),
+                                  yLim = getUserLimits(plotRanges = plotAxisStyleList()[["yAxis"]])) %>%
+                     setDefaultTitles(prop = isolate(input[["modCredInt"]])) %>%
+                     shinyTools::formatTitlesOfGGplot(text = plotTextStyleList()) %>%
+                     shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
                    
                    # specify x-axis labels from x data of all models
                    allXAxisData <- extractedPlotDataList() %>%
                      extractAllXAxisData() %>%
-                     extendXAxis(xLabelLim = getUserLimits(plotRanges = plotRanges[["xAxis"]]), 
-                                 extendLabels = input$extendLabels)
+                     extendXAxis(xLabelLim = getUserLimits(plotRanges = plotAxisStyleList()[["xAxis"]]), 
+                                 extendLabels = plotAxisStyleList()[["extendLabels"]])
                    
-                   p %>%
+                   logDebug("%s: draw lines", id)
+                   p <- p %>%
+                     drawLinesAndRibbon(
+                       pointStyleList = pointStyleList(),
+                       alphaL = input[["alphaL"]],
+                       alphaU = input[["alphaU"]],
+                       legend = reactiveValuesToList(legend)
+                     ) %>%
                      shinyTools::formatScalesOfGGplot(
-                       ranges = plotRanges,
+                       ranges = plotAxisStyleList(),
                        xLabels = list(
                          # input$deriv already included within extractedPlotDataList()
                          breaks = getBreaks(time = allXAxisData$time, deriv = "1"),
                          labels = getLabel(xAxisData = allXAxisData, deriv = "1")
                        ),
-                       ySecAxisTitle = getSecAxisTitle(modelName = input[["secAxisModel"]],
-                                                       customTitle = plotTexts[["yAxisTitle2"]])
+                       ySecAxisTitle = getSecAxisTitle(modelName = plotAxisStyleList()[["secAxisModel"]],
+                                                       customTitle = plotTextStyleList()[["yAxisTitle2"]])
                      ) %>%
-                     drawLinesAndRibbon(
-                       pointStyleList = pointStyleList,
-                       alphaL = input[["alphaL"]],
-                       alphaU = input[["alphaU"]],
-                       # UPDATE LEGEND HERE <- -------
-                       legendName = plotTexts[["legendTitle"]][["text"]]
-                       ) %>%
-                     shinyTools::formatLegendOfGGplot(legend = legend)
-                 })
-                 
-                 observe({
-                   req(savedModels(), input[["plotTimeModels"]])
-                   logDebug("%s: Entering get formattedPlot()", id)
-                   
-                   p <- newPlot() %>%
+                     shinyTools::addCustomPointsToGGplot(custom_points = custom_points()) %>%
                      shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
-                   formattedPlot(p)
-                 }) %>%
-                   bindEvent(list(input[["applyFormatToTimePlot"]], 
-                                  input[["applyFormatToTimePlotModel"]]))
-                 
-                 observe({
-                   req(savedModels(), input[["plotTimeModels"]])
-                   logDebug("%s: Entering reset formattedPlot()", id)
                    
-                   modelNames <- names(savedModels())
-                   defaultStyle <- pointStyleList %>%
-                     reactiveValuesToList() %>%
-                     getDefaultPointFormatForModels(modelNames = modelNames)
-                   pointStyleList[[input[["formatTimePlot"]]]] <- defaultStyle[[input[["formatTimePlot"]]]]
-                   
-                   p <- newPlot() %>%
-                     shinyTools::shinyTryCatch(errorTitle = "Plotting failed")
-                   formattedPlot(p)
-                 }) %>%
-                   bindEvent(input[["resetFormatTimePlotModel"]])
-                 
-                 # render plot ----
-                 output$plotTime <- renderPlot({
-                   validate(need(formattedPlot(), messageNoModelsToPlot()))
-                   formattedPlot()
+                   plotToExport(p)
+                   p
                  })
                  
                  # export plot ----
                  plotExportServer("exportCredIntTimePlot",
-                                  plotFun = reactive(function() formattedPlot()),
+                                  plotFun = reactive(function() plotToExport()),
                                   filename = sprintf("%s_Credibility_Intervals_Over_Time",
                                                      gsub("-", "", Sys.Date()))
                                   )
                  
                  # Break point detection ----
-                 breakPointDetectionServer(id = "breakPointDetection", plotData = extractedPlotDataDF)
+                 changePointData <- reactiveValues()
+                 observe({
+                   changePointData$mainData <- extractedPlotDataDF()
+                 }) %>%
+                   bindEvent(extractedPlotDataDF())
+                 
+                 changePointsServer(
+                   "changePoints",
+                   file_data = changePointData, 
+                   mcp_columns = c(x = "time", y = "median")
+                 )
+                 # note: restoring a whole session as in ChangeR will not be possible (much too
+                 # complex) since inputs are send much earlier than all reactive objects are updated.
+                 # As a result the inputs cannot be set correctly and plots will remain empty.
                })
 }
 

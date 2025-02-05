@@ -1,3 +1,16 @@
+# OsteoBioR 25.02.0
+
+## New Features
+- option to add custom points to a plot
+- option to use custom legend labels for the plot (#69)
+- new logos and links in header
+
+# OsteoBioR 24.11.0
+
+## Updates
+- integration of modules from _ChangeR_ package for break-point detection (#72)
+- option to set the "x" and "y" columns for mcp modelling
+
 # OsteoBioR 24.10.0
 
 ## Updates

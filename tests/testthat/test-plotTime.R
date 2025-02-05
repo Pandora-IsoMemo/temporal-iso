@@ -83,10 +83,8 @@ testthat::test_that("basePlotTime",  {
     drawLinesAndRibbon(
       pointStyleList = pointStyleList,
       alphaL = 0.7,
-      alphaU = 0.1,
-      legendName = "testLegend"
-      ) %>%
-    formatLegendOfGGplot(legend = list(position = "top"))
+      alphaU = 0.1
+      )
   
   expect_equal(
     plot$labels,
@@ -117,8 +115,7 @@ testthat::test_that("basePlotTime",  {
     drawLinesAndRibbon(
       pointStyleList = pointStyleList,
       alphaL = 0.7,
-      alphaU = 0.1,
-      legendName = "testLegend"
+      alphaU = 0.1
     )
   
   expect_equal(
@@ -169,8 +166,7 @@ testthat::test_that("drawLinesAndRibbon",  {
     drawLinesAndRibbon(
       pointStyleList = pointStyleList,
       alphaL = 0.7,
-      alphaU = 0.1,
-      legendName = "testLegend"
+      alphaU = 0.1
     )
   
   expect_equal(
